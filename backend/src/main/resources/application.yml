@@ -23,3 +23,9 @@ spring:
 
 server:
   port: 8080
+
+security:
+  jwt:
+    issuer: shelfradar-api
+    expiration-minutes: 60
+    secret: ${JWT_SECRET:shelfradar-development-jwt-secret-key-change-before-production-2026}

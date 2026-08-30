@@ -1,6 +1,15 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
+import {
+    StrictMode,
+} from 'react'
+
+import {
+    createRoot,
+} from 'react-dom/client'
+
+import {
+    BrowserRouter,
+} from 'react-router-dom'
+
 import {
     QueryClient,
     QueryClientProvider,
@@ -9,25 +18,38 @@ import {
 import App from './App'
 import './index.css'
 
-const queryClient = new QueryClient({
-    defaultOptions: {
-        queries: {
-            retry: 1,
-            refetchOnWindowFocus: false,
+import AuthProvider
+    from './features/auth/AuthProvider'
+
+const queryClient =
+    new QueryClient({
+        defaultOptions: {
+            queries: {
+                retry: 1,
+                refetchOnWindowFocus: false,
+            },
         },
-    },
-})
+    })
 
 createRoot(
-    document.getElementById('root')!,
+    document.getElementById(
+        'root',
+    )!,
 ).render(
+
     <StrictMode>
 
         <BrowserRouter>
 
-            <QueryClientProvider client={queryClient}>
+            <QueryClientProvider
+                client={queryClient}
+            >
 
-                <App />
+                <AuthProvider>
+
+                    <App />
+
+                </AuthProvider>
 
             </QueryClientProvider>
 

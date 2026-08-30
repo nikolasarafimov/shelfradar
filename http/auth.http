@@ -1,0 +1,110 @@
+### ========================================================
+### ADMIN LOGIN
+### ========================================================
+
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@shelfradar.local",
+  "password": "Admin123!"
+}
+
+> {%
+    client.global.set(
+        "admin_token",
+        response.body.accessToken
+    );
+%}
+
+
+### ========================================================
+### CURRENT ADMIN
+### ========================================================
+
+GET http://localhost:8080/api/auth/me
+Authorization: Bearer {{admin_token}}
+
+
+### ========================================================
+### ADMIN ACCESS
+### ========================================================
+
+GET http://localhost:8080/api/admin/access
+Authorization: Bearer {{admin_token}}
+
+
+### ========================================================
+### ADMIN TRYING STORE OWNER RESOURCE
+### Expected: 403
+### ========================================================
+
+GET http://localhost:8080/api/store/access
+Authorization: Bearer {{admin_token}}
+
+
+### ========================================================
+### STORE OWNER LOGIN
+### ========================================================
+
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "marko@shelfradar.local",
+  "password": "Store123!"
+}
+
+> {%
+    client.global.set(
+        "store_token",
+        response.body.accessToken
+    );
+%}
+
+
+### ========================================================
+### CURRENT STORE OWNER
+### ========================================================
+
+GET http://localhost:8080/api/auth/me
+Authorization: Bearer {{store_token}}
+
+
+### ========================================================
+### STORE OWNER ACCESS
+### ========================================================
+
+GET http://localhost:8080/api/store/access
+Authorization: Bearer {{store_token}}
+
+
+### ========================================================
+### STORE OWNER TRYING ADMIN RESOURCE
+### Expected: 403
+### ========================================================
+
+GET http://localhost:8080/api/admin/access
+Authorization: Bearer {{store_token}}
+
+
+### ========================================================
+### INVALID LOGIN
+### Expected: 401
+### ========================================================
+
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@shelfradar.local",
+  "password": "wrong-password"
+}
+
+
+### ========================================================
+### NO TOKEN
+### Expected: 401
+### ========================================================
+
+GET http://localhost:8080/api/auth/me

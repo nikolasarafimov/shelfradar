@@ -1,8 +1,13 @@
-import axios from 'axios'
+import { apiClient } from './client'
 import type { HealthResponse } from '../types/health'
 
-export async function getHealth(): Promise<HealthResponse> {
-    const response = await axios.get<HealthResponse>('/api/health')
+export async function getHealth():
+    Promise<HealthResponse> {
+
+    const response =
+        await apiClient.get<HealthResponse>(
+            '/health',
+        )
 
     return response.data
 }

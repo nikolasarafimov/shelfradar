@@ -32,6 +32,13 @@ export default function HomePage() {
                         check availability.
                     </p>
 
+                    <a
+                        href="/login"
+                        className="mt-8 inline-flex rounded-xl bg-sky-500 px-5 py-3 font-semibold text-slate-950 transition hover:bg-sky-400"
+                    >
+                        Staff Login
+                    </a>
+
                     <div className="mt-10 rounded-2xl border border-slate-800 bg-slate-900 p-6">
 
                         <h2 className="text-lg font-semibold">
