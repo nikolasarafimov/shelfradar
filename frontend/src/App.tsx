@@ -24,6 +24,9 @@ import ProtectedRoute
 import AdminCatalogPage
     from './pages/AdminCatalogPage'
 
+import StoreManagementPage
+    from './pages/StoreManagementPage'
+
 export default function App() {
 
     return (
@@ -79,6 +82,17 @@ export default function App() {
                         allowedRole="ADMIN"
                     >
                         <AdminCatalogPage />
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/store/stores/:storeId"
+                element={
+                    <ProtectedRoute
+                        allowedRole="STORE_OWNER"
+                    >
+                        <StoreManagementPage />
                     </ProtectedRoute>
                 }
             />

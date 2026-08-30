@@ -143,4 +143,21 @@ public class GlobalExceptionHandler {
                 .status(status)
                 .body(response);
     }
+
+    @ExceptionHandler(
+            InvalidInventoryStateException.class
+    )
+    public ResponseEntity<ApiErrorResponse>
+    handleInvalidInventoryState(
+            InvalidInventoryStateException exception,
+            HttpServletRequest request
+    ) {
+
+        return buildResponse(
+                HttpStatus.BAD_REQUEST,
+                exception.getMessage(),
+                request,
+                Map.of()
+        );
+    }
 }
