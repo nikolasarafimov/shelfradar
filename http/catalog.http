@@ -1,0 +1,94 @@
+### ========================================================
+### ADMIN LOGIN
+### ========================================================
+
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@shelfradar.local",
+  "password": "Admin123!"
+}
+
+> {%
+    client.global.set(
+        "admin_token",
+        response.body.accessToken
+    );
+%}
+
+
+### ========================================================
+### GET BRANDS
+### ========================================================
+
+GET http://localhost:8080/api/admin/catalog/brands
+Authorization: Bearer {{admin_token}}
+
+
+### ========================================================
+### CREATE BRAND
+### ========================================================
+
+POST http://localhost:8080/api/admin/catalog/brands
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "name": "Red Bull"
+}
+
+
+### ========================================================
+### GET CATEGORIES
+### ========================================================
+
+GET http://localhost:8080/api/admin/catalog/categories
+Authorization: Bearer {{admin_token}}
+
+
+### ========================================================
+### CREATE CATEGORY
+### ========================================================
+
+POST http://localhost:8080/api/admin/catalog/categories
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "name": "Energy Drinks"
+}
+
+
+### ========================================================
+### GET PRODUCTS
+### ========================================================
+
+GET http://localhost:8080/api/admin/catalog/products?page=0&size=20&sort=nameAsc
+Authorization: Bearer {{admin_token}}
+
+
+### ========================================================
+### SEARCH PRODUCTS
+### ========================================================
+
+GET http://localhost:8080/api/admin/catalog/products?q=coca&page=0&size=20
+Authorization: Bearer {{admin_token}}
+
+
+### ========================================================
+### CREATE PRODUCT
+### Replace brandId/categoryId if necessary
+### ========================================================
+
+POST http://localhost:8080/api/admin/catalog/products
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "name": "Red Bull Energy Drink 250ml",
+  "description": "Energy drink, 250ml can.",
+  "imageUrl": null,
+  "brandId": 6,
+  "categoryId": 5
+}

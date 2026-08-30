@@ -21,6 +21,9 @@ import UnauthorizedPage
 import ProtectedRoute
     from './features/auth/ProtectedRoute'
 
+import AdminCatalogPage
+    from './pages/AdminCatalogPage'
+
 export default function App() {
 
     return (
@@ -66,6 +69,17 @@ export default function App() {
                 path="/unauthorized"
                 element={
                     <UnauthorizedPage />
+                }
+            />
+
+            <Route
+                path="/admin/catalog"
+                element={
+                    <ProtectedRoute
+                        allowedRole="ADMIN"
+                    >
+                        <AdminCatalogPage />
+                    </ProtectedRoute>
                 }
             />
 

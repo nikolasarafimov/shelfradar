@@ -3,6 +3,7 @@ import {
 } from '@tanstack/react-query'
 
 import {
+    Link,
     useNavigate,
 } from 'react-router-dom'
 
@@ -13,6 +14,8 @@ import {
 import {
     useAuth,
 } from '../features/auth/useAuth'
+
+
 
 export default function AdminDashboardPage() {
 
@@ -100,6 +103,29 @@ export default function AdminDashboardPage() {
                             {data.message}
                         </p>
                     )}
+
+                </div>
+
+                <div className="mt-6 grid gap-4 md:grid-cols-2">
+
+                    <Link
+                        to="/admin/catalog"
+                        className="rounded-2xl border border-slate-800 bg-slate-900 p-6 transition hover:border-slate-700"
+                    >
+
+                        <p className="text-sm font-semibold text-sky-400">
+                            Catalog
+                        </p>
+
+                        <h2 className="mt-2 text-xl font-semibold">
+                            Manage Catalog
+                        </h2>
+
+                        <p className="mt-2 text-sm text-slate-400">
+                            Create and manage products, brands and categories.
+                        </p>
+
+                    </Link>
 
                 </div>
 
