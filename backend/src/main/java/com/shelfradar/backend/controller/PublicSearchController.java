@@ -8,69 +8,62 @@ import com.shelfradar.backend.service.PublicSearchService;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/public")
 @Validated
 public class PublicSearchController {
 
-    private final PublicSearchService
-            publicSearchService;
+    private final PublicSearchService publicSearchService;
 
     public PublicSearchController(
             PublicSearchService publicSearchService
     ) {
-        this.publicSearchService =
-                publicSearchService;
+        this.publicSearchService = publicSearchService;
     }
 
     @GetMapping("/search")
-    public PageResponse<PublicSearchResultResponse>
-    search(
+    public PageResponse<PublicSearchResultResponse> search(
 
-            @RequestParam(
-                    required = false
-            )
+            @RequestParam(required = false)
             String q,
 
-            @RequestParam(
-                    required = false
-            )
+            @RequestParam(required = false)
             Long brandId,
 
-            @RequestParam(
-                    required = false
-            )
+            @RequestParam(required = false)
             Long categoryId,
 
-            @RequestParam(
-                    required = false
-            )
+            @RequestParam(required = false)
             StockStatus status,
 
-            @RequestParam(
-                    required = false
-            )
+            @RequestParam(required = false)
             String city,
 
-            @RequestParam(
-                    defaultValue = "0"
-            )
+            @RequestParam(defaultValue = "0")
             @Min(0)
             int page,
 
-            @RequestParam(
-                    defaultValue = "20"
-            )
+            @RequestParam(defaultValue = "20")
             @Min(1)
             @Max(100)
             int size,
 
-            @RequestParam(
-                    defaultValue = "priceAsc"
-            )
-            String sort
+            @RequestParam(defaultValue = "priceAsc")
+            String sort,
+
+            @RequestParam(required = false)
+            Double latitude,
+
+            @RequestParam(required = false)
+            Double longitude,
+
+            @RequestParam(required = false)
+            Double radiusKm
     ) {
 
         return publicSearchService.search(
@@ -81,15 +74,16 @@ public class PublicSearchController {
                 city,
                 page,
                 size,
-                sort
+                sort,
+                latitude,
+                longitude,
+                radiusKm
         );
     }
 
     @GetMapping("/filters")
-    public PublicSearchFiltersResponse
-    getFilters() {
+    public PublicSearchFiltersResponse getFilters() {
 
-        return publicSearchService
-                .getFilters();
+        return publicSearchService.getFilters();
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import com.shelfradar.backend.exception.InvalidLocationException;
 
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -150,6 +151,21 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrorResponse>
     handleInvalidInventoryState(
             InvalidInventoryStateException exception,
+            HttpServletRequest request
+    ) {
+
+        return buildResponse(
+                HttpStatus.BAD_REQUEST,
+                exception.getMessage(),
+                request,
+                Map.of()
+        );
+    }
+
+    @ExceptionHandler(InvalidLocationException.class)
+    public ResponseEntity<ApiErrorResponse>
+    handleInvalidLocation(
+            InvalidLocationException exception,
             HttpServletRequest request
     ) {
 

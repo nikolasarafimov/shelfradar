@@ -130,6 +130,9 @@ vi.mock(
 
                             updatedAt:
                                 '2026-01-01T00:00:00Z',
+
+                            distanceKm:
+                                null,
                         },
                     ],
 
@@ -142,6 +145,16 @@ vi.mock(
                     first: true,
                     last: true,
                 }),
+    }),
+)
+
+vi.mock(
+    '../components/public/SearchResultsMap',
+    () => ({
+        default:
+            () => (
+                <div data-testid="search-results-map" />
+            ),
     }),
 )
 

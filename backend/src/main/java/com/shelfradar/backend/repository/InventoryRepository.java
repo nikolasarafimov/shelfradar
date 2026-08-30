@@ -79,4 +79,22 @@ public interface InventoryRepository
 
             Pageable pageable
     );
+
+    @EntityGraph(
+            attributePaths = {
+                    "product",
+                    "product.brand",
+                    "product.category",
+                    "store"
+            }
+    )
+    @Query("""
+        SELECT i
+        FROM Inventory i
+        WHERE i.id IN :ids
+        """)
+    List<Inventory> findDetailedByIds(
+            @Param("ids")
+            List<Long> ids
+    );
 }

@@ -1,6 +1,7 @@
 import {
     Clock3,
     MapPin,
+    Navigation,
     Package,
     Store,
 } from 'lucide-react'
@@ -8,6 +9,11 @@ import {
 import type {
     PublicSearchResult,
 } from '../../types/publicSearch'
+
+import type {
+    StockStatus,
+} from '../../types/store'
+
 
 export default function SearchResultCard({
                                              result,
@@ -39,25 +45,17 @@ export default function SearchResultCard({
 
                                 <p className="text-sm font-medium text-slate-500">
                                     {
-                                        result
-                                            .product
-                                            .brand
-                                            .name
+                                        result.product.brand.name
                                     }
                                     {' · '}
                                     {
-                                        result
-                                            .product
-                                            .category
-                                            .name
+                                        result.product.category.name
                                     }
                                 </p>
 
                                 <h2 className="mt-1 text-xl font-bold text-slate-950">
                                     {
-                                        result
-                                            .product
-                                            .name
+                                        result.product.name
                                     }
                                 </h2>
 
@@ -70,6 +68,7 @@ export default function SearchResultCard({
                             />
 
                         </div>
+
 
                         <div className="mt-5 flex items-end justify-between gap-4">
 
@@ -93,6 +92,7 @@ export default function SearchResultCard({
 
                             </div>
 
+
                             <div className="text-right">
 
                                 <p className="text-xs text-slate-400">
@@ -113,7 +113,9 @@ export default function SearchResultCard({
 
                 </div>
 
+
                 <div className="my-5 border-t border-slate-100" />
+
 
                 <div className="space-y-3 text-sm text-slate-600">
 
@@ -131,6 +133,7 @@ export default function SearchResultCard({
                         </span>
 
                     </div>
+
 
                     <div className="flex items-start gap-3">
 
@@ -151,6 +154,31 @@ export default function SearchResultCard({
 
                     </div>
 
+
+                    {
+                        result.distanceKm !== null && (
+
+                            <div className="flex items-center gap-3">
+
+                                <Navigation
+                                    size={17}
+                                    className="shrink-0 text-slate-400"
+                                />
+
+                                <span className="font-medium text-slate-700">
+                                    {
+                                        formatDistance(
+                                            result.distanceKm,
+                                        )
+                                    }{' '}
+                                    away
+                                </span>
+
+                            </div>
+                        )
+                    }
+
+
                     {
                         result.store.workingHours && (
 
@@ -163,9 +191,7 @@ export default function SearchResultCard({
 
                                 <span>
                                     {
-                                        result
-                                            .store
-                                            .workingHours
+                                        result.store.workingHours
                                     }
                                 </span>
 
@@ -180,6 +206,7 @@ export default function SearchResultCard({
         </article>
     )
 }
+
 
 function ProductImage({
                           name,
@@ -203,19 +230,19 @@ function ProductImage({
     return (
         <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
 
-            <Package size={34} />
+            <Package
+                size={34}
+            />
 
         </div>
     )
 }
 
+
 function StockBadge({
                         status,
                     }: {
-    status:
-        | 'IN_STOCK'
-        | 'LOW_STOCK'
-        | 'OUT_OF_STOCK'
+    status: StockStatus
 }) {
 
     const styles =
@@ -225,12 +252,14 @@ function StockBadge({
                 ? 'bg-amber-50 text-amber-700 ring-amber-600/20'
                 : 'bg-red-50 text-red-700 ring-red-600/20'
 
+
     const label =
         status === 'IN_STOCK'
             ? 'In stock'
             : status === 'LOW_STOCK'
                 ? 'Low stock'
                 : 'Out of stock'
+
 
     return (
         <span
@@ -241,9 +270,10 @@ function StockBadge({
     )
 }
 
+
 function formatPrice(
     value: number,
-) {
+): string {
 
     return new Intl.NumberFormat(
         'en-US',
@@ -252,4 +282,19 @@ function formatPrice(
             maximumFractionDigits: 2,
         },
     ).format(value)
+}
+
+
+function formatDistance(
+    distanceKm: number,
+): string {
+
+    if (distanceKm < 1) {
+
+        return `${Math.round(
+            distanceKm * 1000,
+        )} m`
+    }
+
+    return `${distanceKm.toFixed(1)} km`
 }

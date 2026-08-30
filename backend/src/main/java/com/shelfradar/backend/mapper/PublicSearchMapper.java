@@ -18,10 +18,31 @@ public class PublicSearchMapper {
                 catalogMapper;
     }
 
+
     public PublicSearchResultResponse
     toSearchResult(
             Inventory inventory
     ) {
+
+        return toSearchResult(
+                inventory,
+                null
+        );
+    }
+
+
+    public PublicSearchResultResponse
+    toSearchResult(
+            Inventory inventory,
+            Double distanceKm
+    ) {
+
+        Double roundedDistance =
+                distanceKm == null
+                        ? null
+                        : Math.round(
+                        distanceKm * 1000.0
+                ) / 1000.0;
 
         return new PublicSearchResultResponse(
                 inventory.getId(),
@@ -40,9 +61,12 @@ public class PublicSearchMapper {
 
                 inventory.getStatus(),
 
-                inventory.getUpdatedAt()
+                inventory.getUpdatedAt(),
+
+                roundedDistance
         );
     }
+
 
     private PublicStoreResponse
     toStoreResponse(

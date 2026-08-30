@@ -159,4 +159,125 @@ class PublicSearchIntegrationTest {
                         status().isBadRequest()
                 );
     }
+
+    @Test
+    void nearestSearchShouldReturnMarketCenterFirst()
+            throws Exception {
+
+        mockMvc.perform(
+                        get("/api/public/search")
+                                .param(
+                                        "q",
+                                        "Coca-Cola Original 1L"
+                                )
+                                .param(
+                                        "latitude",
+                                        "41.998100"
+                                )
+                                .param(
+                                        "longitude",
+                                        "21.425400"
+                                )
+                                .param(
+                                        "sort",
+                                        "distanceAsc"
+                                )
+                )
+                .andExpect(
+                        status().isOk()
+                )
+                .andExpect(
+                        jsonPath(
+                                "$.content[0].store.name"
+                        ).value(
+                                "Market Center"
+                        )
+                )
+                .andExpect(
+                        jsonPath(
+                                "$.content[0].distanceKm"
+                        ).isNumber()
+                );
+    }
+
+
+    @Test
+    void radiusSearchShouldRestrictStores()
+            throws Exception {
+
+        mockMvc.perform(
+                        get("/api/public/search")
+                                .param(
+                                        "q",
+                                        "Coca-Cola Original 1L"
+                                )
+                                .param(
+                                        "latitude",
+                                        "41.998100"
+                                )
+                                .param(
+                                        "longitude",
+                                        "21.425400"
+                                )
+                                .param(
+                                        "radiusKm",
+                                        "0.2"
+                                )
+                                .param(
+                                        "sort",
+                                        "distanceAsc"
+                                )
+                )
+                .andExpect(
+                        status().isOk()
+                )
+                .andExpect(
+                        jsonPath(
+                                "$.totalElements"
+                        ).value(
+                                1
+                        )
+                )
+                .andExpect(
+                        jsonPath(
+                                "$.content[0].store.name"
+                        ).value(
+                                "Market Center"
+                        )
+                );
+    }
+
+
+    @Test
+    void latitudeWithoutLongitudeShouldFail()
+            throws Exception {
+
+        mockMvc.perform(
+                        get("/api/public/search")
+                                .param(
+                                        "latitude",
+                                        "41.998100"
+                                )
+                )
+                .andExpect(
+                        status().isBadRequest()
+                );
+    }
+
+
+    @Test
+    void distanceSortWithoutLocationShouldFail()
+            throws Exception {
+
+        mockMvc.perform(
+                        get("/api/public/search")
+                                .param(
+                                        "sort",
+                                        "distanceAsc"
+                                )
+                )
+                .andExpect(
+                        status().isBadRequest()
+                );
+    }
 }

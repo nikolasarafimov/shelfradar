@@ -1,0 +1,56 @@
+@baseUrl = http://localhost:8080
+
+
+### Search with location
+
+GET {{baseUrl}}/api/public/search?q=Coca-Cola&latitude=41.998100&longitude=21.425400
+
+
+### Nearest Coca-Cola
+
+GET {{baseUrl}}/api/public/search?q=Coca-Cola&latitude=41.998100&longitude=21.425400&sort=distanceAsc
+
+
+### Within 1 km
+
+GET {{baseUrl}}/api/public/search?q=Coca-Cola&latitude=41.998100&longitude=21.425400&radiusKm=1&sort=distanceAsc
+
+
+### Within 3 km
+
+GET {{baseUrl}}/api/public/search?q=Coca-Cola&latitude=41.998100&longitude=21.425400&radiusKm=3&sort=distanceAsc
+
+
+### Within 5 km
+
+GET {{baseUrl}}/api/public/search?latitude=41.998100&longitude=21.425400&radiusKm=5&sort=distanceAsc
+
+
+### In stock + nearest
+
+GET {{baseUrl}}/api/public/search?q=Coca-Cola&status=IN_STOCK&latitude=41.998100&longitude=21.425400&sort=distanceAsc
+
+
+### Missing longitude - expected 400
+
+GET {{baseUrl}}/api/public/search?latitude=41.998100
+
+
+### Invalid latitude - expected 400
+
+GET {{baseUrl}}/api/public/search?latitude=120&longitude=21.425400
+
+
+### Invalid longitude - expected 400
+
+GET {{baseUrl}}/api/public/search?latitude=41.998100&longitude=200
+
+
+### Radius without coordinates - expected 400
+
+GET {{baseUrl}}/api/public/search?radiusKm=5
+
+
+### Distance sort without location - expected 400
+
+GET {{baseUrl}}/api/public/search?sort=distanceAsc

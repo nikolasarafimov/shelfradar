@@ -1,3 +1,7 @@
+import {
+    useState,
+} from 'react'
+
 import type {
     FormEvent,
     ReactNode,
@@ -13,8 +17,10 @@ import {
 } from 'react-router-dom'
 
 import {
+    LocateFixed,
     Search,
     SlidersHorizontal,
+    X,
 } from 'lucide-react'
 
 import {
@@ -25,6 +31,9 @@ import {
 import SearchResultCard
     from '../components/public/SearchResultCard'
 
+import SearchResultsMap
+    from '../components/public/SearchResultsMap'
+
 import type {
     PublicSearchSort,
 } from '../types/publicSearch'
@@ -32,6 +41,19 @@ import type {
 import type {
     StockStatus,
 } from '../types/store'
+
+
+interface UserLocation {
+    latitude: number
+    longitude: number
+}
+
+
+type LocationStatus =
+    | 'idle'
+    | 'loading'
+    | 'ready'
+    | 'error'
 
 
 export default function PublicSearchPage() {
@@ -42,35 +64,87 @@ export default function PublicSearchPage() {
     ] = useSearchParams()
 
 
+    const [
+        userLocation,
+        setUserLocation,
+    ] =
+        useState<UserLocation | null>(
+            null,
+        )
+
+    const [
+        locationStatus,
+        setLocationStatus,
+    ] =
+        useState<LocationStatus>(
+            'idle',
+        )
+
+    const [
+        locationError,
+        setLocationError,
+    ] =
+        useState<string | null>(
+            null,
+        )
+
+
     const currentQuery =
         searchParams.get('q') ?? ''
 
     const currentBrandId =
         toNumberOrUndefined(
-            searchParams.get('brandId'),
+            searchParams.get(
+                'brandId',
+            ),
         )
 
     const currentCategoryId =
         toNumberOrUndefined(
-            searchParams.get('categoryId'),
+            searchParams.get(
+                'categoryId',
+            ),
         )
 
     const currentStatus =
         toStockStatus(
-            searchParams.get('status'),
+            searchParams.get(
+                'status',
+            ),
         )
 
     const currentCity =
-        searchParams.get('city') ?? ''
+        searchParams.get(
+            'city',
+        ) ?? ''
 
-    const currentSort =
+    const requestedSort =
         toPublicSearchSort(
-            searchParams.get('sort'),
+            searchParams.get(
+                'sort',
+            ),
         )
+
+    const currentSort:
+        PublicSearchSort =
+        requestedSort ===
+        'distanceAsc' &&
+        !userLocation
+            ? 'priceAsc'
+            : requestedSort
 
     const currentPage =
         toPageNumber(
-            searchParams.get('page'),
+            searchParams.get(
+                'page',
+            ),
+        )
+
+    const currentRadiusKm =
+        toRadiusKm(
+            searchParams.get(
+                'radiusKm',
+            ),
         )
 
 
@@ -79,6 +153,7 @@ export default function PublicSearchPage() {
             queryKey: [
                 'public-search-filters',
             ],
+
             queryFn:
             getPublicSearchFilters,
         })
@@ -86,6 +161,7 @@ export default function PublicSearchPage() {
 
     const resultsQuery =
         useQuery({
+
             queryKey: [
                 'public-search',
                 currentQuery,
@@ -95,6 +171,13 @@ export default function PublicSearchPage() {
                 currentCity,
                 currentPage,
                 currentSort,
+                userLocation
+                    ?.latitude,
+                userLocation
+                    ?.longitude,
+                userLocation
+                    ? currentRadiusKm
+                    : undefined,
             ],
 
             queryFn:
@@ -123,12 +206,26 @@ export default function PublicSearchPage() {
 
                         sort:
                         currentSort,
+
+                        latitude:
+                        userLocation
+                            ?.latitude,
+
+                        longitude:
+                        userLocation
+                            ?.longitude,
+
+                        radiusKm:
+                            userLocation
+                                ? currentRadiusKm
+                                : undefined,
                     }),
         })
 
 
     function handleSubmit(
-        event: FormEvent<HTMLFormElement>,
+        event:
+        FormEvent<HTMLFormElement>,
     ) {
 
         event.preventDefault()
@@ -138,77 +235,140 @@ export default function PublicSearchPage() {
                 event.currentTarget,
             )
 
+
         const query =
             String(
-                formData.get('q') ?? '',
+                formData.get(
+                    'q',
+                ) ?? '',
             ).trim()
+
 
         const brandId =
             String(
-                formData.get('brandId') ?? '',
+                formData.get(
+                    'brandId',
+                ) ?? '',
             )
+
 
         const categoryId =
             String(
-                formData.get('categoryId') ?? '',
+                formData.get(
+                    'categoryId',
+                ) ?? '',
             )
+
 
         const status =
             toStockStatus(
                 String(
-                    formData.get('status') ?? '',
+                    formData.get(
+                        'status',
+                    ) ?? '',
                 ),
             )
+
 
         const city =
             String(
-                formData.get('city') ?? '',
+                formData.get(
+                    'city',
+                ) ?? '',
             ).trim()
 
-        const sort =
+
+        const requestedFormSort =
             toPublicSearchSort(
                 String(
-                    formData.get('sort') ?? '',
+                    formData.get(
+                        'sort',
+                    ) ?? '',
                 ),
             )
+
+
+        const sort:
+            PublicSearchSort =
+            requestedFormSort ===
+            'distanceAsc' &&
+            !userLocation
+                ? 'priceAsc'
+                : requestedFormSort
+
+
+        const radiusKm =
+            userLocation
+                ? toRadiusKm(
+                    String(
+                        formData.get(
+                            'radiusKm',
+                        ) ?? '',
+                    ),
+                )
+                : undefined
+
 
         const next =
             new URLSearchParams()
 
+
         if (query) {
+
             next.set(
                 'q',
                 query,
             )
         }
 
+
         if (brandId) {
+
             next.set(
                 'brandId',
                 brandId,
             )
         }
 
+
         if (categoryId) {
+
             next.set(
                 'categoryId',
                 categoryId,
             )
         }
 
+
         if (status) {
+
             next.set(
                 'status',
                 status,
             )
         }
 
+
         if (city) {
+
             next.set(
                 'city',
                 city,
             )
         }
+
+
+        if (
+            userLocation &&
+            radiusKm !== undefined
+        ) {
+
+            next.set(
+                'radiusKm',
+                String(radiusKm),
+            )
+        }
+
 
         next.set(
             'sort',
@@ -220,6 +380,7 @@ export default function PublicSearchPage() {
             '0',
         )
 
+
         setSearchParams(
             next,
         )
@@ -228,12 +389,22 @@ export default function PublicSearchPage() {
 
     function clearFilters() {
 
-        setSearchParams({
-            sort:
-                'priceAsc',
-            page:
-                '0',
-        })
+        const next =
+            new URLSearchParams()
+
+        next.set(
+            'sort',
+            'priceAsc',
+        )
+
+        next.set(
+            'page',
+            '0',
+        )
+
+        setSearchParams(
+            next,
+        )
     }
 
 
@@ -268,8 +439,146 @@ export default function PublicSearchPage() {
     }
 
 
+    function requestLocation() {
+
+        setLocationError(
+            null,
+        )
+
+
+        if (
+            !navigator.geolocation
+        ) {
+
+            setLocationStatus(
+                'error',
+            )
+
+            setLocationError(
+                'Geolocation is not supported by this browser.',
+            )
+
+            return
+        }
+
+
+        setLocationStatus(
+            'loading',
+        )
+
+
+        navigator.geolocation
+            .getCurrentPosition(
+
+                position => {
+
+                    setUserLocation({
+                        latitude:
+                            Number(
+                                position
+                                    .coords
+                                    .latitude
+                                    .toFixed(6),
+                            ),
+
+                        longitude:
+                            Number(
+                                position
+                                    .coords
+                                    .longitude
+                                    .toFixed(6),
+                            ),
+                    })
+
+                    setLocationStatus(
+                        'ready',
+                    )
+
+                    setLocationError(
+                        null,
+                    )
+                },
+
+                error => {
+
+                    setUserLocation(
+                        null,
+                    )
+
+                    setLocationStatus(
+                        'error',
+                    )
+
+                    setLocationError(
+                        getLocationErrorMessage(
+                            error.code,
+                        ),
+                    )
+                },
+
+                {
+                    enableHighAccuracy:
+                        true,
+
+                    timeout:
+                        10000,
+
+                    maximumAge:
+                        300000,
+                },
+            )
+    }
+
+
+    function clearLocation() {
+
+        setUserLocation(
+            null,
+        )
+
+        setLocationStatus(
+            'idle',
+        )
+
+        setLocationError(
+            null,
+        )
+
+
+        const next =
+            new URLSearchParams(
+                searchParams,
+            )
+
+        next.delete(
+            'radiusKm',
+        )
+
+
+        if (
+            next.get('sort') ===
+            'distanceAsc'
+        ) {
+
+            next.set(
+                'sort',
+                'priceAsc',
+            )
+        }
+
+
+        setSearchParams(
+            next,
+        )
+    }
+
+
     const results =
         resultsQuery.data
+
+
+    const formKey =
+        `${searchParams.toString()}-${userLocation ? 'located' : 'no-location'}`
 
 
     return (
@@ -313,7 +622,7 @@ export default function PublicSearchPage() {
                         </h1>
 
                         <p className="mt-3 text-slate-500">
-                            Compare prices and availability across ShelfRadar stores.
+                            Compare price, availability and distance across ShelfRadar stores.
                         </p>
 
                     </div>
@@ -328,9 +637,7 @@ export default function PublicSearchPage() {
                 <aside>
 
                     <form
-                        key={
-                            searchParams.toString()
-                        }
+                        key={formKey}
                         onSubmit={
                             handleSubmit
                         }
@@ -385,8 +692,11 @@ export default function PublicSearchPage() {
                                 <select
                                     name="brandId"
                                     defaultValue={
-                                        currentBrandId !== undefined
-                                            ? String(currentBrandId)
+                                        currentBrandId !==
+                                        undefined
+                                            ? String(
+                                                currentBrandId,
+                                            )
                                             : ''
                                     }
                                     className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5"
@@ -431,8 +741,11 @@ export default function PublicSearchPage() {
                                 <select
                                     name="categoryId"
                                     defaultValue={
-                                        currentCategoryId !== undefined
-                                            ? String(currentCategoryId)
+                                        currentCategoryId !==
+                                        undefined
+                                            ? String(
+                                                currentCategoryId,
+                                            )
                                             : ''
                                     }
                                     className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5"
@@ -494,12 +807,8 @@ export default function PublicSearchPage() {
                                                 city => (
 
                                                     <option
-                                                        key={
-                                                            city
-                                                        }
-                                                        value={
-                                                            city
-                                                        }
+                                                        key={city}
+                                                        value={city}
                                                     >
                                                         {city}
                                                     </option>
@@ -519,7 +828,8 @@ export default function PublicSearchPage() {
                                 <select
                                     name="status"
                                     defaultValue={
-                                        currentStatus ?? ''
+                                        currentStatus ??
+                                        ''
                                     }
                                     className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5"
                                 >
@@ -538,6 +848,137 @@ export default function PublicSearchPage() {
 
                                     <option value="OUT_OF_STOCK">
                                         Out of stock
+                                    </option>
+
+                                </select>
+
+                            </FieldLabel>
+
+
+                            <FieldLabel
+                                label="Your location"
+                            >
+
+                                {
+                                    userLocation ? (
+
+                                        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+
+                                            <div className="flex items-center justify-between gap-3">
+
+                                                <div className="flex items-center gap-2 text-sm font-medium text-emerald-800">
+
+                                                    <LocateFixed
+                                                        size={17}
+                                                    />
+
+                                                    Location enabled
+
+                                                </div>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={
+                                                        clearLocation
+                                                    }
+                                                    className="rounded-lg p-1 text-emerald-700 hover:bg-emerald-100"
+                                                    aria-label="Remove location"
+                                                >
+                                                    <X
+                                                        size={17}
+                                                    />
+                                                </button>
+
+                                            </div>
+
+                                        </div>
+
+                                    ) : (
+
+                                        <button
+                                            type="button"
+                                            onClick={
+                                                requestLocation
+                                            }
+                                            disabled={
+                                                locationStatus ===
+                                                'loading'
+                                            }
+                                            className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-wait disabled:opacity-60"
+                                        >
+
+                                            <LocateFixed
+                                                size={17}
+                                            />
+
+                                            {
+                                                locationStatus ===
+                                                'loading'
+                                                    ? 'Getting location...'
+                                                    : 'Use my location'
+                                            }
+
+                                        </button>
+                                    )
+                                }
+
+
+                                {
+                                    locationError && (
+
+                                        <p className="mt-2 text-xs leading-5 text-red-600">
+                                            {
+                                                locationError
+                                            }
+                                        </p>
+                                    )
+                                }
+
+                            </FieldLabel>
+
+
+                            <FieldLabel
+                                label="Distance radius"
+                            >
+
+                                <select
+                                    name="radiusKm"
+                                    defaultValue={
+                                        currentRadiusKm !==
+                                        undefined
+                                            ? String(
+                                                currentRadiusKm,
+                                            )
+                                            : ''
+                                    }
+                                    disabled={
+                                        !userLocation
+                                    }
+                                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                                >
+
+                                    <option value="">
+                                        Any distance
+                                    </option>
+
+                                    <option value="1">
+                                        Within 1 km
+                                    </option>
+
+                                    <option value="3">
+                                        Within 3 km
+                                    </option>
+
+                                    <option value="5">
+                                        Within 5 km
+                                    </option>
+
+                                    <option value="10">
+                                        Within 10 km
+                                    </option>
+
+                                    <option value="25">
+                                        Within 25 km
                                     </option>
 
                                 </select>
@@ -565,6 +1006,15 @@ export default function PublicSearchPage() {
                                         Highest price
                                     </option>
 
+                                    <option
+                                        value="distanceAsc"
+                                        disabled={
+                                            !userLocation
+                                        }
+                                    >
+                                        Nearest first
+                                    </option>
+
                                     <option value="nameAsc">
                                         Product A-Z
                                     </option>
@@ -590,6 +1040,7 @@ export default function PublicSearchPage() {
                         >
                             Apply Search
                         </button>
+
 
                         <button
                             type="button"
@@ -652,7 +1103,8 @@ export default function PublicSearchPage() {
 
                     {
                         results &&
-                        results.content.length === 0 &&
+                        results.content.length ===
+                        0 &&
                         !resultsQuery.isLoading &&
                         !resultsQuery.isError && (
 
@@ -663,7 +1115,7 @@ export default function PublicSearchPage() {
                                 </h3>
 
                                 <p className="mt-2 text-sm text-slate-500">
-                                    Try changing the search text or filters.
+                                    Try changing the search text, filters or distance radius.
                                 </p>
 
                             </div>
@@ -673,7 +1125,25 @@ export default function PublicSearchPage() {
 
                     {
                         results &&
-                        results.content.length > 0 && (
+                        results.content.length >
+                        0 && (
+
+                            <SearchResultsMap
+                                results={
+                                    results.content
+                                }
+                                userLocation={
+                                    userLocation
+                                }
+                            />
+                        )
+                    }
+
+
+                    {
+                        results &&
+                        results.content.length >
+                        0 && (
 
                             <div className="mt-6 grid gap-5">
 
@@ -700,7 +1170,8 @@ export default function PublicSearchPage() {
 
                     {
                         results &&
-                        results.totalPages > 1 && (
+                        results.totalPages >
+                        1 && (
 
                             <div className="mt-8 flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4">
 
@@ -712,7 +1183,8 @@ export default function PublicSearchPage() {
                                     onClick={
                                         () =>
                                             changePage(
-                                                results.page - 1,
+                                                results.page -
+                                                1,
                                             )
                                     }
                                     className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
@@ -720,16 +1192,19 @@ export default function PublicSearchPage() {
                                     Previous
                                 </button>
 
+
                                 <span className="text-sm text-slate-500">
                                     Page{' '}
                                     {
-                                        results.page + 1
+                                        results.page +
+                                        1
                                     }{' '}
                                     of{' '}
                                     {
                                         results.totalPages
                                     }
                                 </span>
+
 
                                 <button
                                     type="button"
@@ -739,7 +1214,8 @@ export default function PublicSearchPage() {
                                     onClick={
                                         () =>
                                             changePage(
-                                                results.page + 1,
+                                                results.page +
+                                                1,
                                             )
                                     }
                                     className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
@@ -826,6 +1302,29 @@ function toPageNumber(
 }
 
 
+function toRadiusKm(
+    value: string | null,
+): number | undefined {
+
+    if (!value) {
+        return undefined
+    }
+
+    const parsed =
+        Number(value)
+
+    if (
+        !Number.isFinite(parsed) ||
+        parsed <= 0 ||
+        parsed > 100
+    ) {
+        return undefined
+    }
+
+    return parsed
+}
+
+
 function toStockStatus(
     value: string | null,
 ): StockStatus | undefined {
@@ -851,10 +1350,34 @@ function toPublicSearchSort(
         value === 'priceDesc' ||
         value === 'nameAsc' ||
         value === 'nameDesc' ||
-        value === 'updatedDesc'
+        value === 'updatedDesc' ||
+        value === 'distanceAsc'
     ) {
         return value
     }
 
     return 'priceAsc'
+}
+
+
+function getLocationErrorMessage(
+    code: number,
+): string {
+
+    if (code === 1) {
+
+        return 'Location permission was denied.'
+    }
+
+    if (code === 2) {
+
+        return 'Your location is currently unavailable.'
+    }
+
+    if (code === 3) {
+
+        return 'Location request timed out.'
+    }
+
+    return 'Unable to determine your location.'
 }

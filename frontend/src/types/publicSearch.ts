@@ -9,6 +9,7 @@ import type {
     StockStatus,
 } from './store'
 
+
 export interface PublicStore {
     id: number
     name: string
@@ -20,6 +21,7 @@ export interface PublicStore {
     workingHours: string | null
 }
 
+
 export interface PublicSearchResult {
     inventoryId: number
     product: Product
@@ -28,7 +30,9 @@ export interface PublicSearchResult {
     quantity: number
     status: StockStatus
     updatedAt: string
+    distanceKm: number | null
 }
+
 
 export interface PublicSearchFilters {
     brands: Brand[]
@@ -37,12 +41,15 @@ export interface PublicSearchFilters {
     statuses: StockStatus[]
 }
 
+
 export type PublicSearchSort =
     | 'priceAsc'
     | 'priceDesc'
     | 'nameAsc'
     | 'nameDesc'
     | 'updatedDesc'
+    | 'distanceAsc'
+
 
 export interface PublicSearchParams {
     q?: string
@@ -53,7 +60,11 @@ export interface PublicSearchParams {
     page?: number
     size?: number
     sort?: PublicSearchSort
+    latitude?: number
+    longitude?: number
+    radiusKm?: number
 }
+
 
 export type PublicSearchPage =
     PageResponse<PublicSearchResult>

@@ -8,6 +8,7 @@ import type {
     PublicSearchParams,
 } from '../types/publicSearch'
 
+
 export async function searchPublicProducts(
     params: PublicSearchParams,
 ): Promise<PublicSearchPage> {
@@ -47,12 +48,22 @@ export async function searchPublicProducts(
                     sort:
                         params.sort ??
                         'priceAsc',
+
+                    latitude:
+                    params.latitude,
+
+                    longitude:
+                    params.longitude,
+
+                    radiusKm:
+                    params.radiusKm,
                 },
             },
         )
 
     return response.data
 }
+
 
 export async function getPublicSearchFilters():
     Promise<PublicSearchFilters> {

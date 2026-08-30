@@ -20,7 +20,9 @@ public record PublicSearchResultResponse(
 
         StockStatus status,
 
-        Instant updatedAt
+        Instant updatedAt,
+
+        Double distanceKm
 
 ) {
 }

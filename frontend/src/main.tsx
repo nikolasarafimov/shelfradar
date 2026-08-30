@@ -21,6 +21,8 @@ import './index.css'
 import AuthProvider
     from './features/auth/AuthProvider'
 
+import 'leaflet/dist/leaflet.css'
+
 const queryClient =
     new QueryClient({
         defaultOptions: {
