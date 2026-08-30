@@ -1,6 +1,7 @@
 package com.shelfradar.backend.repository;
 
 import com.shelfradar.backend.entity.Inventory;
+import com.shelfradar.backend.entity.enums.StoreStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -96,5 +97,51 @@ public interface InventoryRepository
     List<Inventory> findDetailedByIds(
             @Param("ids")
             List<Long> ids
+    );
+
+    @EntityGraph(
+            attributePaths = {
+                    "product",
+                    "product.brand",
+                    "product.category",
+                    "store"
+            }
+    )
+    @Query("""
+        SELECT i
+        FROM Inventory i
+        WHERE i.product.id = :productId
+          AND i.store.status = :storeStatus
+        """)
+    List<Inventory> findPublicOffersByProductId(
+            @Param("productId")
+            Long productId,
+
+            @Param("storeStatus")
+            StoreStatus storeStatus
+    );
+
+
+    @EntityGraph(
+            attributePaths = {
+                    "product",
+                    "product.brand",
+                    "product.category",
+                    "store"
+            }
+    )
+    @Query("""
+        SELECT i
+        FROM Inventory i
+        WHERE i.store.id = :storeId
+          AND i.store.status = :storeStatus
+        ORDER BY i.product.name ASC
+        """)
+    List<Inventory> findPublicInventoryByStoreId(
+            @Param("storeId")
+            Long storeId,
+
+            @Param("storeStatus")
+            StoreStatus storeStatus
     );
 }

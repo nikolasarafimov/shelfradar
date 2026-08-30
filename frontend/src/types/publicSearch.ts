@@ -68,3 +68,19 @@ export interface PublicSearchParams {
 
 export type PublicSearchPage =
     PageResponse<PublicSearchResult>
+
+export interface PublicProductDetail {
+    product: Product
+    offers: PublicSearchResult[]
+    lowestPrice: number | null
+    totalStores: number
+    availableStores: number
+}
+
+
+export interface PublicStoreDetail {
+    store: PublicStore
+    inventory: PublicSearchResult[]
+    totalProducts: number
+    availableProducts: number
+}

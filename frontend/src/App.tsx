@@ -30,6 +30,12 @@ import StoreManagementPage
 import PublicSearchPage
     from './pages/PublicSearchPage'
 
+import PublicProductPage
+    from './pages/PublicProductPage'
+
+import PublicStorePage
+    from './pages/PublicStorePage'
+
 export default function App() {
 
     return (
@@ -104,6 +110,20 @@ export default function App() {
                     >
                         <AdminCatalogPage />
                     </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/products/:productId"
+                element={
+                    <PublicProductPage />
+                }
+            />
+
+            <Route
+                path="/stores/:storeId"
+                element={
+                    <PublicStorePage />
                 }
             />
 

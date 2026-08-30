@@ -6,13 +6,16 @@ import {
     Store,
 } from 'lucide-react'
 
+import {
+    Link,
+} from 'react-router-dom'
+
 import type {
     PublicSearchResult,
 } from '../../types/publicSearch'
 
-import type {
-    StockStatus,
-} from '../../types/store'
+import StockBadge
+    from './StockBadge'
 
 
 export default function SearchResultCard({
@@ -37,6 +40,7 @@ export default function SearchResultCard({
                         }
                     />
 
+
                     <div className="min-w-0 flex-1">
 
                         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -53,13 +57,20 @@ export default function SearchResultCard({
                                     }
                                 </p>
 
-                                <h2 className="mt-1 text-xl font-bold text-slate-950">
+
+                                <Link
+                                    to={
+                                        `/products/${result.product.id}`
+                                    }
+                                    className="mt-1 block text-xl font-bold text-slate-950 transition hover:text-sky-600"
+                                >
                                     {
                                         result.product.name
                                     }
-                                </h2>
+                                </Link>
 
                             </div>
+
 
                             <StockBadge
                                 status={
@@ -126,11 +137,16 @@ export default function SearchResultCard({
                             className="shrink-0 text-slate-400"
                         />
 
-                        <span className="font-medium text-slate-800">
+                        <Link
+                            to={
+                                `/stores/${result.store.id}`
+                            }
+                            className="font-medium text-slate-800 transition hover:text-sky-600"
+                        >
                             {
                                 result.store.name
                             }
-                        </span>
+                        </Link>
 
                     </div>
 
@@ -227,6 +243,7 @@ function ProductImage({
         )
     }
 
+
     return (
         <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
 
@@ -235,38 +252,6 @@ function ProductImage({
             />
 
         </div>
-    )
-}
-
-
-function StockBadge({
-                        status,
-                    }: {
-    status: StockStatus
-}) {
-
-    const styles =
-        status === 'IN_STOCK'
-            ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20'
-            : status === 'LOW_STOCK'
-                ? 'bg-amber-50 text-amber-700 ring-amber-600/20'
-                : 'bg-red-50 text-red-700 ring-red-600/20'
-
-
-    const label =
-        status === 'IN_STOCK'
-            ? 'In stock'
-            : status === 'LOW_STOCK'
-                ? 'Low stock'
-                : 'Out of stock'
-
-
-    return (
-        <span
-            className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset ${styles}`}
-        >
-            {label}
-        </span>
     )
 }
 

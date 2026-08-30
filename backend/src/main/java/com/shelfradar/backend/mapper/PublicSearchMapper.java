@@ -14,13 +14,11 @@ public class PublicSearchMapper {
     public PublicSearchMapper(
             CatalogMapper catalogMapper
     ) {
-        this.catalogMapper =
-                catalogMapper;
+        this.catalogMapper = catalogMapper;
     }
 
 
-    public PublicSearchResultResponse
-    toSearchResult(
+    public PublicSearchResultResponse toSearchResult(
             Inventory inventory
     ) {
 
@@ -31,8 +29,7 @@ public class PublicSearchMapper {
     }
 
 
-    public PublicSearchResultResponse
-    toSearchResult(
+    public PublicSearchResultResponse toSearchResult(
             Inventory inventory,
             Double distanceKm
     ) {
@@ -56,20 +53,15 @@ public class PublicSearchMapper {
                 ),
 
                 inventory.getPrice(),
-
                 inventory.getQuantity(),
-
                 inventory.getStatus(),
-
                 inventory.getUpdatedAt(),
-
                 roundedDistance
         );
     }
 
 
-    private PublicStoreResponse
-    toStoreResponse(
+    public PublicStoreResponse toStoreResponse(
             Store store
     ) {
 

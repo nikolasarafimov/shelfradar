@@ -33,6 +33,11 @@ public interface StoreRepository
             Long ownerId
     );
 
+    Optional<Store> findByIdAndStatus(
+            Long id,
+            StoreStatus status
+    );
+
     @Query("""
             SELECT DISTINCT s.city
             FROM Store s

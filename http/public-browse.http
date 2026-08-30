@@ -1,0 +1,37 @@
+@baseUrl = http://localhost:8080
+
+
+### Product detail
+
+GET {{baseUrl}}/api/public/products/1
+Accept: application/json
+
+
+### Store detail
+
+GET {{baseUrl}}/api/public/stores/1
+Accept: application/json
+
+
+### Missing product
+
+GET {{baseUrl}}/api/public/products/999999
+Accept: application/json
+
+
+### Missing store
+
+GET {{baseUrl}}/api/public/stores/999999
+Accept: application/json
+
+
+### Invalid product ID
+
+GET {{baseUrl}}/api/public/products/0
+Accept: application/json
+
+
+### Invalid store ID
+
+GET {{baseUrl}}/api/public/stores/-1
+Accept: application/json
