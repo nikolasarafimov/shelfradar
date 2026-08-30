@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: ShelfRadar
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/shelfradar
+    username: shelfradar
+    password: shelfradar
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    enabled: true
+
+server:
+  port: 8080

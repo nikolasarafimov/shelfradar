@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: shelfradar-db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: shelfradar
+      POSTGRES_USER: shelfradar
+      POSTGRES_PASSWORD: shelfradar
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - shelfradar_db_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shelfradar -d shelfradar"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  shelfradar_db_data:
