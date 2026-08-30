@@ -1,0 +1,101 @@
+@baseUrl = http://localhost:8080
+
+
+### All public offers
+
+GET {{baseUrl}}/api/public/search
+
+
+### Search Coca-Cola
+
+GET {{baseUrl}}/api/public/search?q=Coca-Cola
+
+
+### Search Coca-Cola cheapest first
+
+GET {{baseUrl}}/api/public/search?q=Coca-Cola&sort=priceAsc
+
+
+### Search Coca-Cola most expensive first
+
+GET {{baseUrl}}/api/public/search?q=Coca-Cola&sort=priceDesc
+
+
+### In stock only
+
+GET {{baseUrl}}/api/public/search?q=Coca-Cola&status=IN_STOCK
+
+
+### Low stock only
+
+GET {{baseUrl}}/api/public/search?status=LOW_STOCK
+
+
+### Out of stock only
+
+GET {{baseUrl}}/api/public/search?status=OUT_OF_STOCK
+
+
+### Filter by city
+
+GET {{baseUrl}}/api/public/search?city=Skopje
+
+
+### Filter by brand
+
+GET {{baseUrl}}/api/public/search?brandId=1
+
+
+### Filter by category
+
+GET {{baseUrl}}/api/public/search?categoryId=1
+
+
+### Multiple filters
+
+GET {{baseUrl}}/api/public/search?q=Coca&brandId=1&categoryId=1&city=Skopje&status=IN_STOCK&sort=priceAsc
+
+
+### Product A-Z
+
+GET {{baseUrl}}/api/public/search?sort=nameAsc
+
+
+### Product Z-A
+
+GET {{baseUrl}}/api/public/search?sort=nameDesc
+
+
+### Recently updated
+
+GET {{baseUrl}}/api/public/search?sort=updatedDesc
+
+
+### Pagination
+
+GET {{baseUrl}}/api/public/search?page=0&size=2
+
+
+### Next page
+
+GET {{baseUrl}}/api/public/search?page=1&size=2
+
+
+### Public filter options
+
+GET {{baseUrl}}/api/public/filters
+
+
+### Invalid page
+
+GET {{baseUrl}}/api/public/search?page=-1
+
+
+### Invalid size
+
+GET {{baseUrl}}/api/public/search?size=0
+
+
+### Invalid status
+
+GET {{baseUrl}}/api/public/search?status=INVALID

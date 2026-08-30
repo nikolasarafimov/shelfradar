@@ -27,6 +27,9 @@ import AdminCatalogPage
 import StoreManagementPage
     from './pages/StoreManagementPage'
 
+import PublicSearchPage
+    from './pages/PublicSearchPage'
+
 export default function App() {
 
     return (
@@ -40,9 +43,23 @@ export default function App() {
             />
 
             <Route
+                path="/search"
+                element={
+                    <PublicSearchPage />
+                }
+            />
+
+            <Route
                 path="/login"
                 element={
                     <LoginPage />
+                }
+            />
+
+            <Route
+                path="/unauthorized"
+                element={
+                    <UnauthorizedPage />
                 }
             />
 
@@ -53,6 +70,17 @@ export default function App() {
                         allowedRole="STORE_OWNER"
                     >
                         <StoreDashboardPage />
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/store/stores/:storeId"
+                element={
+                    <ProtectedRoute
+                        allowedRole="STORE_OWNER"
+                    >
+                        <StoreManagementPage />
                     </ProtectedRoute>
                 }
             />
@@ -69,30 +97,12 @@ export default function App() {
             />
 
             <Route
-                path="/unauthorized"
-                element={
-                    <UnauthorizedPage />
-                }
-            />
-
-            <Route
                 path="/admin/catalog"
                 element={
                     <ProtectedRoute
                         allowedRole="ADMIN"
                     >
                         <AdminCatalogPage />
-                    </ProtectedRoute>
-                }
-            />
-
-            <Route
-                path="/store/stores/:storeId"
-                element={
-                    <ProtectedRoute
-                        allowedRole="STORE_OWNER"
-                    >
-                        <StoreManagementPage />
                     </ProtectedRoute>
                 }
             />
