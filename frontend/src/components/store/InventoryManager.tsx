@@ -20,10 +20,26 @@ import {
     updateInventoryItem,
 } from '../../api/storeApi'
 
+import {
+    formatMkd,
+} from '../../lib/format'
+
 import type {
     InventoryItem,
     StockStatus,
 } from '../../types/store'
+
+import EmptyState
+    from '../ui/EmptyState'
+
+import ErrorState
+    from '../ui/ErrorState'
+
+import LoadingState
+    from '../ui/LoadingState'
+
+import StatusBadge
+    from '../ui/StatusBadge'
 
 
 export default function InventoryManager({
@@ -185,10 +201,14 @@ export default function InventoryManager({
                 async () => {
 
                     const numericPrice =
-                        Number(price)
+                        Number(
+                            price,
+                        )
 
                     const numericQuantity =
-                        Number(quantity)
+                        Number(
+                            quantity,
+                        )
 
 
                     if (editingItem) {
@@ -271,9 +291,11 @@ export default function InventoryManager({
                         resetForm()
                     }
 
+
                     setError(
                         null,
                     )
+
 
                     await refreshStoreData()
                 },
@@ -340,13 +362,19 @@ export default function InventoryManager({
 
 
         const numericProductId =
-            Number(productId)
+            Number(
+                productId,
+            )
 
         const numericPrice =
-            Number(price)
+            Number(
+                price,
+            )
 
         const numericQuantity =
-            Number(quantity)
+            Number(
+                quantity,
+            )
 
 
         if (
@@ -466,12 +494,6 @@ export default function InventoryManager({
         setError(
             null,
         )
-
-        window.scrollTo({
-            top: 0,
-            behavior:
-                'smooth',
-        })
     }
 
 
@@ -507,13 +529,11 @@ export default function InventoryManager({
         item: InventoryItem,
     ) {
 
-        const confirmed =
-            window.confirm(
+        if (
+            !window.confirm(
                 `Remove ${item.product.name} from this store?`,
             )
-
-
-        if (!confirmed) {
+        ) {
             return
         }
 
@@ -535,41 +555,40 @@ export default function InventoryManager({
     return (
         <div className="space-y-6">
 
-            <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+            <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:p-6">
 
-                <h2 className="text-xl font-semibold">
-                    {
-                        editingItem
-                            ? 'Update Inventory'
-                            : 'Add Product to Inventory'
-                    }
-                </h2>
+                <div>
 
+                    <h2 className="text-xl font-semibold">
+                        {
+                            editingItem
+                                ? 'Update Inventory'
+                                : 'Add Product to Inventory'
+                        }
+                    </h2>
 
-                <p className="mt-1 text-sm text-slate-400">
-                    {
-                        editingItem
-                            ? `Editing ${editingItem.product.name}`
-                            : 'Add a catalog product and set its current price and stock.'
-                    }
-                </p>
+                    <p className="mt-1 text-sm leading-6 text-slate-400">
+                        {
+                            editingItem
+                                ? `Editing ${editingItem.product.name}.`
+                                : 'Add a catalog product and define its current price and stock.'
+                        }
+                    </p>
+
+                </div>
 
 
                 <form
                     onSubmit={
                         handleSubmit
                     }
-                    className="mt-6 grid gap-4 md:grid-cols-4"
+                    className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
                 >
 
-                    <div>
-
-                        <label
-                            htmlFor="inventory-product"
-                            className="mb-2 block text-sm text-slate-300"
-                        >
-                            Product
-                        </label>
+                    <FieldWrapper
+                        label="Product"
+                        htmlFor="inventory-product"
+                    >
 
                         <select
                             id="inventory-product"
@@ -583,54 +602,46 @@ export default function InventoryManager({
                             onChange={
                                 event =>
                                     setProductId(
-                                        event
-                                            .target
-                                            .value,
+                                        event.target.value,
                                     )
                             }
-                            className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 disabled:cursor-not-allowed disabled:opacity-60"
+                            className={inputClassName}
                         >
 
                             <option value="">
                                 Select product
                             </option>
 
-                            {
-                                productsQuery
-                                    .data
-                                    ?.content
-                                    .map(
-                                        product => (
 
-                                            <option
-                                                key={
-                                                    product.id
-                                                }
-                                                value={
-                                                    product.id
-                                                }
-                                            >
-                                                {
-                                                    product.name
-                                                }
-                                            </option>
-                                        ),
-                                    )
+                            {
+                                productsQuery.data?.content.map(
+                                    product => (
+
+                                        <option
+                                            key={
+                                                product.id
+                                            }
+                                            value={
+                                                product.id
+                                            }
+                                        >
+                                            {
+                                                product.name
+                                            }
+                                        </option>
+                                    ),
+                                )
                             }
 
                         </select>
 
-                    </div>
+                    </FieldWrapper>
 
 
-                    <div>
-
-                        <label
-                            htmlFor="inventory-price"
-                            className="mb-2 block text-sm text-slate-300"
-                        >
-                            Price
-                        </label>
+                    <FieldWrapper
+                        label="Price"
+                        htmlFor="inventory-price"
+                    >
 
                         <input
                             id="inventory-price"
@@ -643,26 +654,20 @@ export default function InventoryManager({
                             onChange={
                                 event =>
                                     setPrice(
-                                        event
-                                            .target
-                                            .value,
+                                        event.target.value,
                                     )
                             }
                             placeholder="0.00"
-                            className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
+                            className={inputClassName}
                         />
 
-                    </div>
+                    </FieldWrapper>
 
 
-                    <div>
-
-                        <label
-                            htmlFor="inventory-quantity"
-                            className="mb-2 block text-sm text-slate-300"
-                        >
-                            Quantity
-                        </label>
+                    <FieldWrapper
+                        label="Quantity"
+                        htmlFor="inventory-quantity"
+                    >
 
                         <input
                             id="inventory-quantity"
@@ -675,26 +680,20 @@ export default function InventoryManager({
                             onChange={
                                 event =>
                                     setQuantity(
-                                        event
-                                            .target
-                                            .value,
+                                        event.target.value,
                                     )
                             }
                             placeholder="0"
-                            className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
+                            className={inputClassName}
                         />
 
-                    </div>
+                    </FieldWrapper>
 
 
-                    <div>
-
-                        <label
-                            htmlFor="inventory-status"
-                            className="mb-2 block text-sm text-slate-300"
-                        >
-                            Status
-                        </label>
+                    <FieldWrapper
+                        label="Status"
+                        htmlFor="inventory-status"
+                    >
 
                         <select
                             id="inventory-status"
@@ -704,14 +703,11 @@ export default function InventoryManager({
                             onChange={
                                 event =>
                                     setStatus(
-                                        event
-                                            .target
-                                            .value as StockStatus,
+                                        event.target.value as StockStatus,
                                     )
                             }
-                            className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
+                            className={inputClassName}
                         >
-
                             <option value="IN_STOCK">
                                 In Stock
                             </option>
@@ -723,35 +719,35 @@ export default function InventoryManager({
                             <option value="OUT_OF_STOCK">
                                 Out of Stock
                             </option>
-
                         </select>
 
-                    </div>
+                    </FieldWrapper>
 
 
                     {
                         error && (
 
-                            <p className="text-sm text-red-400 md:col-span-4">
+                            <p
+                                role="alert"
+                                className="rounded-xl border border-red-900 bg-red-950/30 px-4 py-3 text-sm text-red-300 sm:col-span-2 xl:col-span-4"
+                            >
                                 {error}
                             </p>
                         )
                     }
 
 
-                    <div className="flex flex-wrap gap-3 md:col-span-4">
+                    <div className="flex flex-wrap gap-3 sm:col-span-2 xl:col-span-4">
 
                         <button
                             type="submit"
                             disabled={
-                                saveMutation
-                                    .isPending
+                                saveMutation.isPending
                             }
-                            className="rounded-xl bg-sky-500 px-5 py-3 font-semibold text-slate-950 transition hover:bg-sky-400 disabled:cursor-wait disabled:opacity-60"
+                            className="inline-flex min-h-11 items-center justify-center rounded-xl bg-sky-500 px-5 py-2.5 font-semibold text-slate-950 transition hover:bg-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {
-                                saveMutation
-                                    .isPending
+                                saveMutation.isPending
                                     ? 'Saving...'
                                     : editingItem
                                         ? 'Save Changes'
@@ -769,10 +765,9 @@ export default function InventoryManager({
                                         resetForm
                                     }
                                     disabled={
-                                        saveMutation
-                                            .isPending
+                                        saveMutation.isPending
                                     }
-                                    className="rounded-xl border border-slate-700 px-5 py-3 text-slate-200 transition hover:border-slate-500 disabled:opacity-50"
+                                    className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-700 px-5 py-2.5 font-medium text-slate-200 transition hover:border-slate-500 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 disabled:opacity-50"
                                 >
                                     Cancel
                                 </button>
@@ -788,7 +783,7 @@ export default function InventoryManager({
 
             <section className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
 
-                <div className="flex flex-col gap-4 border-b border-slate-800 p-6 md:flex-row md:items-center md:justify-between">
+                <div className="flex flex-col gap-4 border-b border-slate-800 p-5 sm:p-6 md:flex-row md:items-center md:justify-between">
 
                     <div>
 
@@ -799,10 +794,9 @@ export default function InventoryManager({
                         <p className="mt-1 text-sm text-slate-400">
                             {
                                 data
-                                    ?.totalElements ??
-                                0
-                            }{' '}
-                            products
+                                    ? `${data.totalElements} products`
+                                    : 'Manage products available at this store.'
+                            }
                         </p>
 
                     </div>
@@ -812,12 +806,16 @@ export default function InventoryManager({
                         onSubmit={
                             handleSearch
                         }
-                        className="flex w-full gap-2 md:w-auto"
+                        className="flex w-full flex-col gap-2 sm:flex-row md:w-auto"
                     >
 
+                        <label className="sr-only" htmlFor="inventory-search">
+                            Search inventory
+                        </label>
+
                         <input
+                            id="inventory-search"
                             type="search"
-                            aria-label="Search inventory"
                             placeholder="Search inventory..."
                             value={
                                 searchInput
@@ -825,17 +823,15 @@ export default function InventoryManager({
                             onChange={
                                 event =>
                                     setSearchInput(
-                                        event
-                                            .target
-                                            .value,
+                                        event.target.value,
                                     )
                             }
-                            className="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 md:w-64"
+                            className={`${inputClassName} sm:w-64`}
                         />
 
                         <button
                             type="submit"
-                            className="rounded-xl border border-slate-700 px-4 py-2 transition hover:border-slate-500"
+                            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-700 px-4 py-2 text-sm font-semibold transition hover:border-slate-500 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
                         >
                             Search
                         </button>
@@ -848,8 +844,12 @@ export default function InventoryManager({
                 {
                     inventoryQuery.isLoading && (
 
-                        <div className="p-10 text-center text-slate-400">
-                            Loading inventory...
+                        <div className="p-5 sm:p-6">
+
+                            <LoadingState
+                                message="Loading inventory..."
+                            />
+
                         </div>
                     )
                 }
@@ -858,8 +858,19 @@ export default function InventoryManager({
                 {
                     inventoryQuery.isError && (
 
-                        <div className="p-6 text-red-400">
-                            Unable to load inventory.
+                        <div className="p-5 sm:p-6">
+
+                            <ErrorState
+                                title="Inventory unavailable"
+                                message="ShelfRadar could not load this store inventory."
+                                onRetry={
+                                    () => {
+                                        void inventoryQuery
+                                            .refetch()
+                                    }
+                                }
+                            />
+
                         </div>
                     )
                 }
@@ -872,19 +883,20 @@ export default function InventoryManager({
                     !inventoryQuery.isLoading &&
                     !inventoryQuery.isError && (
 
-                        <div className="p-10 text-center">
+                        <div className="p-5 sm:p-6">
 
-                            <h3 className="font-semibold">
-                                No inventory items
-                            </h3>
-
-                            <p className="mt-2 text-sm text-slate-400">
-                                {
+                            <EmptyState
+                                title={
                                     search
-                                        ? 'No products match your search.'
-                                        : 'Add a product to start building this store inventory.'
+                                        ? 'No matching products'
+                                        : 'No inventory items yet'
                                 }
-                            </p>
+                                message={
+                                    search
+                                        ? 'No inventory products match the current search.'
+                                        : 'Add your first product to make this store searchable.'
+                                }
+                            />
 
                         </div>
                     )
@@ -906,16 +918,28 @@ export default function InventoryManager({
                                             key={
                                                 item.id
                                             }
-                                            className="grid gap-4 p-6 md:grid-cols-[1fr_auto]"
+                                            className="grid gap-5 p-5 sm:p-6 md:grid-cols-[minmax(0,1fr)_auto]"
                                         >
 
-                                            <div>
+                                            <div className="min-w-0">
 
-                                                <h3 className="font-semibold">
-                                                    {
-                                                        item.product.name
-                                                    }
-                                                </h3>
+                                                <div className="flex flex-wrap items-center gap-3">
+
+                                                    <h3 className="font-semibold">
+                                                        {
+                                                            item.product.name
+                                                        }
+                                                    </h3>
+
+
+                                                    <StatusBadge
+                                                        status={
+                                                            item.status
+                                                        }
+                                                    />
+
+                                                </div>
+
 
                                                 <p className="mt-1 text-sm text-slate-400">
                                                     {
@@ -928,36 +952,29 @@ export default function InventoryManager({
                                                 </p>
 
 
-                                                <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
+                                                <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
 
-                                                    <span className="font-medium text-slate-200">
+                                                    <span className="font-semibold text-slate-200">
                                                         {
-                                                            formatPrice(
+                                                            formatMkd(
                                                                 item.price,
                                                             )
-                                                        }{' '}
-                                                        MKD
+                                                        }
                                                     </span>
 
                                                     <span className="text-slate-400">
-                                                        Qty:{' '}
+                                                        Quantity:{' '}
                                                         {
                                                             item.quantity
                                                         }
                                                     </span>
-
-                                                    <InventoryStatusBadge
-                                                        status={
-                                                            item.status
-                                                        }
-                                                    />
 
                                                 </div>
 
                                             </div>
 
 
-                                            <div className="flex items-start gap-2">
+                                            <div className="flex flex-wrap gap-2 md:justify-end">
 
                                                 <button
                                                     type="button"
@@ -968,12 +985,10 @@ export default function InventoryManager({
                                                             )
                                                     }
                                                     disabled={
-                                                        saveMutation
-                                                            .isPending ||
-                                                        deleteMutation
-                                                            .isPending
+                                                        saveMutation.isPending ||
+                                                        deleteMutation.isPending
                                                     }
-                                                    className="rounded-lg border border-slate-700 px-3 py-2 text-sm transition hover:border-slate-500 disabled:opacity-50"
+                                                    className="inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium transition hover:border-slate-500 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 disabled:opacity-50"
                                                 >
                                                     Edit
                                                 </button>
@@ -988,16 +1003,15 @@ export default function InventoryManager({
                                                             )
                                                     }
                                                     disabled={
-                                                        saveMutation
-                                                            .isPending ||
-                                                        deleteMutation
-                                                            .isPending
+                                                        saveMutation.isPending ||
+                                                        deleteMutation.isPending
                                                     }
-                                                    className="rounded-lg border border-red-900 px-3 py-2 text-sm text-red-400 transition hover:border-red-700 disabled:opacity-50"
+                                                    className="inline-flex min-h-10 items-center justify-center rounded-lg border border-red-900 px-3 py-2 text-sm font-medium text-red-400 transition hover:bg-red-950/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:opacity-50"
                                                 >
                                                     {
-                                                        deleteMutation
-                                                            .isPending
+                                                        deleteMutation.isPending &&
+                                                        deleteMutation.variables ===
+                                                        item.id
                                                             ? 'Deleting...'
                                                             : 'Delete'
                                                     }
@@ -1020,7 +1034,7 @@ export default function InventoryManager({
                     data.totalPages >
                     1 && (
 
-                        <div className="flex items-center justify-between border-t border-slate-800 p-6">
+                        <div className="flex items-center justify-between gap-4 border-t border-slate-800 p-5 sm:p-6">
 
                             <button
                                 type="button"
@@ -1038,13 +1052,13 @@ export default function InventoryManager({
                                                 ),
                                         )
                                 }
-                                className="rounded-lg border border-slate-700 px-4 py-2 text-sm transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+                                className="min-h-10 rounded-xl border border-slate-700 px-4 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40"
                             >
                                 Previous
                             </button>
 
 
-                            <span className="text-sm text-slate-400">
+                            <span className="text-center text-sm text-slate-400">
                                 Page{' '}
                                 {
                                     data.page +
@@ -1070,7 +1084,7 @@ export default function InventoryManager({
                                                 1,
                                         )
                                 }
-                                className="rounded-lg border border-slate-700 px-4 py-2 text-sm transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+                                className="min-h-10 rounded-xl border border-slate-700 px-4 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40"
                             >
                                 Next
                             </button>
@@ -1086,52 +1100,34 @@ export default function InventoryManager({
 }
 
 
-function InventoryStatusBadge({
-                                  status,
-                              }: {
-    status: StockStatus
+function FieldWrapper({
+                          label,
+                          htmlFor,
+                          children,
+                      }: {
+    label: string
+    htmlFor: string
+    children: React.ReactNode
 }) {
 
-    const styles =
-        status === 'IN_STOCK'
-            ? 'bg-emerald-950 text-emerald-300 ring-emerald-800'
-            : status === 'LOW_STOCK'
-                ? 'bg-amber-950 text-amber-300 ring-amber-800'
-                : 'bg-red-950 text-red-300 ring-red-800'
-
-
-    const label =
-        status === 'IN_STOCK'
-            ? 'In stock'
-            : status === 'LOW_STOCK'
-                ? 'Low stock'
-                : 'Out of stock'
-
-
     return (
-        <span
-            className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${styles}`}
-        >
-            {label}
-        </span>
+        <div>
+
+            <label
+                htmlFor={
+                    htmlFor
+                }
+                className="mb-2 block text-sm font-medium text-slate-300"
+            >
+                {label}
+            </label>
+
+            {children}
+
+        </div>
     )
 }
 
 
-function formatPrice(
-    value: number,
-): string {
-
-    return new Intl.NumberFormat(
-        'en-US',
-        {
-            minimumFractionDigits:
-                0,
-
-            maximumFractionDigits:
-                2,
-        },
-    ).format(
-        value,
-    )
-}
+const inputClassName =
+    'w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:opacity-60'

@@ -19,6 +19,9 @@ import type {
     Store,
 } from '../../types/store'
 
+import StatusBadge
+    from '../ui/StatusBadge'
+
 
 export default function StoreProfileEditor({
                                                store,
@@ -98,8 +101,17 @@ export default function StoreProfileEditor({
 
 
     const [
-        message,
-        setMessage,
+        successMessage,
+        setSuccessMessage,
+    ] =
+        useState<string | null>(
+            null,
+        )
+
+
+    const [
+        errorMessage,
+        setErrorMessage,
     ] =
         useState<string | null>(
             null,
@@ -170,14 +182,21 @@ export default function StoreProfileEditor({
                     )
 
                     setPhone(
-                        updatedStore.phone ?? '',
+                        updatedStore.phone ??
+                        '',
                     )
 
                     setWorkingHours(
-                        updatedStore.workingHours ?? '',
+                        updatedStore.workingHours ??
+                        '',
                     )
 
-                    setMessage(
+
+                    setErrorMessage(
+                        null,
+                    )
+
+                    setSuccessMessage(
                         'Store information updated successfully.',
                     )
 
@@ -214,14 +233,18 @@ export default function StoreProfileEditor({
                                 'store-activity',
                                 store.id,
                             ],
-                        })
+                        }),
                     ])
                 },
 
             onError:
                 () => {
 
-                    setMessage(
+                    setSuccessMessage(
+                        null,
+                    )
+
+                    setErrorMessage(
                         'Unable to update store information.',
                     )
                 },
@@ -256,9 +279,18 @@ export default function StoreProfileEditor({
             )
 
 
+        setSuccessMessage(
+            null,
+        )
+
+        setErrorMessage(
+            null,
+        )
+
+
         if (!trimmedName) {
 
-            setMessage(
+            setErrorMessage(
                 'Store name is required.',
             )
 
@@ -268,7 +300,7 @@ export default function StoreProfileEditor({
 
         if (!trimmedAddress) {
 
-            setMessage(
+            setErrorMessage(
                 'Address is required.',
             )
 
@@ -278,7 +310,7 @@ export default function StoreProfileEditor({
 
         if (!trimmedCity) {
 
-            setMessage(
+            setErrorMessage(
                 'City is required.',
             )
 
@@ -294,7 +326,7 @@ export default function StoreProfileEditor({
             numericLatitude > 90
         ) {
 
-            setMessage(
+            setErrorMessage(
                 'Latitude must be between -90 and 90.',
             )
 
@@ -310,7 +342,7 @@ export default function StoreProfileEditor({
             numericLongitude > 180
         ) {
 
-            setMessage(
+            setErrorMessage(
                 'Longitude must be between -180 and 180.',
             )
 
@@ -318,36 +350,33 @@ export default function StoreProfileEditor({
         }
 
 
-        setMessage(
-            null,
-        )
-
         mutation.mutate()
     }
 
 
     return (
-        <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+        <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:p-6">
 
-            <div>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 
-                <h2 className="text-xl font-semibold">
-                    Store Profile
-                </h2>
+                <div>
 
-                <p className="mt-1 text-sm text-slate-400">
-                    Update public store information and location details.
-                </p>
+                    <h2 className="text-xl font-semibold">
+                        Store Profile
+                    </h2>
 
-                <div className="mt-3">
-
-                    <StoreStatusBadge
-                        status={
-                            store.status
-                        }
-                    />
+                    <p className="mt-1 text-sm leading-6 text-slate-400">
+                        Update public store information and location details.
+                    </p>
 
                 </div>
+
+
+                <StatusBadge
+                    status={
+                        store.status
+                    }
+                />
 
             </div>
 
@@ -434,6 +463,7 @@ export default function StoreProfileEditor({
                         setPhone
                     }
                     type="tel"
+                    placeholder="+389..."
                 />
 
 
@@ -450,10 +480,26 @@ export default function StoreProfileEditor({
 
 
                 {
-                    message && (
+                    successMessage && (
 
-                        <p className="text-sm text-slate-300 md:col-span-2">
-                            {message}
+                        <p
+                            role="status"
+                            className="rounded-xl border border-emerald-900 bg-emerald-950/30 px-4 py-3 text-sm text-emerald-300 md:col-span-2"
+                        >
+                            {successMessage}
+                        </p>
+                    )
+                }
+
+
+                {
+                    errorMessage && (
+
+                        <p
+                            role="alert"
+                            className="rounded-xl border border-red-900 bg-red-950/30 px-4 py-3 text-sm text-red-300 md:col-span-2"
+                        >
+                            {errorMessage}
                         </p>
                     )
                 }
@@ -466,7 +512,7 @@ export default function StoreProfileEditor({
                         disabled={
                             mutation.isPending
                         }
-                        className="rounded-xl bg-sky-500 px-5 py-3 font-semibold text-slate-950 transition hover:bg-sky-400 disabled:cursor-wait disabled:opacity-60"
+                        className="inline-flex min-h-11 items-center justify-center rounded-xl bg-sky-500 px-5 py-2.5 font-semibold text-slate-950 transition hover:bg-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         {
                             mutation.isPending
@@ -504,9 +550,10 @@ function Field({
     return (
         <label className="block">
 
-            <span className="mb-2 block text-sm text-slate-300">
+            <span className="mb-2 block text-sm font-medium text-slate-300">
                 {label}
             </span>
+
 
             <input
                 type={
@@ -532,36 +579,9 @@ function Field({
                             event.target.value,
                         )
                 }
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 outline-none transition focus:border-sky-500"
+                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:opacity-60"
             />
 
         </label>
-    )
-}
-
-
-function StoreStatusBadge({
-                              status,
-                          }: {
-    status:
-        | 'PENDING'
-        | 'ACTIVE'
-        | 'INACTIVE'
-}) {
-
-    const styles =
-        status === 'ACTIVE'
-            ? 'bg-emerald-950 text-emerald-300 ring-emerald-700'
-            : status === 'PENDING'
-                ? 'bg-amber-950 text-amber-300 ring-amber-700'
-                : 'bg-slate-800 text-slate-400 ring-slate-700'
-
-
-    return (
-        <span
-            className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ring-1 ${styles}`}
-        >
-            {status}
-        </span>
     )
 }

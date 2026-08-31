@@ -9,30 +9,44 @@ import {
     PackageCheck,
     PackageX,
     Pencil,
+    WalletCards,
 } from 'lucide-react'
 
 import {
     getStoreDashboard,
 } from '../../api/storeApi'
 
-import type {
-    InventoryItem,
-    StockStatus,
-} from '../../types/store'
+import {
+    formatDateTime,
+    formatMkd,
+    formatNumber,
+} from '../../lib/format'
 
+import EmptyState
+    from '../ui/EmptyState'
 
-interface StoreOverviewProps {
-    storeId: number
-    onManageInventory: () => void
-    onEditProfile: () => void
-}
+import ErrorState
+    from '../ui/ErrorState'
+
+import LoadingState
+    from '../ui/LoadingState'
+
+import MetricCard
+    from '../ui/MetricCard'
+
+import StatusBadge
+    from '../ui/StatusBadge'
 
 
 export default function StoreOverview({
                                           storeId,
                                           onManageInventory,
                                           onEditProfile,
-                                      }: StoreOverviewProps) {
+                                      }: {
+    storeId: number
+    onManageInventory: () => void
+    onEditProfile: () => void
+}) {
 
     const dashboardQuery =
         useQuery({
@@ -49,25 +63,33 @@ export default function StoreOverview({
         })
 
 
-    if (dashboardQuery.isLoading) {
+    if (
+        dashboardQuery.isLoading
+    ) {
 
         return (
-            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-10 text-center text-slate-400">
-                Loading store overview...
-            </div>
+            <LoadingState
+                message="Loading store overview..."
+            />
         )
     }
 
 
     if (
-        dashboardQuery.isError ||
-        !dashboardQuery.data
+        dashboardQuery.isError
     ) {
 
         return (
-            <div className="rounded-2xl border border-red-900/50 bg-red-950/30 p-6 text-red-300">
-                Unable to load store overview.
-            </div>
+            <ErrorState
+                title="Store overview unavailable"
+                message="ShelfRadar could not load the operational dashboard for this store."
+                onRetry={
+                    () => {
+                        void dashboardQuery
+                            .refetch()
+                    }
+                }
+            />
         )
     }
 
@@ -76,38 +98,145 @@ export default function StoreOverview({
         dashboardQuery.data
 
 
+    if (!dashboard) {
+
+        return (
+            <EmptyState
+                title="No overview data"
+                message="Operational statistics are not available for this store yet."
+            />
+        )
+    }
+
+
     return (
         <div className="space-y-8">
 
-            <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:p-6">
+
+                <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+
+                    <div>
+
+                        <div className="flex flex-wrap items-center gap-3">
+
+                            <h2 className="text-xl font-bold">
+                                {
+                                    dashboard.store.name
+                                }
+                            </h2>
+
+                            <StatusBadge
+                                status={
+                                    dashboard.store.status
+                                }
+                            />
+
+                        </div>
+
+
+                        <p className="mt-2 text-sm leading-6 text-slate-400">
+                            {
+                                dashboard.store.address
+                            }
+                            ,{' '}
+                            {
+                                dashboard.store.city
+                            }
+                        </p>
+
+                    </div>
+
+
+                    <div className="flex flex-wrap gap-2">
+
+                        <button
+                            type="button"
+                            onClick={
+                                onManageInventory
+                            }
+                            className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+                        >
+                            <Boxes
+                                size={16}
+                            />
+
+                            Manage inventory
+                        </button>
+
+
+                        <button
+                            type="button"
+                            onClick={
+                                onEditProfile
+                            }
+                            className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-slate-500 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                        >
+                            <Pencil
+                                size={16}
+                            />
+
+                            Edit profile
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <section
+                aria-label="Store inventory metrics"
+                className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+            >
 
                 <MetricCard
                     icon={
-                        <Boxes />
+                        <Boxes
+                            size={20}
+                        />
                     }
                     label="Products"
                     value={
-                        dashboard.totalProducts
+                        formatNumber(
+                            dashboard.totalProducts,
+                        )
                     }
                 />
 
+
                 <MetricCard
                     icon={
-                        <PackageCheck />
+                        <PackageCheck
+                            size={20}
+                        />
                     }
                     label="Available"
                     value={
-                        dashboard.availableProducts
+                        formatNumber(
+                            dashboard.availableProducts,
+                        )
+                    }
+                    hint={
+                        `${formatNumber(
+                            dashboard.inStockProducts,
+                        )} fully in stock`
                     }
                 />
 
+
                 <MetricCard
                     icon={
-                        <AlertTriangle />
+                        <AlertTriangle
+                            size={20}
+                        />
                     }
                     label="Low stock"
                     value={
-                        dashboard.lowStockProducts
+                        formatNumber(
+                            dashboard.lowStockProducts,
+                        )
                     }
                     attention={
                         dashboard.lowStockProducts >
@@ -115,13 +244,18 @@ export default function StoreOverview({
                     }
                 />
 
+
                 <MetricCard
                     icon={
-                        <PackageX />
+                        <PackageX
+                            size={20}
+                        />
                     }
                     label="Out of stock"
                     value={
-                        dashboard.outOfStockProducts
+                        formatNumber(
+                            dashboard.outOfStockProducts,
+                        )
                     }
                     attention={
                         dashboard.outOfStockProducts >
@@ -132,9 +266,14 @@ export default function StoreOverview({
             </section>
 
 
-            <section className="grid gap-4 md:grid-cols-3">
+            <section className="grid gap-4 sm:grid-cols-3">
 
-                <InfoCard
+                <MetricCard
+                    icon={
+                        <Boxes
+                            size={20}
+                        />
+                    }
                     label="Total units"
                     value={
                         formatNumber(
@@ -143,425 +282,238 @@ export default function StoreOverview({
                     }
                 />
 
-                <InfoCard
+
+                <MetricCard
+                    icon={
+                        <WalletCards
+                            size={20}
+                        />
+                    }
                     label="Inventory value"
                     value={
-                        `${formatPrice(
+                        formatMkd(
                             dashboard.inventoryValue,
-                        )} MKD`
+                        )
                     }
                 />
 
-                <InfoCard
-                    label="Last inventory update"
+
+                <MetricCard
+                    icon={
+                        <Clock3
+                            size={20}
+                        />
+                    }
+                    label="Last update"
                     value={
-                        dashboard.lastUpdatedAt
-                            ? formatDateTime(
-                                dashboard.lastUpdatedAt,
-                            )
-                            : 'No updates'
+                        formatDateTime(
+                            dashboard.lastUpdatedAt,
+                        )
                     }
                 />
 
             </section>
 
 
-            <section>
+            <div className="grid gap-6 xl:grid-cols-2">
 
-                <div className="flex flex-wrap items-center justify-between gap-4">
+                <section
+                    aria-labelledby="inventory-alerts-heading"
+                    className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900"
+                >
 
-                    <div>
+                    <div className="border-b border-slate-800 p-5">
 
-                        <h2 className="text-xl font-bold">
+                        <h2
+                            id="inventory-alerts-heading"
+                            className="font-semibold"
+                        >
                             Inventory alerts
                         </h2>
 
                         <p className="mt-1 text-sm text-slate-400">
-                            Products that require attention.
+                            Products requiring inventory attention.
                         </p>
 
                     </div>
 
-                    <button
-                        type="button"
-                        onClick={
-                            onManageInventory
-                        }
-                        className="rounded-xl border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-slate-500"
-                    >
-                        Manage inventory
-                    </button>
 
-                </div>
+                    {
+                        dashboard.alerts.length ===
+                        0 ? (
 
+                            <div className="p-5">
 
-                {
-                    dashboard.alerts.length ===
-                    0 ? (
-
-                        <div className="mt-4 rounded-2xl border border-emerald-900/50 bg-emerald-950/20 p-6">
-
-                            <div className="flex items-center gap-3 text-emerald-300">
-
-                                <PackageCheck
-                                    size={20}
+                                <EmptyState
+                                    title="No stock alerts"
+                                    message="All inventory items currently have healthy stock levels."
                                 />
-
-                                <span className="font-medium">
-                                    No inventory alerts
-                                </span>
 
                             </div>
 
-                            <p className="mt-2 text-sm text-slate-400">
-                                No products are currently marked low stock or out of stock.
-                            </p>
+                        ) : (
 
-                        </div>
+                            <div className="divide-y divide-slate-800">
 
-                    ) : (
+                                {
+                                    dashboard.alerts.map(
+                                        item => (
 
-                        <div className="mt-4 space-y-3">
+                                            <div
+                                                key={
+                                                    item.id
+                                                }
+                                                className="p-5"
+                                            >
 
-                            {
-                                dashboard.alerts.map(
-                                    item => (
+                                                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
 
-                                        <AlertRow
-                                            key={
-                                                item.id
-                                            }
-                                            item={
-                                                item
-                                            }
-                                        />
-                                    ),
-                                )
-                            }
+                                                    <div className="min-w-0">
 
-                        </div>
-                    )
-                }
+                                                        <p className="font-medium">
+                                                            {
+                                                                item.product.name
+                                                            }
+                                                        </p>
 
-            </section>
+                                                        <p className="mt-1 text-sm text-slate-500">
+                                                            {
+                                                                item.product.brand.name
+                                                            }
+                                                            {' · '}
+                                                            Qty:{' '}
+                                                            {
+                                                                item.quantity
+                                                            }
+                                                        </p>
+
+                                                    </div>
 
 
-            <section>
+                                                    <StatusBadge
+                                                        status={
+                                                            item.status
+                                                        }
+                                                    />
 
-                <div className="flex flex-wrap items-center justify-between gap-4">
+                                                </div>
 
-                    <div>
+                                            </div>
+                                        ),
+                                    )
+                                }
 
-                        <h2 className="text-xl font-bold">
-                            Recent updates
+                            </div>
+                        )
+                    }
+
+                </section>
+
+
+                <section
+                    aria-labelledby="recent-updates-heading"
+                    className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900"
+                >
+
+                    <div className="border-b border-slate-800 p-5">
+
+                        <h2
+                            id="recent-updates-heading"
+                            className="font-semibold"
+                        >
+                            Recent inventory updates
                         </h2>
 
                         <p className="mt-1 text-sm text-slate-400">
-                            Latest inventory changes for this store.
+                            The latest inventory records changed for this store.
                         </p>
 
                     </div>
 
-                    <button
-                        type="button"
-                        onClick={
-                            onEditProfile
-                        }
-                        className="flex items-center gap-2 rounded-xl border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-slate-500"
-                    >
-                        <Pencil
-                            size={15}
-                        />
-
-                        Store profile
-                    </button>
-
-                </div>
-
-
-                {
-                    dashboard.recentUpdates.length ===
-                    0 ? (
-
-                        <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-900 p-6 text-sm text-slate-400">
-                            No inventory activity yet.
-                        </div>
-
-                    ) : (
-
-                        <div className="mt-4 overflow-hidden rounded-2xl border border-slate-800">
-
-                            {
-                                dashboard.recentUpdates.map(
-                                    item => (
-
-                                        <RecentUpdateRow
-                                            key={
-                                                item.id
-                                            }
-                                            item={
-                                                item
-                                            }
-                                        />
-                                    ),
-                                )
-                            }
-
-                        </div>
-                    )
-                }
-
-            </section>
-
-        </div>
-    )
-}
-
-
-function AlertRow({
-                      item,
-                  }: {
-    item: InventoryItem
-}) {
-
-    return (
-        <article className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-900 p-4 sm:flex-row sm:items-center">
-
-            <div>
-
-                <p className="font-semibold">
-                    {
-                        item.product.name
-                    }
-                </p>
-
-                <p className="mt-1 text-sm text-slate-500">
-                    {
-                        item.product.brand.name
-                    }
-                    {' · '}
-                    Quantity:{' '}
-                    {
-                        item.quantity
-                    }
-                </p>
-
-            </div>
-
-
-            <div className="flex items-center gap-4">
-
-                <InventoryStatusBadge
-                    status={
-                        item.status
-                    }
-                />
-
-                <span className="font-semibold">
-                    {
-                        formatPrice(
-                            item.price,
-                        )
-                    }{' '}
-                    MKD
-                </span>
-
-            </div>
-
-        </article>
-    )
-}
-
-
-function RecentUpdateRow({
-                             item,
-                         }: {
-    item: InventoryItem
-}) {
-
-    return (
-        <div className="flex flex-col justify-between gap-4 border-b border-slate-800 bg-slate-900 p-4 last:border-b-0 sm:flex-row sm:items-center">
-
-            <div>
-
-                <p className="font-medium">
-                    {
-                        item.product.name
-                    }
-                </p>
-
-                <div className="mt-1 flex items-center gap-2 text-xs text-slate-500">
-
-                    <Clock3
-                        size={13}
-                    />
 
                     {
-                        formatDateTime(
-                            item.updatedAt,
+                        dashboard.recentUpdates.length ===
+                        0 ? (
+
+                            <div className="p-5">
+
+                                <EmptyState
+                                    title="No recent updates"
+                                    message="Inventory updates will appear here after products are changed."
+                                />
+
+                            </div>
+
+                        ) : (
+
+                            <div className="divide-y divide-slate-800">
+
+                                {
+                                    dashboard.recentUpdates.map(
+                                        item => (
+
+                                            <div
+                                                key={
+                                                    item.id
+                                                }
+                                                className="p-5"
+                                            >
+
+                                                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+
+                                                    <div className="min-w-0">
+
+                                                        <p className="font-medium">
+                                                            {
+                                                                item.product.name
+                                                            }
+                                                        </p>
+
+                                                        <p className="mt-1 text-sm text-slate-500">
+                                                            {
+                                                                formatMkd(
+                                                                    item.price,
+                                                                )
+                                                            }
+                                                            {' · '}
+                                                            Qty:{' '}
+                                                            {
+                                                                item.quantity
+                                                            }
+                                                        </p>
+
+                                                        <p className="mt-2 text-xs text-slate-600">
+                                                            {
+                                                                formatDateTime(
+                                                                    item.updatedAt,
+                                                                )
+                                                            }
+                                                        </p>
+
+                                                    </div>
+
+
+                                                    <StatusBadge
+                                                        status={
+                                                            item.status
+                                                        }
+                                                    />
+
+                                                </div>
+
+                                            </div>
+                                        ),
+                                    )
+                                }
+
+                            </div>
                         )
                     }
 
-                </div>
-
-            </div>
-
-
-            <div className="flex items-center gap-4">
-
-                <InventoryStatusBadge
-                    status={
-                        item.status
-                    }
-                />
-
-                <span className="text-sm text-slate-400">
-                    Qty{' '}
-                    {
-                        item.quantity
-                    }
-                </span>
+                </section>
 
             </div>
 
         </div>
-    )
-}
-
-
-function InventoryStatusBadge({
-                                  status,
-                              }: {
-    status: StockStatus
-}) {
-
-    const styles =
-        status === 'IN_STOCK'
-            ? 'bg-emerald-950 text-emerald-300 ring-emerald-800'
-            : status === 'LOW_STOCK'
-                ? 'bg-amber-950 text-amber-300 ring-amber-800'
-                : 'bg-red-950 text-red-300 ring-red-800'
-
-
-    const text =
-        status === 'IN_STOCK'
-            ? 'In stock'
-            : status === 'LOW_STOCK'
-                ? 'Low stock'
-                : 'Out of stock'
-
-
-    return (
-        <span
-            className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${styles}`}
-        >
-            {text}
-        </span>
-    )
-}
-
-
-function MetricCard({
-                        icon,
-                        label,
-                        value,
-                        attention = false,
-                    }: {
-    icon: React.ReactNode
-    label: string
-    value: number
-    attention?: boolean
-}) {
-
-    return (
-        <article
-            className={
-                attention
-                    ? 'rounded-2xl border border-amber-800/60 bg-amber-950/20 p-5'
-                    : 'rounded-2xl border border-slate-800 bg-slate-900 p-5'
-            }
-        >
-
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-sky-400">
-                {icon}
-            </div>
-
-            <p className="mt-4 text-3xl font-bold">
-                {
-                    formatNumber(
-                        value,
-                    )
-                }
-            </p>
-
-            <p className="mt-1 text-sm text-slate-400">
-                {label}
-            </p>
-
-        </article>
-    )
-}
-
-
-function InfoCard({
-                      label,
-                      value,
-                  }: {
-    label: string
-    value: string
-}) {
-
-    return (
-        <article className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-
-            <p className="text-sm text-slate-500">
-                {label}
-            </p>
-
-            <p className="mt-2 text-lg font-semibold">
-                {value}
-            </p>
-
-        </article>
-    )
-}
-
-
-function formatNumber(
-    value: number,
-): string {
-
-    return new Intl.NumberFormat(
-        'en-US',
-    ).format(value)
-}
-
-
-function formatPrice(
-    value: number,
-): string {
-
-    return new Intl.NumberFormat(
-        'en-US',
-        {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 2,
-        },
-    ).format(value)
-}
-
-
-function formatDateTime(
-    value: string,
-): string {
-
-    return new Intl.DateTimeFormat(
-        'en-GB',
-        {
-            dateStyle: 'medium',
-            timeStyle: 'short',
-        },
-    ).format(
-        new Date(value),
     )
 }

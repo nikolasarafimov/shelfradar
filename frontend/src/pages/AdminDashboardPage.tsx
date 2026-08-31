@@ -3,8 +3,10 @@ import {
 } from '@tanstack/react-query'
 
 import {
+    Boxes,
     Building2,
     Clock3,
+    PackageSearch,
     Store,
     Users,
 } from 'lucide-react'
@@ -20,6 +22,29 @@ import {
 import AdminLayout
     from '../components/admin/AdminLayout'
 
+import EmptyState
+    from '../components/ui/EmptyState'
+
+import ErrorState
+    from '../components/ui/ErrorState'
+
+import LoadingState
+    from '../components/ui/LoadingState'
+
+import MetricCard
+    from '../components/ui/MetricCard'
+
+import PageHeader
+    from '../components/ui/PageHeader'
+
+import StatusBadge
+    from '../components/ui/StatusBadge'
+
+import {
+    formatMkd,
+    formatNumber,
+} from '../lib/format'
+
 
 export default function AdminDashboardPage() {
 
@@ -34,363 +59,460 @@ export default function AdminDashboardPage() {
         })
 
 
+    if (
+        dashboardQuery.isLoading
+    ) {
+
+        return (
+            <AdminLayout>
+
+                <PageHeader
+                    eyebrow="Administration"
+                    title="Platform Dashboard"
+                    description="Monitor stores, catalog activity and inventory health across ShelfRadar."
+                />
+
+
+                <div className="mt-8">
+
+                    <LoadingState
+                        message="Loading admin dashboard..."
+                    />
+
+                </div>
+
+            </AdminLayout>
+        )
+    }
+
+
+    if (
+        dashboardQuery.isError
+    ) {
+
+        return (
+            <AdminLayout>
+
+                <PageHeader
+                    eyebrow="Administration"
+                    title="Platform Dashboard"
+                    description="Monitor stores, catalog activity and inventory health across ShelfRadar."
+                />
+
+
+                <div className="mt-8">
+
+                    <ErrorState
+                        title="Dashboard unavailable"
+                        message="ShelfRadar could not load the platform dashboard."
+                        onRetry={
+                            () => {
+                                void dashboardQuery
+                                    .refetch()
+                            }
+                        }
+                    />
+
+                </div>
+
+            </AdminLayout>
+        )
+    }
+
+
     const dashboard =
         dashboardQuery.data
+
+
+    if (!dashboard) {
+
+        return (
+            <AdminLayout>
+
+                <PageHeader
+                    eyebrow="Administration"
+                    title="Platform Dashboard"
+                    description="Monitor stores, catalog activity and inventory health across ShelfRadar."
+                />
+
+
+                <div className="mt-8">
+
+                    <EmptyState
+                        title="No dashboard data"
+                        message="Platform statistics are not available yet."
+                    />
+
+                </div>
+
+            </AdminLayout>
+        )
+    }
 
 
     return (
         <AdminLayout>
 
-            <div>
-
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-sky-400">
-                    Administration
-                </p>
-
-                <h1 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">
-                    Platform Dashboard
-                </h1>
-
-                <p className="mt-3 text-slate-400">
-                    Monitor stores, inventory health and platform operations.
-                </p>
-
-            </div>
+            <PageHeader
+                eyebrow="Administration"
+                title="Platform Dashboard"
+                description="Monitor stores, catalog activity and inventory health across ShelfRadar."
+                actions={
+                    <Link
+                        to="/admin/stores"
+                        className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:border-slate-500 hover:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                    >
+                        Manage stores
+                    </Link>
+                }
+            />
 
 
-            {
-                dashboardQuery.isLoading && (
+            <section
+                aria-label="Store statistics"
+                className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+            >
 
-                    <div className="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-10 text-center text-slate-400">
-                        Loading admin dashboard...
+                <MetricCard
+                    icon={
+                        <Store
+                            size={20}
+                        />
+                    }
+                    label="All stores"
+                    value={
+                        formatNumber(
+                            dashboard.totalStores,
+                        )
+                    }
+                    hint={
+                        `${formatNumber(
+                            dashboard.inactiveStores,
+                        )} inactive`
+                    }
+                />
+
+
+                <MetricCard
+                    icon={
+                        <Building2
+                            size={20}
+                        />
+                    }
+                    label="Active stores"
+                    value={
+                        formatNumber(
+                            dashboard.activeStores,
+                        )
+                    }
+                    hint="Visible in public search"
+                />
+
+
+                <MetricCard
+                    icon={
+                        <Clock3
+                            size={20}
+                        />
+                    }
+                    label="Pending approval"
+                    value={
+                        formatNumber(
+                            dashboard.pendingStores,
+                        )
+                    }
+                    hint="Awaiting administrator review"
+                    attention={
+                        dashboard.pendingStores >
+                        0
+                    }
+                />
+
+
+                <MetricCard
+                    icon={
+                        <Users
+                            size={20}
+                        />
+                    }
+                    label="Store owners"
+                    value={
+                        formatNumber(
+                            dashboard.storeOwners,
+                        )
+                    }
+                    hint="Registered owner accounts"
+                />
+
+            </section>
+
+
+            <section
+                aria-label="Inventory statistics"
+                className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+            >
+
+                <MetricCard
+                    icon={
+                        <PackageSearch
+                            size={20}
+                        />
+                    }
+                    label="Catalog products"
+                    value={
+                        formatNumber(
+                            dashboard.totalProducts,
+                        )
+                    }
+                />
+
+
+                <MetricCard
+                    icon={
+                        <Boxes
+                            size={20}
+                        />
+                    }
+                    label="Inventory items"
+                    value={
+                        formatNumber(
+                            dashboard.inventoryItems,
+                        )
+                    }
+                />
+
+
+                <MetricCard
+                    icon={
+                        <Boxes
+                            size={20}
+                        />
+                    }
+                    label="Low stock"
+                    value={
+                        formatNumber(
+                            dashboard.lowStockItems,
+                        )
+                    }
+                    attention={
+                        dashboard.lowStockItems >
+                        0
+                    }
+                />
+
+
+                <MetricCard
+                    icon={
+                        <Boxes
+                            size={20}
+                        />
+                    }
+                    label="Out of stock"
+                    value={
+                        formatNumber(
+                            dashboard.outOfStockItems,
+                        )
+                    }
+                    attention={
+                        dashboard.outOfStockItems >
+                        0
+                    }
+                />
+
+            </section>
+
+
+            <section
+                aria-label="Inventory totals"
+                className="mt-4 grid gap-4 sm:grid-cols-2"
+            >
+
+                <MetricCard
+                    icon={
+                        <Boxes
+                            size={20}
+                        />
+                    }
+                    label="Total inventory units"
+                    value={
+                        formatNumber(
+                            dashboard.totalUnits,
+                        )
+                    }
+                />
+
+
+                <MetricCard
+                    icon={
+                        <PackageSearch
+                            size={20}
+                        />
+                    }
+                    label="Inventory value"
+                    value={
+                        formatMkd(
+                            dashboard.inventoryValue,
+                        )
+                    }
+                    hint="Current stock value, not revenue"
+                />
+
+            </section>
+
+
+            <section
+                aria-labelledby="pending-stores-heading"
+                className="mt-10"
+            >
+
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+
+                    <div>
+
+                        <h2
+                            id="pending-stores-heading"
+                            className="text-xl font-bold tracking-tight text-white sm:text-2xl"
+                        >
+                            Pending store approvals
+                        </h2>
+
+                        <p className="mt-1 text-sm leading-6 text-slate-400">
+                            Review stores waiting to become publicly visible.
+                        </p>
+
                     </div>
-                )
-            }
 
 
-            {
-                dashboardQuery.isError && (
+                    {
+                        dashboard.pendingStorePreview.length >
+                        0 && (
 
-                    <div className="mt-8 rounded-2xl border border-red-900/50 bg-red-950/30 p-6 text-red-300">
-                        Unable to load admin dashboard.
-                    </div>
-                )
-            }
+                            <Link
+                                to="/admin/stores?status=PENDING"
+                                className="inline-flex w-fit items-center text-sm font-semibold text-sky-400 transition hover:text-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                            >
+                                View all pending stores
+                            </Link>
+                        )
+                    }
+
+                </div>
 
 
-            {
-                dashboard && (
+                {
+                    dashboard.pendingStorePreview.length ===
+                    0 ? (
 
-                    <>
-                        <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                        <div className="mt-6">
 
-                            <MetricCard
-                                icon={
-                                    <Store />
-                                }
-                                label="All stores"
-                                value={
-                                    dashboard.totalStores
-                                }
-                            />
-
-                            <MetricCard
-                                icon={
-                                    <Building2 />
-                                }
-                                label="Active stores"
-                                value={
-                                    dashboard.activeStores
+                            <EmptyState
+                                title="No stores awaiting approval"
+                                message="There are currently no pending store applications to review."
+                                action={
+                                    <Link
+                                        to="/admin/stores"
+                                        className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:border-slate-500 hover:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                                    >
+                                        View all stores
+                                    </Link>
                                 }
                             />
 
-                            <MetricCard
-                                icon={
-                                    <Clock3 />
-                                }
-                                label="Pending approval"
-                                value={
-                                    dashboard.pendingStores
-                                }
-                                attention={
-                                    dashboard.pendingStores >
-                                    0
-                                }
-                            />
+                        </div>
 
-                            <MetricCard
-                                icon={
-                                    <Users />
-                                }
-                                label="Store owners"
-                                value={
-                                    dashboard.storeOwners
-                                }
-                            />
+                    ) : (
 
-                        </section>
-
-
-                        <section className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-
-                            <SecondaryCard
-                                label="Catalog products"
-                                value={
-                                    formatNumber(
-                                        dashboard.totalProducts,
-                                    )
-                                }
-                            />
-
-                            <SecondaryCard
-                                label="Inventory items"
-                                value={
-                                    formatNumber(
-                                        dashboard.inventoryItems,
-                                    )
-                                }
-                            />
-
-                            <SecondaryCard
-                                label="Low stock"
-                                value={
-                                    formatNumber(
-                                        dashboard.lowStockItems,
-                                    )
-                                }
-                            />
-
-                            <SecondaryCard
-                                label="Out of stock"
-                                value={
-                                    formatNumber(
-                                        dashboard.outOfStockItems,
-                                    )
-                                }
-                            />
-
-                        </section>
-
-
-                        <section className="mt-4 grid gap-4 sm:grid-cols-2">
-
-                            <SecondaryCard
-                                label="Total inventory units"
-                                value={
-                                    formatNumber(
-                                        dashboard.totalUnits,
-                                    )
-                                }
-                            />
-
-                            <SecondaryCard
-                                label="Inventory value"
-                                value={
-                                    `${formatPrice(
-                                        dashboard.inventoryValue,
-                                    )} MKD`
-                                }
-                            />
-
-                        </section>
-
-
-                        <section className="mt-10">
-
-                            <div className="flex items-end justify-between gap-4">
-
-                                <div>
-
-                                    <h2 className="text-2xl font-bold">
-                                        Pending store approvals
-                                    </h2>
-
-                                    <p className="mt-1 text-sm text-slate-400">
-                                        Review stores waiting to become publicly visible.
-                                    </p>
-
-                                </div>
-
-
-                                <Link
-                                    to="/admin/stores?status=PENDING"
-                                    className="text-sm font-semibold text-sky-400 hover:text-sky-300"
-                                >
-                                    View all stores
-                                </Link>
-
-                            </div>
-
+                        <div className="mt-6 grid gap-4">
 
                             {
-                                dashboard.pendingStorePreview.length ===
-                                0 ? (
+                                dashboard
+                                    .pendingStorePreview
+                                    .map(
+                                        store => (
 
-                                    <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center text-slate-400">
-                                        No stores are currently awaiting approval.
-                                    </div>
+                                            <Link
+                                                key={
+                                                    store.id
+                                                }
+                                                to={
+                                                    `/admin/stores/${store.id}`
+                                                }
+                                                className="group rounded-2xl border border-slate-800 bg-slate-900 p-5 transition hover:border-slate-600 hover:bg-slate-900/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                                            >
 
-                                ) : (
+                                                <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
 
-                                    <div className="mt-6 grid gap-4">
+                                                    <div className="min-w-0">
 
-                                        {
-                                            dashboard.pendingStorePreview.map(
-                                                store => (
+                                                        <div className="flex flex-wrap items-center gap-3">
 
-                                                    <Link
-                                                        key={
-                                                            store.id
-                                                        }
-                                                        to={
-                                                            `/admin/stores/${store.id}`
-                                                        }
-                                                        className="rounded-2xl border border-slate-800 bg-slate-900 p-5 transition hover:border-slate-600"
-                                                    >
-
-                                                        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-
-                                                            <div>
-
-                                                                <h3 className="font-semibold">
-                                                                    {
-                                                                        store.name
-                                                                    }
-                                                                </h3>
-
-                                                                <p className="mt-1 text-sm text-slate-400">
-                                                                    {
-                                                                        store.address
-                                                                    }
-                                                                    ,{' '}
-                                                                    {
-                                                                        store.city
-                                                                    }
-                                                                </p>
-
-                                                                <p className="mt-2 text-xs text-slate-500">
-                                                                    Owner:{' '}
-                                                                    {
-                                                                        store.owner.fullName
-                                                                    }
-                                                                    {' · '}
-                                                                    {
-                                                                        store.owner.email
-                                                                    }
-                                                                </p>
-
-                                                            </div>
+                                                            <h3 className="truncate font-semibold text-white group-hover:text-sky-300">
+                                                                {
+                                                                    store.name
+                                                                }
+                                                            </h3>
 
 
-                                                            <span className="w-fit rounded-full bg-amber-950 px-3 py-1 text-xs font-semibold text-amber-300 ring-1 ring-amber-800">
-                                                                PENDING
-                                                            </span>
+                                                            <StatusBadge
+                                                                status={
+                                                                    store.status
+                                                                }
+                                                            />
 
                                                         </div>
 
-                                                    </Link>
-                                                ),
-                                            )
-                                        }
 
-                                    </div>
-                                )
+                                                        <p className="mt-2 text-sm leading-6 text-slate-400">
+                                                            {
+                                                                store.address
+                                                            }
+                                                            ,{' '}
+                                                            {
+                                                                store.city
+                                                            }
+                                                        </p>
+
+
+                                                        <div className="mt-3">
+
+                                                            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                                                Store owner
+                                                            </p>
+
+                                                            <p className="mt-1 text-sm text-slate-300">
+                                                                {
+                                                                    store.owner.fullName
+                                                                }
+                                                            </p>
+
+                                                            <p className="mt-0.5 break-all text-xs text-slate-500">
+                                                                {
+                                                                    store.owner.email
+                                                                }
+                                                            </p>
+
+                                                        </div>
+
+                                                    </div>
+
+
+                                                    <span className="shrink-0 text-sm font-semibold text-sky-400">
+                                                        Review store
+                                                    </span>
+
+                                                </div>
+
+                                            </Link>
+                                        ),
+                                    )
                             }
 
-                        </section>
-                    </>
-                )
-            }
+                        </div>
+                    )
+                }
+
+            </section>
 
         </AdminLayout>
     )
-}
-
-
-function MetricCard({
-                        icon,
-                        label,
-                        value,
-                        attention = false,
-                    }: {
-    icon: React.ReactNode
-    label: string
-    value: number
-    attention?: boolean
-}) {
-
-    return (
-        <article
-            className={
-                attention
-                    ? 'rounded-2xl border border-amber-800/60 bg-amber-950/20 p-5'
-                    : 'rounded-2xl border border-slate-800 bg-slate-900 p-5'
-            }
-        >
-
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-sky-400">
-                {icon}
-            </div>
-
-            <p className="mt-5 text-3xl font-bold">
-                {
-                    formatNumber(
-                        value,
-                    )
-                }
-            </p>
-
-            <p className="mt-1 text-sm text-slate-400">
-                {label}
-            </p>
-
-        </article>
-    )
-}
-
-
-function SecondaryCard({
-                           label,
-                           value,
-                       }: {
-    label: string
-    value: string
-}) {
-
-    return (
-        <article className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-
-            <p className="text-sm text-slate-500">
-                {label}
-            </p>
-
-            <p className="mt-2 text-xl font-bold">
-                {value}
-            </p>
-
-        </article>
-    )
-}
-
-
-function formatNumber(
-    value: number,
-): string {
-
-    return new Intl.NumberFormat(
-        'en-US',
-    ).format(value)
-}
-
-
-function formatPrice(
-    value: number,
-): string {
-
-    return new Intl.NumberFormat(
-        'en-US',
-        {
-            maximumFractionDigits: 2,
-        },
-    ).format(value)
 }

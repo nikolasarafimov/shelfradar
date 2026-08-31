@@ -2,6 +2,10 @@ import {
     useState,
 } from 'react'
 
+import type {
+    ReactNode,
+} from 'react'
+
 import {
     useQuery,
 } from '@tanstack/react-query'
@@ -26,14 +30,26 @@ import {
 import InventoryManager
     from '../components/store/InventoryManager'
 
+import StoreActivityPanel
+    from '../components/store/StoreActivityPanel'
+
 import StoreOverview
     from '../components/store/StoreOverview'
 
 import StoreProfileEditor
     from '../components/store/StoreProfileEditor'
 
-import StoreActivityPanel
-    from '../components/store/StoreActivityPanel'
+import ErrorState
+    from '../components/ui/ErrorState'
+
+import LoadingState
+    from '../components/ui/LoadingState'
+
+import PageHeader
+    from '../components/ui/PageHeader'
+
+import StatusBadge
+    from '../components/ui/StatusBadge'
 
 
 type StoreTab =
@@ -47,7 +63,8 @@ export default function StoreManagementPage() {
 
     const {
         storeId,
-    } = useParams()
+    } =
+        useParams()
 
 
     const parsedStoreId =
@@ -84,21 +101,35 @@ export default function StoreManagementPage() {
 
 
     if (
-        parsedStoreId === null
+        parsedStoreId ===
+        null
     ) {
 
         return (
-            <StoreError />
+            <StoreWorkspaceShell>
+
+                <ErrorState
+                    title="Invalid store"
+                    message="The store identifier in this URL is not valid."
+                />
+
+            </StoreWorkspaceShell>
         )
     }
 
 
-    if (storeQuery.isLoading) {
+    if (
+        storeQuery.isLoading
+    ) {
 
         return (
-            <main className="min-h-screen bg-slate-950 p-10 text-center text-slate-400">
-                Loading store...
-            </main>
+            <StoreWorkspaceShell>
+
+                <LoadingState
+                    message="Loading store workspace..."
+                />
+
+            </StoreWorkspaceShell>
         )
     }
 
@@ -109,7 +140,20 @@ export default function StoreManagementPage() {
     ) {
 
         return (
-            <StoreError />
+            <StoreWorkspaceShell>
+
+                <ErrorState
+                    title="Store unavailable"
+                    message="ShelfRadar could not load this store, or you do not have access to it."
+                    onRetry={
+                        () => {
+                            void storeQuery
+                                .refetch()
+                        }
+                    }
+                />
+
+            </StoreWorkspaceShell>
         )
     }
 
@@ -119,71 +163,45 @@ export default function StoreManagementPage() {
 
 
     return (
-        <main className="min-h-screen bg-slate-950 text-white">
+        <StoreWorkspaceShell>
 
-            <header className="border-b border-slate-800">
+            <Link
+                to="/store"
+                className="inline-flex items-center gap-2 text-sm font-medium text-slate-400 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+            >
+                <ArrowLeft
+                    size={17}
+                />
 
-                <div className="mx-auto max-w-7xl px-5 py-5 md:px-8">
-
-                    <Link
-                        to="/store"
-                        className="inline-flex items-center gap-2 text-sm font-medium text-slate-400 transition hover:text-white"
-                    >
-                        <ArrowLeft
-                            size={17}
-                        />
-
-                        Back to dashboard
-                    </Link>
-
-                </div>
-
-            </header>
+                Back to dashboard
+            </Link>
 
 
-            <div className="mx-auto max-w-7xl px-5 py-8 md:px-8">
+            <div className="mt-6">
 
-                <section>
-
-                    <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
-
-                        <div>
-
-                            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-sky-400">
-                                Store Workspace
-                            </p>
-
-                            <h1 className="mt-2 text-3xl font-bold tracking-tight">
-                                {
-                                    store.name
-                                }
-                            </h1>
-
-                            <p className="mt-2 text-sm text-slate-400">
-                                {
-                                    store.address
-                                }
-                                ,{' '}
-                                {
-                                    store.city
-                                }
-                            </p>
-
-                        </div>
-
-
-                        <StoreStatusBadge
+                <PageHeader
+                    eyebrow="Store Workspace"
+                    title={
+                        store.name
+                    }
+                    description={
+                        `${store.address}, ${store.city}`
+                    }
+                    actions={
+                        <StatusBadge
                             status={
                                 store.status
                             }
                         />
+                    }
+                />
 
-                    </div>
-
-                </section>
+            </div>
 
 
-                <nav className="mt-8 flex overflow-x-auto border-b border-slate-800">
+            <div className="mt-8 overflow-x-auto">
+
+                <div className="flex min-w-max gap-1 rounded-xl border border-slate-800 bg-slate-900 p-1">
 
                     <TabButton
                         active={
@@ -230,26 +248,6 @@ export default function StoreManagementPage() {
                     <TabButton
                         active={
                             activeTab ===
-                            'profile'
-                        }
-                        onClick={
-                            () =>
-                                setActiveTab(
-                                    'profile',
-                                )
-                        }
-                        icon={
-                            <Settings
-                                size={17}
-                            />
-                        }
-                    >
-                        Store Profile
-                    </TabButton>
-
-                    <TabButton
-                        active={
-                            activeTab ===
                             'activity'
                         }
                         onClick={
@@ -267,78 +265,100 @@ export default function StoreManagementPage() {
                         Activity
                     </TabButton>
 
-                </nav>
 
-
-                <section className="py-8">
-
-                    {
-                        activeTab ===
-                        'overview' && (
-
-                            <StoreOverview
-                                storeId={
-                                    parsedStoreId
-                                }
-                                onManageInventory={
-                                    () =>
-                                        setActiveTab(
-                                            'inventory',
-                                        )
-                                }
-                                onEditProfile={
-                                    () =>
-                                        setActiveTab(
-                                            'profile',
-                                        )
-                                }
+                    <TabButton
+                        active={
+                            activeTab ===
+                            'profile'
+                        }
+                        onClick={
+                            () =>
+                                setActiveTab(
+                                    'profile',
+                                )
+                        }
+                        icon={
+                            <Settings
+                                size={17}
                             />
-                        )
-                    }
+                        }
+                    >
+                        Store Profile
+                    </TabButton>
 
-
-                    {
-                        activeTab ===
-                        'inventory' && (
-
-                            <InventoryManager
-                                storeId={
-                                    parsedStoreId
-                                }
-                            />
-                        )
-                    }
-
-
-                    {
-                        activeTab ===
-                        'profile' && (
-
-                            <StoreProfileEditor
-                                store={
-                                    store
-                                }
-                            />
-                        )
-                    }
-
-                    {
-                        activeTab ===
-                        'activity' && (
-
-                            <StoreActivityPanel
-                                storeId={
-                                    parsedStoreId
-                                }
-                            />
-                        )
-                    }
-
-                </section>
+                </div>
 
             </div>
 
-        </main>
+
+            <div className="mt-6">
+
+                {
+                    activeTab ===
+                    'overview' && (
+
+                        <StoreOverview
+                            storeId={
+                                parsedStoreId
+                            }
+                            onManageInventory={
+                                () =>
+                                    setActiveTab(
+                                        'inventory',
+                                    )
+                            }
+                            onEditProfile={
+                                () =>
+                                    setActiveTab(
+                                        'profile',
+                                    )
+                            }
+                        />
+                    )
+                }
+
+
+                {
+                    activeTab ===
+                    'inventory' && (
+
+                        <InventoryManager
+                            storeId={
+                                parsedStoreId
+                            }
+                        />
+                    )
+                }
+
+
+                {
+                    activeTab ===
+                    'activity' && (
+
+                        <StoreActivityPanel
+                            storeId={
+                                parsedStoreId
+                            }
+                        />
+                    )
+                }
+
+
+                {
+                    activeTab ===
+                    'profile' && (
+
+                        <StoreProfileEditor
+                            store={
+                                store
+                            }
+                        />
+                    )
+                }
+
+            </div>
+
+        </StoreWorkspaceShell>
     )
 }
 
@@ -351,20 +371,23 @@ function TabButton({
                    }: {
     active: boolean
     onClick: () => void
-    icon: React.ReactNode
-    children: React.ReactNode
+    icon: ReactNode
+    children: ReactNode
 }) {
 
     return (
         <button
             type="button"
+            aria-pressed={
+                active
+            }
             onClick={
                 onClick
             }
             className={
                 active
-                    ? 'flex shrink-0 items-center gap-2 border-b-2 border-sky-400 px-5 py-4 text-sm font-semibold text-white'
-                    : 'flex shrink-0 items-center gap-2 border-b-2 border-transparent px-5 py-4 text-sm font-medium text-slate-500 transition hover:text-slate-300'
+                    ? 'inline-flex min-h-10 items-center gap-2 rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-white'
+                    : 'inline-flex min-h-10 items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-slate-400 transition hover:bg-slate-800/60 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500'
             }
         >
             {icon}
@@ -374,52 +397,18 @@ function TabButton({
 }
 
 
-function StoreStatusBadge({
-                              status,
-                          }: {
-    status:
-        | 'PENDING'
-        | 'ACTIVE'
-        | 'INACTIVE'
+function StoreWorkspaceShell({
+                                 children,
+                             }: {
+    children: ReactNode
 }) {
 
-    const styles =
-        status === 'ACTIVE'
-            ? 'bg-emerald-950 text-emerald-300 ring-emerald-700'
-            : status === 'PENDING'
-                ? 'bg-amber-950 text-amber-300 ring-amber-700'
-                : 'bg-slate-800 text-slate-400 ring-slate-700'
-
-
     return (
-        <span
-            className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ring-1 ${styles}`}
-        >
-            {status}
-        </span>
-    )
-}
+        <main className="min-h-screen bg-slate-950 text-white">
 
-
-function StoreError() {
-
-    return (
-        <main className="min-h-screen bg-slate-950 p-10 text-center text-white">
-
-            <h1 className="text-2xl font-bold">
-                Store not found
-            </h1>
-
-            <p className="mt-2 text-slate-400">
-                The store does not exist or does not belong to your account.
-            </p>
-
-            <Link
-                to="/store"
-                className="mt-5 inline-block text-sm font-semibold text-sky-400"
-            >
-                Return to dashboard
-            </Link>
+            <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+                {children}
+            </div>
 
         </main>
     )
@@ -434,15 +423,17 @@ function parseStoreId(
         return null
     }
 
+
     const parsed =
-        Number(value)
+        Number(
+            value,
+        )
 
-    if (
-        !Number.isInteger(parsed) ||
-        parsed <= 0
-    ) {
-        return null
-    }
 
-    return parsed
+    return Number.isInteger(
+        parsed,
+    ) &&
+    parsed > 0
+        ? parsed
+        : null
 }
