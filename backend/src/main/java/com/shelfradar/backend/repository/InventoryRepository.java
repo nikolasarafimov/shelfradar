@@ -144,4 +144,42 @@ public interface InventoryRepository
             @Param("storeStatus")
             StoreStatus storeStatus
     );
+
+    @EntityGraph(
+            attributePaths = {
+                    "product",
+                    "product.brand",
+                    "product.category",
+                    "store"
+            }
+    )
+    @Query("""
+        SELECT i
+        FROM Inventory i
+        WHERE i.store.id = :storeId
+        ORDER BY i.updatedAt DESC
+        """)
+    List<Inventory> findDetailedByStoreIdOrderByUpdatedAtDesc(
+            @Param("storeId")
+            Long storeId
+    );
+
+
+    @EntityGraph(
+            attributePaths = {
+                    "product",
+                    "product.brand",
+                    "product.category",
+                    "store"
+            }
+    )
+    @Query("""
+        SELECT i
+        FROM Inventory i
+        WHERE i.store.id IN :storeIds
+        """)
+    List<Inventory> findDetailedByStoreIds(
+            @Param("storeIds")
+            List<Long> storeIds
+    );
 }

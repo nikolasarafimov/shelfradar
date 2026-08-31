@@ -1,0 +1,83 @@
+@baseUrl = http://localhost:8080
+
+
+### Marko login
+
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "marko@shelfradar.local",
+  "password": "Store123!"
+}
+
+> {%
+    client.global.set(
+        "store_token",
+        response.body.accessToken
+    );
+%}
+
+
+### Owner dashboard
+
+GET {{baseUrl}}/api/store/dashboard
+Authorization: Bearer {{store_token}}
+Accept: application/json
+
+> {%
+    if (
+        response.body.stores &&
+        response.body.stores.length > 0
+    ) {
+        client.global.set(
+            "store_id",
+            response.body.stores[0].store.id
+        );
+    }
+%}
+
+
+### Store dashboard
+
+GET {{baseUrl}}/api/store/stores/{{store_id}}/dashboard
+Authorization: Bearer {{store_token}}
+Accept: application/json
+
+
+### Store inventory
+
+GET {{baseUrl}}/api/store/stores/{{store_id}}/inventory?page=0&size=20&sort=updatedDesc
+Authorization: Bearer {{store_token}}
+Accept: application/json
+
+
+### Admin login
+
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@shelfradar.local",
+  "password": "Admin123!"
+}
+
+> {%
+    client.global.set(
+        "admin_token",
+        response.body.accessToken
+    );
+%}
+
+
+### Admin cannot use owner dashboard - expected 403
+
+GET {{baseUrl}}/api/store/dashboard
+Authorization: Bearer {{admin_token}}
+Accept: application/json
+
+
+### No token - expected 401
+
+GET {{baseUrl}}/api/store/dashboard
+Accept: application/json

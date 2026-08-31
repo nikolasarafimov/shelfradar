@@ -61,3 +61,42 @@ export interface InventoryUpdateRequest {
 
 export type InventoryPage =
     PageResponse<InventoryItem>
+
+export interface StoreDashboardSummary {
+    store: Store
+    totalProducts: number
+    availableProducts: number
+    inStockProducts: number
+    lowStockProducts: number
+    outOfStockProducts: number
+    totalUnits: number
+    inventoryValue: number
+    lastUpdatedAt: string | null
+}
+
+
+export interface OwnerDashboard {
+    totalStores: number
+    totalProducts: number
+    availableProducts: number
+    lowStockProducts: number
+    outOfStockProducts: number
+    totalUnits: number
+    inventoryValue: number
+    stores: StoreDashboardSummary[]
+}
+
+
+export interface StoreDashboard {
+    store: Store
+    totalProducts: number
+    availableProducts: number
+    inStockProducts: number
+    lowStockProducts: number
+    outOfStockProducts: number
+    totalUnits: number
+    inventoryValue: number
+    lastUpdatedAt: string | null
+    alerts: InventoryItem[]
+    recentUpdates: InventoryItem[]
+}

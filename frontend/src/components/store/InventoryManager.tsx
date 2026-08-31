@@ -25,6 +25,7 @@ import type {
     StockStatus,
 } from '../../types/store'
 
+
 export default function InventoryManager({
                                              storeId,
                                          }: {
@@ -34,14 +35,27 @@ export default function InventoryManager({
     const queryClient =
         useQueryClient()
 
-    const [page, setPage] =
+
+    const [
+        page,
+        setPage,
+    ] =
         useState(0)
 
-    const [searchInput, setSearchInput] =
+
+    const [
+        searchInput,
+        setSearchInput,
+    ] =
         useState('')
 
-    const [search, setSearch] =
+
+    const [
+        search,
+        setSearch,
+    ] =
         useState('')
+
 
     const [
         editingItem,
@@ -51,26 +65,48 @@ export default function InventoryManager({
             null,
         )
 
-    const [productId, setProductId] =
+
+    const [
+        productId,
+        setProductId,
+    ] =
         useState('')
 
-    const [price, setPrice] =
+
+    const [
+        price,
+        setPrice,
+    ] =
         useState('')
 
-    const [quantity, setQuantity] =
+
+    const [
+        quantity,
+        setQuantity,
+    ] =
         useState('')
 
-    const [status, setStatus] =
+
+    const [
+        status,
+        setStatus,
+    ] =
         useState<StockStatus>(
             'IN_STOCK',
         )
 
-    const [error, setError] =
-        useState<string | null>(null)
+
+    const [
+        error,
+        setError,
+    ] =
+        useState<string | null>(
+            null,
+        )
+
 
     const inventoryQuery =
         useQuery({
-
             queryKey: [
                 'store-inventory',
                 storeId,
@@ -83,18 +119,23 @@ export default function InventoryManager({
                     getInventory(
                         storeId,
                         {
-                            q: search,
+                            q:
+                            search,
+
                             page,
-                            size: 10,
+
+                            size:
+                                10,
+
                             sort:
                                 'nameAsc',
                         },
                     ),
         })
 
+
     const productsQuery =
         useQuery({
-
             queryKey: [
                 'store-product-catalog',
             ],
@@ -104,9 +145,35 @@ export default function InventoryManager({
                     getStoreCatalogProducts(),
         })
 
+
+    async function refreshStoreData() {
+
+        await Promise.all([
+            queryClient.invalidateQueries({
+                queryKey: [
+                    'store-inventory',
+                    storeId,
+                ],
+            }),
+
+            queryClient.invalidateQueries({
+                queryKey: [
+                    'store-dashboard',
+                    storeId,
+                ],
+            }),
+
+            queryClient.invalidateQueries({
+                queryKey: [
+                    'owner-dashboard',
+                ],
+            }),
+        ])
+    }
+
+
     const saveMutation =
         useMutation({
-
             mutationFn:
                 async () => {
 
@@ -115,6 +182,7 @@ export default function InventoryManager({
 
                     const numericQuantity =
                         Number(quantity)
+
 
                     if (editingItem) {
 
@@ -132,6 +200,7 @@ export default function InventoryManager({
                             },
                         )
                     }
+
 
                     return createInventoryItem(
                         storeId,
@@ -157,27 +226,21 @@ export default function InventoryManager({
 
                     resetForm()
 
-                    await queryClient
-                        .invalidateQueries({
-                            queryKey: [
-                                'store-inventory',
-                                storeId,
-                            ],
-                        })
+                    await refreshStoreData()
                 },
 
             onError:
                 () => {
 
                     setError(
-                        'Unable to save inventory item. Check product, quantity, status and duplicates.',
+                        'Unable to save inventory item. Check product, price, quantity, status and duplicates.',
                     )
                 },
         })
 
+
     const deleteMutation =
         useMutation({
-
             mutationFn:
                 (
                     inventoryId:
@@ -189,17 +252,34 @@ export default function InventoryManager({
                     ),
 
             onSuccess:
-                async () => {
+                async (
+                    _data,
+                    inventoryId,
+                ) => {
 
-                    await queryClient
-                        .invalidateQueries({
-                            queryKey: [
-                                'store-inventory',
-                                storeId,
-                            ],
-                        })
+                    if (
+                        editingItem?.id ===
+                        inventoryId
+                    ) {
+                        resetForm()
+                    }
+
+                    setError(
+                        null,
+                    )
+
+                    await refreshStoreData()
+                },
+
+            onError:
+                () => {
+
+                    setError(
+                        'Unable to delete inventory item.',
+                    )
                 },
         })
+
 
     function handleSearch(
         event:
@@ -208,12 +288,15 @@ export default function InventoryManager({
 
         event.preventDefault()
 
-        setPage(0)
+        setPage(
+            0,
+        )
 
         setSearch(
             searchInput.trim(),
         )
     }
+
 
     function handleSubmit(
         event:
@@ -221,6 +304,7 @@ export default function InventoryManager({
     ) {
 
         event.preventDefault()
+
 
         if (
             !editingItem &&
@@ -234,6 +318,7 @@ export default function InventoryManager({
             return
         }
 
+
         if (
             price === '' ||
             quantity === ''
@@ -246,73 +331,199 @@ export default function InventoryManager({
             return
         }
 
-        setError(null)
+
+        const numericProductId =
+            Number(productId)
+
+        const numericPrice =
+            Number(price)
+
+        const numericQuantity =
+            Number(quantity)
+
+
+        if (
+            !editingItem &&
+            (
+                !Number.isInteger(
+                    numericProductId,
+                ) ||
+                numericProductId <= 0
+            )
+        ) {
+
+            setError(
+                'Select a valid product.',
+            )
+
+            return
+        }
+
+
+        if (
+            !Number.isFinite(
+                numericPrice,
+            ) ||
+            numericPrice < 0
+        ) {
+
+            setError(
+                'Price must be zero or greater.',
+            )
+
+            return
+        }
+
+
+        if (
+            !Number.isInteger(
+                numericQuantity,
+            ) ||
+            numericQuantity < 0
+        ) {
+
+            setError(
+                'Quantity must be a whole number of zero or greater.',
+            )
+
+            return
+        }
+
+
+        if (
+            numericQuantity === 0 &&
+            status !==
+            'OUT_OF_STOCK'
+        ) {
+
+            setError(
+                'Quantity 0 must use Out of Stock status.',
+            )
+
+            return
+        }
+
+
+        if (
+            numericQuantity > 0 &&
+            status ===
+            'OUT_OF_STOCK'
+        ) {
+
+            setError(
+                'A product with quantity above 0 cannot be Out of Stock.',
+            )
+
+            return
+        }
+
+
+        setError(
+            null,
+        )
 
         saveMutation.mutate()
     }
+
 
     function beginEdit(
         item: InventoryItem,
     ) {
 
         setEditingItem(
-            item
+            item,
         )
 
         setProductId(
             String(
                 item.product.id,
-            )
+            ),
         )
 
         setPrice(
             String(
                 item.price,
-            )
+            ),
         )
 
         setQuantity(
             String(
                 item.quantity,
-            )
+            ),
         )
 
         setStatus(
-            item.status
+            item.status,
         )
 
-        setError(null)
+        setError(
+            null,
+        )
+
+        window.scrollTo({
+            top: 0,
+            behavior:
+                'smooth',
+        })
     }
+
 
     function resetForm() {
 
-        setEditingItem(null)
-        setProductId('')
-        setPrice('')
-        setQuantity('')
-        setStatus('IN_STOCK')
-        setError(null)
+        setEditingItem(
+            null,
+        )
+
+        setProductId(
+            '',
+        )
+
+        setPrice(
+            '',
+        )
+
+        setQuantity(
+            '',
+        )
+
+        setStatus(
+            'IN_STOCK',
+        )
+
+        setError(
+            null,
+        )
     }
+
 
     function handleDelete(
         item: InventoryItem,
     ) {
 
-        if (
-            !window.confirm(
+        const confirmed =
+            window.confirm(
                 `Remove ${item.product.name} from this store?`,
             )
-        ) {
+
+
+        if (!confirmed) {
             return
         }
+
+
+        setError(
+            null,
+        )
 
         deleteMutation.mutate(
             item.id,
         )
     }
 
+
     const data =
         inventoryQuery.data
+
 
     return (
         <div className="space-y-6">
@@ -327,18 +538,34 @@ export default function InventoryManager({
                     }
                 </h2>
 
+
+                <p className="mt-1 text-sm text-slate-400">
+                    {
+                        editingItem
+                            ? `Editing ${editingItem.product.name}`
+                            : 'Add a catalog product and set its current price and stock.'
+                    }
+                </p>
+
+
                 <form
-                    onSubmit={handleSubmit}
+                    onSubmit={
+                        handleSubmit
+                    }
                     className="mt-6 grid gap-4 md:grid-cols-4"
                 >
 
                     <div>
 
-                        <label className="mb-2 block text-sm text-slate-300">
+                        <label
+                            htmlFor="inventory-product"
+                            className="mb-2 block text-sm text-slate-300"
+                        >
                             Product
                         </label>
 
                         <select
+                            id="inventory-product"
                             value={
                                 productId
                             }
@@ -354,7 +581,7 @@ export default function InventoryManager({
                                             .value,
                                     )
                             }
-                            className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 disabled:opacity-60"
+                            className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 disabled:cursor-not-allowed disabled:opacity-60"
                         >
 
                             <option value="">
@@ -388,17 +615,24 @@ export default function InventoryManager({
 
                     </div>
 
+
                     <div>
 
-                        <label className="mb-2 block text-sm text-slate-300">
+                        <label
+                            htmlFor="inventory-price"
+                            className="mb-2 block text-sm text-slate-300"
+                        >
                             Price
                         </label>
 
                         <input
+                            id="inventory-price"
                             type="number"
                             min="0"
                             step="0.01"
-                            value={price}
+                            value={
+                                price
+                            }
                             onChange={
                                 event =>
                                     setPrice(
@@ -407,18 +641,24 @@ export default function InventoryManager({
                                             .value,
                                     )
                             }
+                            placeholder="0.00"
                             className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
                         />
 
                     </div>
 
+
                     <div>
 
-                        <label className="mb-2 block text-sm text-slate-300">
+                        <label
+                            htmlFor="inventory-quantity"
+                            className="mb-2 block text-sm text-slate-300"
+                        >
                             Quantity
                         </label>
 
                         <input
+                            id="inventory-quantity"
                             type="number"
                             min="0"
                             step="1"
@@ -433,24 +673,38 @@ export default function InventoryManager({
                                             .value,
                                     )
                             }
+                            placeholder="0"
                             className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
                         />
 
                     </div>
 
+
                     <div>
 
-                        <label className="mb-2 block text-sm text-slate-300">
+                        <label
+                            htmlFor="inventory-status"
+                            className="mb-2 block text-sm text-slate-300"
+                        >
                             Status
                         </label>
 
                         <select
-                            value={status}
-                            onChange={(event) =>
-                                setStatus(event.target.value as StockStatus)
+                            id="inventory-status"
+                            value={
+                                status
+                            }
+                            onChange={
+                                event =>
+                                    setStatus(
+                                        event
+                                            .target
+                                            .value as StockStatus,
+                                    )
                             }
                             className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
                         >
+
                             <option value="IN_STOCK">
                                 In Stock
                             </option>
@@ -462,26 +716,31 @@ export default function InventoryManager({
                             <option value="OUT_OF_STOCK">
                                 Out of Stock
                             </option>
+
                         </select>
 
                     </div>
 
+
                     {
                         error && (
+
                             <p className="text-sm text-red-400 md:col-span-4">
                                 {error}
                             </p>
                         )
                     }
 
-                    <div className="flex gap-3 md:col-span-4">
+
+                    <div className="flex flex-wrap gap-3 md:col-span-4">
 
                         <button
+                            type="submit"
                             disabled={
                                 saveMutation
                                     .isPending
                             }
-                            className="rounded-xl bg-sky-500 px-5 py-3 font-semibold text-slate-950"
+                            className="rounded-xl bg-sky-500 px-5 py-3 font-semibold text-slate-950 transition hover:bg-sky-400 disabled:cursor-wait disabled:opacity-60"
                         >
                             {
                                 saveMutation
@@ -493,6 +752,7 @@ export default function InventoryManager({
                             }
                         </button>
 
+
                         {
                             editingItem && (
 
@@ -501,7 +761,11 @@ export default function InventoryManager({
                                     onClick={
                                         resetForm
                                     }
-                                    className="rounded-xl border border-slate-700 px-5 py-3"
+                                    disabled={
+                                        saveMutation
+                                            .isPending
+                                    }
+                                    className="rounded-xl border border-slate-700 px-5 py-3 text-slate-200 transition hover:border-slate-500 disabled:opacity-50"
                                 >
                                     Cancel
                                 </button>
@@ -514,7 +778,8 @@ export default function InventoryManager({
 
             </section>
 
-            <section className="rounded-2xl border border-slate-800 bg-slate-900">
+
+            <section className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
 
                 <div className="flex flex-col gap-4 border-b border-slate-800 p-6 md:flex-row md:items-center md:justify-between">
 
@@ -529,19 +794,23 @@ export default function InventoryManager({
                                 data
                                     ?.totalElements ??
                                 0
-                            } products
+                            }{' '}
+                            products
                         </p>
 
                     </div>
+
 
                     <form
                         onSubmit={
                             handleSearch
                         }
-                        className="flex gap-2"
+                        className="flex w-full gap-2 md:w-auto"
                     >
 
                         <input
+                            type="search"
+                            aria-label="Search inventory"
                             placeholder="Search inventory..."
                             value={
                                 searchInput
@@ -554,10 +823,13 @@ export default function InventoryManager({
                                             .value,
                                     )
                             }
-                            className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-2"
+                            className="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 md:w-64"
                         />
 
-                        <button className="rounded-xl border border-slate-700 px-4 py-2">
+                        <button
+                            type="submit"
+                            className="rounded-xl border border-slate-700 px-4 py-2 transition hover:border-slate-500"
+                        >
                             Search
                         </button>
 
@@ -565,116 +837,186 @@ export default function InventoryManager({
 
                 </div>
 
-                <div className="divide-y divide-slate-800">
 
-                    {
-                        data?.content.map(
-                            item => (
+                {
+                    inventoryQuery.isLoading && (
 
-                                <article
-                                    key={
-                                        item.id
-                                    }
-                                    className="grid gap-4 p-6 md:grid-cols-[1fr_auto]"
-                                >
+                        <div className="p-10 text-center text-slate-400">
+                            Loading inventory...
+                        </div>
+                    )
+                }
 
-                                    <div>
 
-                                        <h3 className="font-semibold">
-                                            {
-                                                item
-                                                    .product
-                                                    .name
-                                            }
-                                        </h3>
+                {
+                    inventoryQuery.isError && (
 
-                                        <p className="mt-1 text-sm text-slate-400">
-                                            {
-                                                item
-                                                    .product
-                                                    .brand
-                                                    .name
-                                            }
-                                            {' · '}
-                                            {
-                                                item
-                                                    .product
-                                                    .category
-                                                    .name
-                                            }
-                                        </p>
+                        <div className="p-6 text-red-400">
+                            Unable to load inventory.
+                        </div>
+                    )
+                }
 
-                                        <div className="mt-4 flex flex-wrap gap-4 text-sm">
-
-                                            <span>
-                                                {
-                                                    item.price
-                                                } MKD
-                                            </span>
-
-                                            <span>
-                                                Qty:{' '}
-                                                {
-                                                    item.quantity
-                                                }
-                                            </span>
-
-                                            <span>
-                                                {
-                                                    item.status
-                                                        .replaceAll(
-                                                            '_',
-                                                            ' ',
-                                                        )
-                                                }
-                                            </span>
-
-                                        </div>
-
-                                    </div>
-
-                                    <div className="flex gap-2">
-
-                                        <button
-                                            onClick={
-                                                () =>
-                                                    beginEdit(
-                                                        item,
-                                                    )
-                                            }
-                                            className="rounded-lg border border-slate-700 px-3 py-2 text-sm"
-                                        >
-                                            Edit
-                                        </button>
-
-                                        <button
-                                            onClick={
-                                                () =>
-                                                    handleDelete(
-                                                        item,
-                                                    )
-                                            }
-                                            className="rounded-lg border border-red-900 px-3 py-2 text-sm text-red-400"
-                                        >
-                                            Delete
-                                        </button>
-
-                                    </div>
-
-                                </article>
-                            ),
-                        )
-                    }
-
-                </div>
 
                 {
                     data &&
-                    data.totalPages > 1 && (
+                    data.content.length ===
+                    0 &&
+                    !inventoryQuery.isLoading &&
+                    !inventoryQuery.isError && (
+
+                        <div className="p-10 text-center">
+
+                            <h3 className="font-semibold">
+                                No inventory items
+                            </h3>
+
+                            <p className="mt-2 text-sm text-slate-400">
+                                {
+                                    search
+                                        ? 'No products match your search.'
+                                        : 'Add a product to start building this store inventory.'
+                                }
+                            </p>
+
+                        </div>
+                    )
+                }
+
+
+                {
+                    data &&
+                    data.content.length >
+                    0 && (
+
+                        <div className="divide-y divide-slate-800">
+
+                            {
+                                data.content.map(
+                                    item => (
+
+                                        <article
+                                            key={
+                                                item.id
+                                            }
+                                            className="grid gap-4 p-6 md:grid-cols-[1fr_auto]"
+                                        >
+
+                                            <div>
+
+                                                <h3 className="font-semibold">
+                                                    {
+                                                        item.product.name
+                                                    }
+                                                </h3>
+
+                                                <p className="mt-1 text-sm text-slate-400">
+                                                    {
+                                                        item.product.brand.name
+                                                    }
+                                                    {' · '}
+                                                    {
+                                                        item.product.category.name
+                                                    }
+                                                </p>
+
+
+                                                <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
+
+                                                    <span className="font-medium text-slate-200">
+                                                        {
+                                                            formatPrice(
+                                                                item.price,
+                                                            )
+                                                        }{' '}
+                                                        MKD
+                                                    </span>
+
+                                                    <span className="text-slate-400">
+                                                        Qty:{' '}
+                                                        {
+                                                            item.quantity
+                                                        }
+                                                    </span>
+
+                                                    <InventoryStatusBadge
+                                                        status={
+                                                            item.status
+                                                        }
+                                                    />
+
+                                                </div>
+
+                                            </div>
+
+
+                                            <div className="flex items-start gap-2">
+
+                                                <button
+                                                    type="button"
+                                                    onClick={
+                                                        () =>
+                                                            beginEdit(
+                                                                item,
+                                                            )
+                                                    }
+                                                    disabled={
+                                                        saveMutation
+                                                            .isPending ||
+                                                        deleteMutation
+                                                            .isPending
+                                                    }
+                                                    className="rounded-lg border border-slate-700 px-3 py-2 text-sm transition hover:border-slate-500 disabled:opacity-50"
+                                                >
+                                                    Edit
+                                                </button>
+
+
+                                                <button
+                                                    type="button"
+                                                    onClick={
+                                                        () =>
+                                                            handleDelete(
+                                                                item,
+                                                            )
+                                                    }
+                                                    disabled={
+                                                        saveMutation
+                                                            .isPending ||
+                                                        deleteMutation
+                                                            .isPending
+                                                    }
+                                                    className="rounded-lg border border-red-900 px-3 py-2 text-sm text-red-400 transition hover:border-red-700 disabled:opacity-50"
+                                                >
+                                                    {
+                                                        deleteMutation
+                                                            .isPending
+                                                            ? 'Deleting...'
+                                                            : 'Delete'
+                                                    }
+                                                </button>
+
+                                            </div>
+
+                                        </article>
+                                    ),
+                                )
+                            }
+
+                        </div>
+                    )
+                }
+
+
+                {
+                    data &&
+                    data.totalPages >
+                    1 && (
 
                         <div className="flex items-center justify-between border-t border-slate-800 p-6">
 
                             <button
+                                type="button"
                                 disabled={
                                     data.first
                                 }
@@ -689,21 +1031,27 @@ export default function InventoryManager({
                                                 ),
                                         )
                                 }
+                                className="rounded-lg border border-slate-700 px-4 py-2 text-sm transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
                             >
                                 Previous
                             </button>
 
+
                             <span className="text-sm text-slate-400">
-                                Page {
-                                data.page +
-                                1
-                            } of {
-                                data
-                                    .totalPages
-                            }
+                                Page{' '}
+                                {
+                                    data.page +
+                                    1
+                                }{' '}
+                                of{' '}
+                                {
+                                    data.totalPages
+                                }
                             </span>
 
+
                             <button
+                                type="button"
                                 disabled={
                                     data.last
                                 }
@@ -715,6 +1063,7 @@ export default function InventoryManager({
                                                 1,
                                         )
                                 }
+                                className="rounded-lg border border-slate-700 px-4 py-2 text-sm transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
                             >
                                 Next
                             </button>
@@ -726,5 +1075,56 @@ export default function InventoryManager({
             </section>
 
         </div>
+    )
+}
+
+
+function InventoryStatusBadge({
+                                  status,
+                              }: {
+    status: StockStatus
+}) {
+
+    const styles =
+        status === 'IN_STOCK'
+            ? 'bg-emerald-950 text-emerald-300 ring-emerald-800'
+            : status === 'LOW_STOCK'
+                ? 'bg-amber-950 text-amber-300 ring-amber-800'
+                : 'bg-red-950 text-red-300 ring-red-800'
+
+
+    const label =
+        status === 'IN_STOCK'
+            ? 'In stock'
+            : status === 'LOW_STOCK'
+                ? 'Low stock'
+                : 'Out of stock'
+
+
+    return (
+        <span
+            className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${styles}`}
+        >
+            {label}
+        </span>
+    )
+}
+
+
+function formatPrice(
+    value: number,
+): string {
+
+    return new Intl.NumberFormat(
+        'en-US',
+        {
+            minimumFractionDigits:
+                0,
+
+            maximumFractionDigits:
+                2,
+        },
+    ).format(
+        value,
     )
 }

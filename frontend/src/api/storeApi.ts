@@ -13,6 +13,8 @@ import type {
     InventoryUpdateRequest,
     Store,
     StoreUpdateRequest,
+    OwnerDashboard,
+    StoreDashboard,
 } from '../types/store'
 
 
@@ -160,6 +162,34 @@ export async function getStoreCatalogProducts(
                     size: 100,
                 },
             },
+        )
+
+    return response.data
+}
+
+export async function getOwnerDashboard():
+    Promise<OwnerDashboard> {
+
+    const response =
+        await apiClient.get<
+            OwnerDashboard
+        >(
+            '/store/dashboard',
+        )
+
+    return response.data
+}
+
+
+export async function getStoreDashboard(
+    storeId: number,
+): Promise<StoreDashboard> {
+
+    const response =
+        await apiClient.get<
+            StoreDashboard
+        >(
+            `/store/stores/${storeId}/dashboard`,
         )
 
     return response.data
