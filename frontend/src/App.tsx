@@ -36,6 +36,12 @@ import PublicProductPage
 import PublicStorePage
     from './pages/PublicStorePage'
 
+import AdminStoresPage
+    from './pages/AdminStoresPage'
+
+import AdminStoreDetailPage
+    from './pages/AdminStoreDetailPage'
+
 export default function App() {
 
     return (
@@ -124,6 +130,29 @@ export default function App() {
                 path="/stores/:storeId"
                 element={
                     <PublicStorePage />
+                }
+            />
+
+            <Route
+                path="/admin/stores"
+                element={
+                    <ProtectedRoute
+                        allowedRole="ADMIN"
+                    >
+                        <AdminStoresPage />
+                    </ProtectedRoute>
+                }
+            />
+
+
+            <Route
+                path="/admin/stores/:storeId"
+                element={
+                    <ProtectedRoute
+                        allowedRole="ADMIN"
+                    >
+                        <AdminStoreDetailPage />
+                    </ProtectedRoute>
                 }
             />
 

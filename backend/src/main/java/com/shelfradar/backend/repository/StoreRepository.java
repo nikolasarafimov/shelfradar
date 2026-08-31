@@ -2,6 +2,7 @@ package com.shelfradar.backend.repository;
 
 import com.shelfradar.backend.entity.Store;
 import com.shelfradar.backend.entity.enums.StoreStatus;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -48,4 +49,26 @@ public interface StoreRepository
             @Param("status")
             StoreStatus status
     );
+
+    long countByStatus(
+            StoreStatus status
+    );
+
+
+    @EntityGraph(
+            attributePaths = {
+                    "owner"
+            }
+    )
+    List<Store> findTop5ByStatusOrderByCreatedAtAsc(
+            StoreStatus status
+    );
+
+
+    @Query("""
+        SELECT DISTINCT s.city
+        FROM Store s
+        ORDER BY s.city ASC
+        """)
+    List<String> findDistinctCities();
 }

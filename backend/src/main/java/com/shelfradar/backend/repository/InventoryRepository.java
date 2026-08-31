@@ -1,6 +1,7 @@
 package com.shelfradar.backend.repository;
 
 import com.shelfradar.backend.entity.Inventory;
+import com.shelfradar.backend.entity.enums.StockStatus;
 import com.shelfradar.backend.entity.enums.StoreStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,6 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -182,4 +184,34 @@ public interface InventoryRepository
             @Param("storeIds")
             List<Long> storeIds
     );
+
+    long countByStatus(
+            StockStatus status
+    );
+
+
+    @Query(
+            value = """
+                SELECT COALESCE(
+                    SUM(quantity),
+                    0
+                )
+                FROM inventory
+                """,
+            nativeQuery = true
+    )
+    Long sumTotalUnits();
+
+
+    @Query(
+            value = """
+                SELECT COALESCE(
+                    SUM(price * quantity),
+                    0
+                )
+                FROM inventory
+                """,
+            nativeQuery = true
+    )
+    BigDecimal sumInventoryValue();
 }
