@@ -168,6 +168,13 @@ export default function InventoryManager({
                     'owner-dashboard',
                 ],
             }),
+
+            queryClient.invalidateQueries({
+                queryKey: [
+                    'store-activity',
+                    storeId,
+                ],
+            }),
         ])
     }
 

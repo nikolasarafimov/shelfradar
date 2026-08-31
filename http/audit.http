@@ -1,0 +1,55 @@
+@baseUrl = http://localhost:8080
+
+
+### Admin
+
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@shelfradar.local",
+  "password": "Admin123!"
+}
+
+> {%
+    client.global.set(
+        "admin_token",
+        response.body.accessToken
+    );
+%}
+
+
+### Analytics
+
+GET {{baseUrl}}/api/admin/analytics
+Authorization: Bearer {{admin_token}}
+
+
+### Full audit
+
+GET {{baseUrl}}/api/admin/audit
+Authorization: Bearer {{admin_token}}
+
+
+### Inventory actions
+
+GET {{baseUrl}}/api/admin/audit?entityType=INVENTORY
+Authorization: Bearer {{admin_token}}
+
+
+### Store actions
+
+GET {{baseUrl}}/api/admin/audit?entityType=STORE
+Authorization: Bearer {{admin_token}}
+
+
+### Status changes
+
+GET {{baseUrl}}/api/admin/audit?action=STORE_STATUS_CHANGED
+Authorization: Bearer {{admin_token}}
+
+
+### Search
+
+GET {{baseUrl}}/api/admin/audit?q=Market
+Authorization: Bearer {{admin_token}}

@@ -42,6 +42,9 @@ import AdminStoresPage
 import AdminStoreDetailPage
     from './pages/AdminStoreDetailPage'
 
+import AdminActivityPage
+    from './pages/AdminActivityPage'
+
 export default function App() {
 
     return (
@@ -152,6 +155,17 @@ export default function App() {
                         allowedRole="ADMIN"
                     >
                         <AdminStoreDetailPage />
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/admin/activity"
+                element={
+                    <ProtectedRoute
+                        allowedRole="ADMIN"
+                    >
+                        <AdminActivityPage />
                     </ProtectedRoute>
                 }
             />

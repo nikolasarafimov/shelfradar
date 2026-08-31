@@ -208,6 +208,13 @@ export default function StoreProfileEditor({
                                 'owner-dashboard',
                             ],
                         }),
+
+                        queryClient.invalidateQueries({
+                            queryKey: [
+                                'store-activity',
+                                store.id,
+                            ],
+                        })
                     ])
                 },
 

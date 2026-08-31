@@ -7,6 +7,8 @@ import com.shelfradar.backend.dto.store.InventoryUpdateRequest;
 import com.shelfradar.backend.entity.Inventory;
 import com.shelfradar.backend.entity.Product;
 import com.shelfradar.backend.entity.Store;
+import com.shelfradar.backend.entity.enums.AuditAction;
+import com.shelfradar.backend.entity.enums.AuditEntityType;
 import com.shelfradar.backend.entity.enums.StockStatus;
 import com.shelfradar.backend.exception.DuplicateResourceException;
 import com.shelfradar.backend.exception.InvalidInventoryStateException;
@@ -21,6 +23,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.util.Locale;
+
 @Service
 @Transactional(readOnly = true)
 public class InventoryService {
@@ -29,13 +34,17 @@ public class InventoryService {
     private final ProductRepository productRepository;
     private final StoreService storeService;
     private final StoreMapper storeMapper;
+    private final AuditService auditService;
+
 
     public InventoryService(
             InventoryRepository inventoryRepository,
             ProductRepository productRepository,
             StoreService storeService,
-            StoreMapper storeMapper
+            StoreMapper storeMapper,
+            AuditService auditService
     ) {
+
         this.inventoryRepository =
                 inventoryRepository;
 
@@ -47,10 +56,13 @@ public class InventoryService {
 
         this.storeMapper =
                 storeMapper;
+
+        this.auditService =
+                auditService;
     }
 
-    public PageResponse<InventoryResponse>
-    getInventory(
+
+    public PageResponse<InventoryResponse> getInventory(
             String email,
             Long storeId,
             String query,
@@ -64,19 +76,25 @@ public class InventoryService {
                 storeId
         );
 
+
         Pageable pageable =
                 PageRequest.of(
                         page,
                         size,
-                        resolveSort(sort)
+                        resolveSort(
+                                sort
+                        )
                 );
+
 
         String normalizedQuery =
                 query == null
                         ? ""
                         : query.trim();
 
+
         Page<Inventory> result;
+
 
         if (normalizedQuery.isEmpty()) {
 
@@ -98,6 +116,7 @@ public class InventoryService {
                             );
         }
 
+
         return PageResponse.from(
                 result.map(
                         storeMapper
@@ -105,6 +124,7 @@ public class InventoryService {
                 )
         );
     }
+
 
     @Transactional
     public InventoryResponse create(
@@ -119,6 +139,7 @@ public class InventoryService {
                         storeId
                 );
 
+
         Product product =
                 productRepository
                         .findById(
@@ -130,6 +151,7 @@ public class InventoryService {
                                                 "Product not found."
                                         )
                         );
+
 
         if (
                 inventoryRepository
@@ -144,13 +166,16 @@ public class InventoryService {
             );
         }
 
+
         validateStatus(
                 request.quantity(),
                 request.status()
         );
 
+
         Inventory inventory =
                 new Inventory();
+
 
         inventory.setStore(
                 store
@@ -172,16 +197,35 @@ public class InventoryService {
                 request.status()
         );
 
+
         Inventory saved =
                 inventoryRepository.save(
                         inventory
                 );
+
+
+        auditService.record(
+                email,
+                AuditAction.INVENTORY_CREATED,
+                AuditEntityType.INVENTORY,
+                saved.getId(),
+                store,
+                product,
+                "Created inventory item. Price="
+                        + saved.getPrice()
+                        + ", quantity="
+                        + saved.getQuantity()
+                        + ", status="
+                        + saved.getStatus()
+        );
+
 
         return storeMapper
                 .toInventoryResponse(
                         saved
                 );
     }
+
 
     @Transactional
     public InventoryResponse update(
@@ -196,6 +240,7 @@ public class InventoryService {
                 storeId
         );
 
+
         Inventory inventory =
                 inventoryRepository
                         .findByIdAndStoreId(
@@ -209,10 +254,22 @@ public class InventoryService {
                                         )
                         );
 
+
         validateStatus(
                 request.quantity(),
                 request.status()
         );
+
+
+        BigDecimal oldPrice =
+                inventory.getPrice();
+
+        Integer oldQuantity =
+                inventory.getQuantity();
+
+        StockStatus oldStatus =
+                inventory.getStatus();
+
 
         inventory.setPrice(
                 request.price()
@@ -226,11 +283,41 @@ public class InventoryService {
                 request.status()
         );
 
-        return storeMapper
-                .toInventoryResponse(
+
+        Inventory saved =
+                inventoryRepository.save(
                         inventory
                 );
+
+
+        auditService.record(
+                email,
+                AuditAction.INVENTORY_UPDATED,
+                AuditEntityType.INVENTORY,
+                saved.getId(),
+                saved.getStore(),
+                saved.getProduct(),
+                "Price "
+                        + oldPrice
+                        + " -> "
+                        + saved.getPrice()
+                        + "; quantity "
+                        + oldQuantity
+                        + " -> "
+                        + saved.getQuantity()
+                        + "; status "
+                        + oldStatus
+                        + " -> "
+                        + saved.getStatus()
+        );
+
+
+        return storeMapper
+                .toInventoryResponse(
+                        saved
+                );
     }
+
 
     @Transactional
     public void delete(
@@ -243,6 +330,7 @@ public class InventoryService {
                 email,
                 storeId
         );
+
 
         Inventory inventory =
                 inventoryRepository
@@ -257,15 +345,57 @@ public class InventoryService {
                                         )
                         );
 
+
+        auditService.record(
+                email,
+                AuditAction.INVENTORY_DELETED,
+                AuditEntityType.INVENTORY,
+                inventory.getId(),
+                inventory.getStore(),
+                inventory.getProduct(),
+                "Removed inventory item. Price="
+                        + inventory.getPrice()
+                        + ", quantity="
+                        + inventory.getQuantity()
+                        + ", status="
+                        + inventory.getStatus()
+        );
+
+
         inventoryRepository.delete(
                 inventory
         );
     }
 
+
     private void validateStatus(
             Integer quantity,
             StockStatus status
     ) {
+
+        if (quantity == null) {
+
+            throw new InvalidInventoryStateException(
+                    "Quantity is required."
+            );
+        }
+
+
+        if (status == null) {
+
+            throw new InvalidInventoryStateException(
+                    "Stock status is required."
+            );
+        }
+
+
+        if (quantity < 0) {
+
+            throw new InvalidInventoryStateException(
+                    "Quantity cannot be negative."
+            );
+        }
+
 
         if (
                 quantity == 0 &&
@@ -277,6 +407,7 @@ public class InventoryService {
             );
         }
 
+
         if (
                 quantity > 0 &&
                         status == StockStatus.OUT_OF_STOCK
@@ -287,6 +418,7 @@ public class InventoryService {
             );
         }
     }
+
 
     private Sort resolveSort(
             String value
@@ -300,10 +432,13 @@ public class InventoryService {
             );
         }
 
+
         return switch (
                 value
                         .trim()
-                        .toLowerCase()
+                        .toLowerCase(
+                                Locale.ROOT
+                        )
                 ) {
 
             case "pricedesc" ->

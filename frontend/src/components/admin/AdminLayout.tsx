@@ -3,6 +3,7 @@ import type {
 } from 'react'
 
 import {
+    Activity,
     LayoutDashboard,
     LogOut,
     PackageSearch,
@@ -18,7 +19,6 @@ import {
 import {
     useAuth,
 } from '../../features/auth/useAuth'
-
 
 export default function AdminLayout({
                                         children,
@@ -129,6 +129,17 @@ export default function AdminLayout({
                         }
                     >
                         Catalog
+                    </NavigationLink>
+
+                    <NavigationLink
+                        to="/admin/activity"
+                        icon={
+                            <Activity
+                                size={17}
+                            />
+                        }
+                    >
+                        Activity
                     </NavigationLink>
 
                 </nav>

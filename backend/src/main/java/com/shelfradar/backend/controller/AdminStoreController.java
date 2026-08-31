@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,13 +25,13 @@ import java.util.List;
 @Validated
 public class AdminStoreController {
 
-    private final AdminStoreService
-            adminStoreService;
+    private final AdminStoreService adminStoreService;
 
 
     public AdminStoreController(
             AdminStoreService adminStoreService
     ) {
+
         this.adminStoreService =
                 adminStoreService;
     }
@@ -107,6 +108,8 @@ public class AdminStoreController {
     @PutMapping("/stores/{storeId}")
     public AdminStoreDetailResponse updateStore(
 
+            Authentication authentication,
+
             @PathVariable
             @Positive
             Long storeId,
@@ -118,6 +121,7 @@ public class AdminStoreController {
 
         return adminStoreService
                 .updateStore(
+                        authentication.getName(),
                         storeId,
                         request
                 );
@@ -126,6 +130,8 @@ public class AdminStoreController {
 
     @PatchMapping("/stores/{storeId}/status")
     public AdminStoreDetailResponse updateStatus(
+
+            Authentication authentication,
 
             @PathVariable
             @Positive
@@ -138,6 +144,7 @@ public class AdminStoreController {
 
         return adminStoreService
                 .changeStatus(
+                        authentication.getName(),
                         storeId,
                         request.status()
                 );

@@ -7,6 +7,7 @@ import {
 } from '@tanstack/react-query'
 
 import {
+    Activity,
     ArrowLeft,
     Boxes,
     LayoutDashboard,
@@ -31,10 +32,14 @@ import StoreOverview
 import StoreProfileEditor
     from '../components/store/StoreProfileEditor'
 
+import StoreActivityPanel
+    from '../components/store/StoreActivityPanel'
+
 
 type StoreTab =
     | 'overview'
     | 'inventory'
+    | 'activity'
     | 'profile'
 
 
@@ -242,6 +247,26 @@ export default function StoreManagementPage() {
                         Store Profile
                     </TabButton>
 
+                    <TabButton
+                        active={
+                            activeTab ===
+                            'activity'
+                        }
+                        onClick={
+                            () =>
+                                setActiveTab(
+                                    'activity',
+                                )
+                        }
+                        icon={
+                            <Activity
+                                size={17}
+                            />
+                        }
+                    >
+                        Activity
+                    </TabButton>
+
                 </nav>
 
 
@@ -292,6 +317,18 @@ export default function StoreManagementPage() {
                             <StoreProfileEditor
                                 store={
                                     store
+                                }
+                            />
+                        )
+                    }
+
+                    {
+                        activeTab ===
+                        'activity' && (
+
+                            <StoreActivityPanel
+                                storeId={
+                                    parsedStoreId
                                 }
                             />
                         )
