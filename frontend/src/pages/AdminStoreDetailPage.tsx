@@ -49,9 +49,6 @@ import {
 import AdminLayout
     from '../components/admin/AdminLayout'
 
-import EmptyState
-    from '../components/ui/EmptyState'
-
 import ErrorState
     from '../components/ui/ErrorState'
 
