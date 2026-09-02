@@ -7,6 +7,5 @@ public record AdminOwnerResponse(
         String fullName,
 
         String email
-
 ) {
 }

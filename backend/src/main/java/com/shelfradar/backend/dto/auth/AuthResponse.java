@@ -9,6 +9,5 @@ public record AuthResponse(
         long expiresInSeconds,
 
         AuthUserResponse user
-
 ) {
 }

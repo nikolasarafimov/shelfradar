@@ -19,6 +19,5 @@ public record PublicStoreResponse(
         String phone,
 
         String workingHours
-
 ) {
 }

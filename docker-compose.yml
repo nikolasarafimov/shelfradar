@@ -1,4 +1,5 @@
 services:
+
   db:
     image: postgis/postgis:16-3.4
     container_name: shelfradar-db
@@ -9,17 +10,59 @@ services:
       POSTGRES_USER: shelfradar
       POSTGRES_PASSWORD: shelfradar
 
-    ports:
-      - "5432:5432"
-
     volumes:
       - shelfradar_db_data:/var/lib/postgresql/data
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U shelfradar -d shelfradar"]
-      interval: 10s
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U shelfradar -d shelfradar"
+        ]
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
+
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+
+    container_name: shelfradar-backend
+    restart: unless-stopped
+
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/shelfradar
+      SPRING_DATASOURCE_USERNAME: shelfradar
+      SPRING_DATASOURCE_PASSWORD: shelfradar
+
+      SECURITY_JWT_ISSUER: shelfradar-api
+      SECURITY_JWT_EXPIRATION_MINUTES: 60
+      SECURITY_JWT_SECRET: ${JWT_SECRET:-shelfradar-local-development-secret-key-change-before-production-123456}
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    ports:
+      - "8080:8080"
+
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+
+    container_name: shelfradar-frontend
+    restart: unless-stopped
+
+    depends_on:
+      - backend
+
+    ports:
+      - "3000:80"
+
 
 volumes:
   shelfradar_db_data:

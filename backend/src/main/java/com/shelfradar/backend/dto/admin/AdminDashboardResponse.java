@@ -28,6 +28,5 @@ public record AdminDashboardResponse(
         BigDecimal inventoryValue,
 
         List<AdminStoreResponse> pendingStorePreview
-
 ) {
 }

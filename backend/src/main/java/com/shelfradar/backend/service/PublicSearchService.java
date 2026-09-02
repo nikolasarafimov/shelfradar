@@ -59,7 +59,6 @@ public class PublicSearchService {
     private final CatalogMapper
             catalogMapper;
 
-
     public PublicSearchService(
             PublicSearchRepository publicSearchRepository,
             NearbySearchRepository nearbySearchRepository,
@@ -95,7 +94,6 @@ public class PublicSearchService {
         this.catalogMapper =
                 catalogMapper;
     }
-
 
     public PageResponse<PublicSearchResultResponse>
     search(
@@ -145,7 +143,6 @@ public class PublicSearchService {
             );
         }
 
-
         NearbySearchPage nearbyPage =
                 nearbySearchRepository.search(
                         query,
@@ -161,7 +158,6 @@ public class PublicSearchService {
                         radiusKm
                 );
 
-
         List<Long> inventoryIds =
                 nearbyPage
                         .content()
@@ -171,7 +167,6 @@ public class PublicSearchService {
                                         ::inventoryId
                         )
                         .toList();
-
 
         if (inventoryIds.isEmpty()) {
 
@@ -191,13 +186,11 @@ public class PublicSearchService {
             );
         }
 
-
         List<Inventory> inventories =
                 inventoryRepository
                         .findDetailedByIds(
                                 inventoryIds
                         );
-
 
         Map<Long, Inventory> inventoryById =
                 inventories
@@ -208,7 +201,6 @@ public class PublicSearchService {
                                         Function.identity()
                                 )
                         );
-
 
         List<PublicSearchResultResponse>
                 content =
@@ -239,7 +231,6 @@ public class PublicSearchService {
                         )
                         .toList();
 
-
         var resultPage =
                 new PageImpl<>(
                         content,
@@ -251,12 +242,10 @@ public class PublicSearchService {
                                 .totalElements()
                 );
 
-
         return PageResponse.from(
                 resultPage
         );
     }
-
 
     public PublicSearchFiltersResponse
     getFilters() {
@@ -276,7 +265,6 @@ public class PublicSearchService {
                         )
                         .toList();
 
-
         List<CategoryResponse> categories =
                 categoryRepository
                         .findAll(
@@ -292,13 +280,11 @@ public class PublicSearchService {
                         )
                         .toList();
 
-
         List<String> cities =
                 storeRepository
                         .findDistinctCitiesByStatus(
                                 StoreStatus.ACTIVE
                         );
-
 
         return new PublicSearchFiltersResponse(
                 brands,
@@ -309,7 +295,6 @@ public class PublicSearchService {
                 )
         );
     }
-
 
     private void validateLocation(
             Double latitude,
@@ -324,7 +309,6 @@ public class PublicSearchService {
         boolean hasLongitude =
                 longitude != null;
 
-
         if (
                 hasLatitude !=
                         hasLongitude
@@ -334,7 +318,6 @@ public class PublicSearchService {
                     "Both latitude and longitude are required."
             );
         }
-
 
         if (hasLatitude) {
 
@@ -362,7 +345,6 @@ public class PublicSearchService {
             }
         }
 
-
         if (radiusKm != null) {
 
             if (!hasLatitude) {
@@ -384,7 +366,6 @@ public class PublicSearchService {
                 );
             }
         }
-
 
         if (
                 sort != null &&

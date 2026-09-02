@@ -2,9 +2,6 @@ package com.shelfradar.backend.entity;
 
 import com.shelfradar.backend.entity.enums.StockStatus;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
@@ -23,9 +20,6 @@ import java.time.Instant;
                 )
         }
 )
-@Getter
-@Setter
-@NoArgsConstructor
 public class Inventory {
 
     @Id
@@ -80,4 +74,63 @@ public class Inventory {
             nullable = false
     )
     private Instant updatedAt;
+
+    public Inventory() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Store getStore() {
+        return store;
+    }
+
+    public void setStore(Store store) {
+        this.store = store;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    public StockStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(StockStatus status) {
+        this.status = status;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }

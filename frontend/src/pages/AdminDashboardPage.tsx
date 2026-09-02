@@ -45,9 +45,7 @@ import {
     formatNumber,
 } from '../lib/format'
 
-
 export default function AdminDashboardPage() {
-
     const dashboardQuery =
         useQuery({
             queryKey: [
@@ -58,50 +56,39 @@ export default function AdminDashboardPage() {
             getAdminDashboard,
         })
 
-
     if (
         dashboardQuery.isLoading
     ) {
-
         return (
             <AdminLayout>
-
                 <PageHeader
                     eyebrow="Administration"
                     title="Platform Dashboard"
                     description="Monitor stores, catalog activity and inventory health across ShelfRadar."
                 />
-
 
                 <div className="mt-8">
 
                     <LoadingState
                         message="Loading admin dashboard..."
                     />
-
                 </div>
-
             </AdminLayout>
         )
     }
 
-
     if (
         dashboardQuery.isError
     ) {
-
         return (
             <AdminLayout>
-
                 <PageHeader
                     eyebrow="Administration"
                     title="Platform Dashboard"
                     description="Monitor stores, catalog activity and inventory health across ShelfRadar."
                 />
 
-
                 <div className="mt-8">
-
                     <ErrorState
                         title="Dashboard unavailable"
                         message="ShelfRadar could not load the platform dashboard."
@@ -112,47 +99,35 @@ export default function AdminDashboardPage() {
                             }
                         }
                     />
-
                 </div>
-
             </AdminLayout>
         )
     }
 
-
     const dashboard =
         dashboardQuery.data
 
-
     if (!dashboard) {
-
         return (
             <AdminLayout>
-
                 <PageHeader
                     eyebrow="Administration"
                     title="Platform Dashboard"
                     description="Monitor stores, catalog activity and inventory health across ShelfRadar."
                 />
 
-
                 <div className="mt-8">
-
                     <EmptyState
                         title="No dashboard data"
                         message="Platform statistics are not available yet."
                     />
-
                 </div>
-
             </AdminLayout>
         )
     }
 
-
     return (
         <AdminLayout>
-
             <PageHeader
                 eyebrow="Administration"
                 title="Platform Dashboard"
@@ -167,12 +142,10 @@ export default function AdminDashboardPage() {
                 }
             />
 
-
             <section
                 aria-label="Store statistics"
                 className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
             >
-
                 <MetricCard
                     icon={
                         <Store
@@ -192,7 +165,6 @@ export default function AdminDashboardPage() {
                     }
                 />
 
-
                 <MetricCard
                     icon={
                         <Building2
@@ -207,7 +179,6 @@ export default function AdminDashboardPage() {
                     }
                     hint="Visible in public search"
                 />
-
 
                 <MetricCard
                     icon={
@@ -228,7 +199,6 @@ export default function AdminDashboardPage() {
                     }
                 />
 
-
                 <MetricCard
                     icon={
                         <Users
@@ -243,15 +213,12 @@ export default function AdminDashboardPage() {
                     }
                     hint="Registered owner accounts"
                 />
-
             </section>
-
 
             <section
                 aria-label="Inventory statistics"
                 className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
             >
-
                 <MetricCard
                     icon={
                         <PackageSearch
@@ -266,7 +233,6 @@ export default function AdminDashboardPage() {
                     }
                 />
 
-
                 <MetricCard
                     icon={
                         <Boxes
@@ -280,7 +246,6 @@ export default function AdminDashboardPage() {
                         )
                     }
                 />
-
 
                 <MetricCard
                     icon={
@@ -300,7 +265,6 @@ export default function AdminDashboardPage() {
                     }
                 />
 
-
                 <MetricCard
                     icon={
                         <Boxes
@@ -318,15 +282,12 @@ export default function AdminDashboardPage() {
                         0
                     }
                 />
-
             </section>
-
 
             <section
                 aria-label="Inventory totals"
                 className="mt-4 grid gap-4 sm:grid-cols-2"
             >
-
                 <MetricCard
                     icon={
                         <Boxes
@@ -340,7 +301,6 @@ export default function AdminDashboardPage() {
                         )
                     }
                 />
-
 
                 <MetricCard
                     icon={
@@ -356,19 +316,14 @@ export default function AdminDashboardPage() {
                     }
                     hint="Current stock value, not revenue"
                 />
-
             </section>
-
 
             <section
                 aria-labelledby="pending-stores-heading"
                 className="mt-10"
             >
-
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-
                     <div>
-
                         <h2
                             id="pending-stores-heading"
                             className="text-xl font-bold tracking-tight text-white sm:text-2xl"
@@ -379,10 +334,7 @@ export default function AdminDashboardPage() {
                         <p className="mt-1 text-sm leading-6 text-slate-400">
                             Review stores waiting to become publicly visible.
                         </p>
-
                     </div>
-
-
                     {
                         dashboard.pendingStorePreview.length >
                         0 && (
@@ -395,16 +347,11 @@ export default function AdminDashboardPage() {
                             </Link>
                         )
                     }
-
                 </div>
-
-
                 {
                     dashboard.pendingStorePreview.length ===
                     0 ? (
-
                         <div className="mt-6">
-
                             <EmptyState
                                 title="No stores awaiting approval"
                                 message="There are currently no pending store applications to review."
@@ -417,19 +364,14 @@ export default function AdminDashboardPage() {
                                     </Link>
                                 }
                             />
-
                         </div>
-
                     ) : (
-
                         <div className="mt-6 grid gap-4">
-
                             {
                                 dashboard
                                     .pendingStorePreview
                                     .map(
                                         store => (
-
                                             <Link
                                                 key={
                                                     store.id
@@ -441,26 +383,20 @@ export default function AdminDashboardPage() {
                                             >
 
                                                 <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-
                                                     <div className="min-w-0">
-
                                                         <div className="flex flex-wrap items-center gap-3">
-
                                                             <h3 className="truncate font-semibold text-white group-hover:text-sky-300">
                                                                 {
                                                                     store.name
                                                                 }
                                                             </h3>
 
-
                                                             <StatusBadge
                                                                 status={
                                                                     store.status
                                                                 }
                                                             />
-
                                                         </div>
-
 
                                                         <p className="mt-2 text-sm leading-6 text-slate-400">
                                                             {
@@ -472,9 +408,7 @@ export default function AdminDashboardPage() {
                                                             }
                                                         </p>
 
-
                                                         <div className="mt-3">
-
                                                             <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
                                                                 Store owner
                                                             </p>
@@ -490,29 +424,21 @@ export default function AdminDashboardPage() {
                                                                     store.owner.email
                                                                 }
                                                             </p>
-
                                                         </div>
-
                                                     </div>
-
 
                                                     <span className="shrink-0 text-sm font-semibold text-sky-400">
                                                         Review store
                                                     </span>
-
                                                 </div>
-
                                             </Link>
                                         ),
                                     )
                             }
-
                         </div>
                     )
                 }
-
             </section>
-
         </AdminLayout>
     )
 }

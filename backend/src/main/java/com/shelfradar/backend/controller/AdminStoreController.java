@@ -27,7 +27,6 @@ public class AdminStoreController {
 
     private final AdminStoreService adminStoreService;
 
-
     public AdminStoreController(
             AdminStoreService adminStoreService
     ) {
@@ -36,14 +35,12 @@ public class AdminStoreController {
                 adminStoreService;
     }
 
-
     @GetMapping("/dashboard")
     public AdminDashboardResponse getDashboard() {
 
         return adminStoreService
                 .getDashboard();
     }
-
 
     @GetMapping("/stores")
     public PageResponse<AdminStoreResponse> searchStores(
@@ -69,7 +66,6 @@ public class AdminStoreController {
             @RequestParam(defaultValue = "newest")
             String sort
     ) {
-
         return adminStoreService
                 .searchStores(
                         q,
@@ -81,14 +77,12 @@ public class AdminStoreController {
                 );
     }
 
-
     @GetMapping("/stores/filters")
     public AdminStoreFiltersResponse getFilters() {
 
         return adminStoreService
                 .getFilters();
     }
-
 
     @GetMapping("/stores/{storeId}")
     public AdminStoreDetailResponse getStore(
@@ -97,13 +91,11 @@ public class AdminStoreController {
             @Positive
             Long storeId
     ) {
-
         return adminStoreService
                 .getStore(
                         storeId
                 );
     }
-
 
     @PutMapping("/stores/{storeId}")
     public AdminStoreDetailResponse updateStore(
@@ -127,7 +119,6 @@ public class AdminStoreController {
                 );
     }
 
-
     @PatchMapping("/stores/{storeId}/status")
     public AdminStoreDetailResponse updateStatus(
 
@@ -141,7 +132,6 @@ public class AdminStoreController {
             @RequestBody
             AdminStoreStatusRequest request
     ) {
-
         return adminStoreService
                 .changeStatus(
                         authentication.getName(),
@@ -149,7 +139,6 @@ public class AdminStoreController {
                         request.status()
                 );
     }
-
 
     @GetMapping("/store-owners")
     public List<AdminOwnerResponse> getStoreOwners() {

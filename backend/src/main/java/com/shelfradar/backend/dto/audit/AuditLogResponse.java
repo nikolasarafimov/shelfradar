@@ -33,6 +33,5 @@ public record AuditLogResponse(
         String details,
 
         Instant occurredAt
-
 ) {
 }

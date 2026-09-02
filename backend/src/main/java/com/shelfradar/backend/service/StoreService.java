@@ -28,7 +28,6 @@ public class StoreService {
     private final StoreMapper storeMapper;
     private final AuditService auditService;
 
-
     public StoreService(
             StoreRepository storeRepository,
             AppUserRepository appUserRepository,
@@ -49,7 +48,6 @@ public class StoreService {
                 auditService;
     }
 
-
     public List<StoreResponse> getOwnedStores(
             String email
     ) {
@@ -58,7 +56,6 @@ public class StoreService {
                 findUser(
                         email
                 );
-
 
         return storeRepository
                 .findByOwnerIdOrderByNameAsc(
@@ -72,7 +69,6 @@ public class StoreService {
                 .toList();
     }
 
-
     public StoreResponse getOwnedStore(
             String email,
             Long storeId
@@ -83,20 +79,17 @@ public class StoreService {
                         email
                 );
 
-
         Store store =
                 findOwnedStore(
                         storeId,
                         owner.getId()
                 );
 
-
         return storeMapper
                 .toStoreResponse(
                         store
                 );
     }
-
 
     @Transactional
     public StoreResponse updateOwnedStore(
@@ -110,13 +103,11 @@ public class StoreService {
                         email
                 );
 
-
         Store store =
                 findOwnedStore(
                         storeId,
                         owner.getId()
                 );
-
 
         String newName =
                 normalizeRequired(
@@ -149,7 +140,6 @@ public class StoreService {
                         request.workingHours()
                 );
 
-
         String auditDetails =
                 buildProfileUpdateDetails(
                         store,
@@ -161,7 +151,6 @@ public class StoreService {
                         newPhone,
                         newWorkingHours
                 );
-
 
         store.setName(
                 newName
@@ -191,16 +180,6 @@ public class StoreService {
                 newWorkingHours
         );
 
-
-        /*
-         * No explicit storeRepository.save(...) is required here.
-         *
-         * The Store entity was loaded inside the current transaction,
-         * so it is managed by Hibernate. Dirty checking will persist
-         * these changes when the transaction commits.
-         */
-
-
         if (auditDetails != null) {
 
             auditService.record(
@@ -214,13 +193,11 @@ public class StoreService {
             );
         }
 
-
         return storeMapper
                 .toStoreResponse(
                         store
                 );
     }
-
 
     Store findOwnedStore(
             String email,
@@ -232,13 +209,11 @@ public class StoreService {
                         email
                 );
 
-
         return findOwnedStore(
                 storeId,
                 owner.getId()
         );
     }
-
 
     private Store findOwnedStore(
             Long storeId,
@@ -258,7 +233,6 @@ public class StoreService {
                 );
     }
 
-
     private AppUser findUser(
             String email
     ) {
@@ -269,7 +243,6 @@ public class StoreService {
                         .toLowerCase(
                                 Locale.ROOT
                         );
-
 
         return appUserRepository
                 .findByEmailIgnoreCase(
@@ -282,7 +255,6 @@ public class StoreService {
                                 )
                 );
     }
-
 
     private String buildProfileUpdateDetails(
             Store store,
@@ -297,7 +269,6 @@ public class StoreService {
 
         List<String> changes =
                 new ArrayList<>();
-
 
         if (
                 !Objects.equals(
@@ -315,7 +286,6 @@ public class StoreService {
             );
         }
 
-
         if (
                 !Objects.equals(
                         store.getAddress(),
@@ -331,7 +301,6 @@ public class StoreService {
                             + "\""
             );
         }
-
 
         if (
                 !Objects.equals(
@@ -349,7 +318,6 @@ public class StoreService {
             );
         }
 
-
         if (
                 !sameDecimal(
                         store.getLatitude(),
@@ -365,7 +333,6 @@ public class StoreService {
             );
         }
 
-
         if (
                 !sameDecimal(
                         store.getLongitude(),
@@ -380,7 +347,6 @@ public class StoreService {
                             + newLongitude
             );
         }
-
 
         if (
                 !Objects.equals(
@@ -401,7 +367,6 @@ public class StoreService {
             );
         }
 
-
         if (
                 !Objects.equals(
                         store.getWorkingHours(),
@@ -421,11 +386,9 @@ public class StoreService {
             );
         }
 
-
         if (changes.isEmpty()) {
             return null;
         }
-
 
         return "Store profile updated: "
                 + String.join(
@@ -434,7 +397,6 @@ public class StoreService {
         )
                 + ".";
     }
-
 
     private boolean sameDecimal(
             BigDecimal first,
@@ -462,7 +424,6 @@ public class StoreService {
         ) == 0;
     }
 
-
     private String formatNullable(
             String value
     ) {
@@ -473,7 +434,6 @@ public class StoreService {
                 + value
                 + "\"";
     }
-
 
     private String normalizeRequired(
             String value
@@ -487,7 +447,6 @@ public class StoreService {
                 );
     }
 
-
     private String normalizeOptional(
             String value
     ) {
@@ -495,7 +454,6 @@ public class StoreService {
         if (value == null) {
             return null;
         }
-
 
         String result =
                 value.trim();

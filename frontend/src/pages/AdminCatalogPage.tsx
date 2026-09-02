@@ -3,8 +3,13 @@ import {
 } from 'react'
 
 import {
-    Link,
-} from 'react-router-dom'
+    Boxes,
+    PackageSearch,
+    Tags,
+} from 'lucide-react'
+
+import AdminLayout
+    from '../components/admin/AdminLayout'
 
 import BrandManager
     from '../components/admin/BrandManager'
@@ -15,10 +20,15 @@ import CategoryManager
 import ProductManager
     from '../components/admin/ProductManager'
 
+import PageHeader
+    from '../components/ui/PageHeader'
+
+
 type CatalogTab =
     | 'products'
     | 'brands'
     | 'categories'
+
 
 export default function AdminCatalogPage() {
 
@@ -31,35 +41,18 @@ export default function AdminCatalogPage() {
         )
 
     return (
-        <main className="min-h-screen bg-slate-950 px-5 py-8 text-white md:px-8">
+        <AdminLayout>
+            <div className="space-y-8">
+                <PageHeader
+                    eyebrow="ShelfRadar Admin"
+                    title="Catalog Management"
+                    description="Manage the products, brands and categories available across the ShelfRadar platform."
+                />
 
-            <div className="mx-auto max-w-7xl">
-
-                <div>
-
-                    <Link
-                        to="/admin"
-                        className="text-sm text-slate-400 hover:text-white"
-                    >
-                        ← Admin Dashboard
-                    </Link>
-
-                    <p className="mt-8 text-sm font-semibold uppercase tracking-[0.2em] text-sky-400">
-                        ShelfRadar Admin
-                    </p>
-
-                    <h1 className="mt-2 text-4xl font-bold">
-                        Catalog Management
-                    </h1>
-
-                    <p className="mt-3 text-slate-400">
-                        Manage products, brands and categories available across ShelfRadar.
-                    </p>
-
-                </div>
-
-                <div className="mt-8 flex gap-2 border-b border-slate-800">
-
+                <nav
+                    aria-label="Catalog management sections"
+                    className="premium-card flex w-full gap-1 overflow-x-auto rounded-2xl border border-slate-800/90 bg-slate-900/50 p-1.5 backdrop-blur-xl sm:w-fit"
+                >
                     <TabButton
                         active={
                             activeTab ===
@@ -70,6 +63,11 @@ export default function AdminCatalogPage() {
                                 setActiveTab(
                                     'products',
                                 )
+                        }
+                        icon={
+                            <PackageSearch
+                                size={15}
+                            />
                         }
                     >
                         Products
@@ -86,6 +84,11 @@ export default function AdminCatalogPage() {
                                     'brands',
                                 )
                         }
+                        icon={
+                            <Tags
+                                size={15}
+                            />
+                        }
                     >
                         Brands
                     </TabButton>
@@ -101,17 +104,21 @@ export default function AdminCatalogPage() {
                                     'categories',
                                 )
                         }
+                        icon={
+                            <Boxes
+                                size={15}
+                            />
+                        }
                     >
                         Categories
                     </TabButton>
+                </nav>
 
-                </div>
-
-                <div className="mt-8">
-
+                <div>
                     {
                         activeTab ===
                         'products' && (
+
                             <ProductManager />
                         )
                     }
@@ -119,6 +126,7 @@ export default function AdminCatalogPage() {
                     {
                         activeTab ===
                         'brands' && (
+
                             <BrandManager />
                         )
                     }
@@ -126,6 +134,7 @@ export default function AdminCatalogPage() {
                     {
                         activeTab ===
                         'categories' && (
+
                             <CategoryManager />
                         )
                     }
@@ -134,33 +143,43 @@ export default function AdminCatalogPage() {
 
             </div>
 
-        </main>
+        </AdminLayout>
     )
-}
-
-interface TabButtonProps {
-    active: boolean
-    onClick: () => void
-    children: string
 }
 
 function TabButton({
                        active,
                        onClick,
+                       icon,
                        children,
-                   }: TabButtonProps) {
+                   }: {
+    active: boolean
+    onClick: () => void
+    icon: React.ReactNode
+    children: string
+}) {
 
     return (
         <button
             type="button"
-            onClick={onClick}
+            onClick={
+                onClick
+            }
+            aria-pressed={
+                active
+            }
             className={
                 active
-                    ? 'border-b-2 border-sky-400 px-4 py-3 font-medium text-white'
-                    : 'px-4 py-3 text-slate-400 hover:text-white'
+                    ? 'inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-sky-900/50 bg-sky-950/35 px-4 text-sm font-semibold text-sky-300 shadow-[inset_0_0_20px_rgba(14,165,233,0.04)]'
+                    : 'inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-transparent px-4 text-sm font-medium text-slate-500 transition duration-200 hover:border-slate-800 hover:bg-slate-800/50 hover:text-slate-200'
             }
         >
-            {children}
+
+            {icon}
+
+            <span>
+                {children}
+            </span>
         </button>
     )
 }

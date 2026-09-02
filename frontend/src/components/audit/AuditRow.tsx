@@ -9,145 +9,177 @@ import type {
     AuditLogEntry,
 } from '../../types/audit'
 
-
 export default function AuditRow({
-                                     entry,
-                                 }: {
+    entry,
+}: {
     entry: AuditLogEntry
 }) {
 
     return (
-        <article className="border-b border-slate-800 p-5 last:border-b-0">
+        <article className="group border-b border-slate-800/70 px-5 py-5 transition duration-200 last:border-b-0 hover:bg-slate-800/20 sm:px-6">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2.5">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-sky-900/50 bg-sky-950/25 text-sky-400">
+                            <Activity size={15}/>
+                        </div>
 
-            <div className="flex flex-col justify-between gap-4 md:flex-row">
+                        <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <h3 className="text-sm font-bold text-slate-100">
+                                    {
+                                        formatAction(
+                                            entry.action,
+                                        )
+                                    }
+                                </h3>
 
-                <div className="min-w-0">
+                                <RoleBadge
+                                    role={
+                                        entry.actorRole
+                                    }
+                                />
+                            </div>
 
-                    <div className="flex flex-wrap items-center gap-2">
-
-                        <Activity
-                            size={17}
-                            className="text-sky-400"
-                        />
-
-                        <span className="font-semibold">
-                            {
-                                formatAction(
-                                    entry.action,
-                                )
-                            }
-                        </span>
-
-                        <RoleBadge
-                            role={
-                                entry.actorRole
-                            }
-                        />
-
+                            <time
+                                dateTime={
+                                    entry.occurredAt
+                                }
+                                className="mt-1 block text-[11px] text-slate-600 lg:hidden"
+                            >
+                                {
+                                    formatDateTime(
+                                        entry.occurredAt,
+                                    )
+                                }
+                            </time>
+                        </div>
                     </div>
 
-
-                    <div className="mt-3 space-y-1.5 text-sm text-slate-400">
-
-                        <div className="flex items-center gap-2">
-
-                            <User
-                                size={14}
-                            />
-
+                    <div className="mt-4 flex flex-wrap gap-2">
+                        <MetadataBadge
+                            icon={
+                                <User
+                                    size={12}
+                                />
+                            }
+                        >
                             {
                                 entry.actorEmail
                             }
-
-                        </div>
-
-
+                        </MetadataBadge>
                         {
                             entry.storeName && (
 
-                                <div className="flex items-center gap-2">
-
-                                    <Store
-                                        size={14}
-                                    />
-
+                                <MetadataBadge
+                                    icon={
+                                        <Store
+                                            size={12}
+                                        />
+                                    }
+                                >
                                     {
                                         entry.storeName
                                     }
-
-                                </div>
+                                </MetadataBadge>
                             )
                         }
-
 
                         {
                             entry.productName && (
 
-                                <div className="flex items-center gap-2">
-
-                                    <Package
-                                        size={14}
-                                    />
-
+                                <MetadataBadge
+                                    icon={
+                                        <Package
+                                            size={12}
+                                        />
+                                    }
+                                >
                                     {
                                         entry.productName
                                     }
-
-                                </div>
+                                </MetadataBadge>
                             )
                         }
-
                     </div>
-
-
                     {
                         entry.details && (
 
-                            <p className="mt-3 text-sm leading-6 text-slate-300">
-                                {
-                                    entry.details
-                                }
-                            </p>
+                            <div className="mt-4 rounded-xl border border-slate-800/80 bg-[#020817]/45 px-4 py-3">
+
+                                <p className="text-xs leading-5 text-slate-400">
+                                    {
+                                        entry.details
+                                    }
+                                </p>
+                            </div>
                         )
                     }
-
                 </div>
 
-
-                <time className="shrink-0 text-xs text-slate-500">
+                <time
+                    dateTime={
+                        entry.occurredAt
+                    }
+                    className="hidden shrink-0 rounded-lg border border-slate-800 bg-[#020817]/50 px-3 py-2 text-[11px] font-medium text-slate-500 lg:block"
+                >
                     {
                         formatDateTime(
                             entry.occurredAt,
                         )
                     }
                 </time>
-
             </div>
-
         </article>
     )
 }
 
+function MetadataBadge({
+    icon,
+    children,
+}: {
+    icon: React.ReactNode
+    children: React.ReactNode
+}) {
+
+    return (
+        <span className="inline-flex min-w-0 items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-950/50 px-2.5 py-1.5 text-[11px] text-slate-500">
+            <span className="shrink-0 text-slate-600">
+                {icon}
+            </span>
+
+            <span className="truncate">
+                {children}
+            </span>
+        </span>
+    )
+}
 
 function RoleBadge({
-                       role,
-                   }: {
+    role,
+}: {
     role:
         | 'ADMIN'
         | 'STORE_OWNER'
 }) {
 
+    if (
+        role ===
+        'ADMIN'
+    ) {
+        return (
+            <span className="rounded-full border border-sky-900/60 bg-sky-950/30 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-sky-400">
+                Admin
+            </span>
+        )
+    }
+
     return (
-        <span className="rounded-full bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-400">
-            {
-                role === 'ADMIN'
-                    ? 'Admin'
-                    : 'Store Owner'
-            }
+        <span className="rounded-full border border-violet-900/50 bg-violet-950/20 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-violet-300">
+            Store Owner
         </span>
     )
 }
-
 
 function formatAction(
     action: string,
@@ -158,12 +190,17 @@ function formatAction(
         .split('_')
         .map(
             word =>
-                word.charAt(0).toUpperCase() +
-                word.slice(1),
+                word.charAt(
+                    0,
+                ).toUpperCase() +
+                word.slice(
+                    1,
+                ),
         )
-        .join(' ')
+        .join(
+            ' ',
+        )
 }
-
 
 function formatDateTime(
     value: string,
@@ -179,6 +216,8 @@ function formatDateTime(
                 'short',
         },
     ).format(
-        new Date(value),
+        new Date(
+            value,
+        ),
     )
 }

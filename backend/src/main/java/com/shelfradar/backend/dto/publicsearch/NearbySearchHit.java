@@ -5,6 +5,5 @@ public record NearbySearchHit(
         Long inventoryId,
 
         double distanceKm
-
 ) {
 }

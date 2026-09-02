@@ -9,6 +9,5 @@ public record AdminStoreFiltersResponse(
         List<String> cities,
 
         List<StoreStatus> statuses
-
 ) {
 }

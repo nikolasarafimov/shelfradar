@@ -16,6 +16,5 @@ public record PublicProductDetailResponse(
         int totalStores,
 
         int availableStores
-
 ) {
 }

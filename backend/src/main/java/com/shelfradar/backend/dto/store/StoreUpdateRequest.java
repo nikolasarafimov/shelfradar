@@ -11,15 +11,15 @@ import java.math.BigDecimal;
 public record StoreUpdateRequest(
 
         @NotBlank
-        @Size(max = 200)
+        @Size(max = 150)
         String name,
 
         @NotBlank
-        @Size(max = 300)
+        @Size(max = 255)
         String address,
 
         @NotBlank
-        @Size(max = 120)
+        @Size(max = 100)
         String city,
 
         @NotNull
@@ -37,6 +37,5 @@ public record StoreUpdateRequest(
 
         @Size(max = 255)
         String workingHours
-
 ) {
 }

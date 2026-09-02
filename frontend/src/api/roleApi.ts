@@ -13,7 +13,6 @@ export async function getStoreAccess():
         await apiClient.get<AccessResponse>(
             '/store/access',
         )
-
     return response.data
 }
 
@@ -24,6 +23,5 @@ export async function getAdminAccess():
         await apiClient.get<AccessResponse>(
             '/admin/access',
         )
-
     return response.data
 }

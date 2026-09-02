@@ -84,7 +84,6 @@ public class AdminStoreSearchRepository {
             );
         }
 
-
         if (
                 city != null &&
                         !city.isBlank()
@@ -106,7 +105,6 @@ public class AdminStoreSearchRepository {
             );
         }
 
-
         String dataJpql =
                 """
                 SELECT s
@@ -120,7 +118,6 @@ public class AdminStoreSearchRepository {
                                 sort
                         );
 
-
         String countJpql =
                 """
                 SELECT COUNT(s)
@@ -130,20 +127,17 @@ public class AdminStoreSearchRepository {
                         +
                         where;
 
-
         TypedQuery<Store> dataQuery =
                 entityManager.createQuery(
                         dataJpql,
                         Store.class
                 );
 
-
         TypedQuery<Long> countQuery =
                 entityManager.createQuery(
                         countJpql,
                         Long.class
                 );
-
 
         parameters.forEach(
                 (name, value) -> {
@@ -160,7 +154,6 @@ public class AdminStoreSearchRepository {
                 }
         );
 
-
         dataQuery.setFirstResult(
                 page * size
         );
@@ -168,7 +161,6 @@ public class AdminStoreSearchRepository {
         dataQuery.setMaxResults(
                 size
         );
-
 
         return new PageImpl<>(
                 dataQuery.getResultList(),
@@ -180,18 +172,15 @@ public class AdminStoreSearchRepository {
         );
     }
 
-
     private String resolveOrderBy(
             String sort
     ) {
-
         if (sort == null) {
 
             return """
                     ORDER BY s.createdAt DESC
                     """;
         }
-
 
         return switch (
                 sort

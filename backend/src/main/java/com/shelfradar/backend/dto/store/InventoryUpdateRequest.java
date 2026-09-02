@@ -22,6 +22,5 @@ public record InventoryUpdateRequest(
 
         @NotNull
         StockStatus status
-
 ) {
 }

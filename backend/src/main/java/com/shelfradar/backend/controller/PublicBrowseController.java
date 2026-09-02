@@ -17,14 +17,12 @@ public class PublicBrowseController {
 
     private final PublicBrowseService publicBrowseService;
 
-
     public PublicBrowseController(
             PublicBrowseService publicBrowseService
     ) {
         this.publicBrowseService =
                 publicBrowseService;
     }
-
 
     @GetMapping("/products/{productId}")
     public PublicProductDetailResponse getProduct(
@@ -38,7 +36,6 @@ public class PublicBrowseController {
                         productId
                 );
     }
-
 
     @GetMapping("/stores/{storeId}")
     public PublicStoreDetailResponse getStore(

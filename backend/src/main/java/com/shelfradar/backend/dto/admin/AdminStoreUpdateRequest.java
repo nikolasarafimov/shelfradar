@@ -42,6 +42,5 @@ public record AdminStoreUpdateRequest(
         @NotNull
         @Positive
         Long ownerId
-
 ) {
 }

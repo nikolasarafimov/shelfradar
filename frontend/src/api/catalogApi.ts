@@ -11,19 +11,22 @@ import type {
     ProductRequest,
 } from '../types/catalog'
 
-
-// ========================================================
-// BRANDS
-// ========================================================
+type ProductQuery = {
+    q?: string
+    page?: number
+    size?: number
+    sort?: string
+}
 
 export async function getBrands():
     Promise<Brand[]> {
 
     const response =
-        await apiClient.get<Brand[]>(
+        await apiClient.get<
+            Brand[]
+        >(
             '/admin/catalog/brands',
         )
-
     return response.data
 }
 
@@ -32,11 +35,12 @@ export async function createBrand(
 ): Promise<Brand> {
 
     const response =
-        await apiClient.post<Brand>(
+        await apiClient.post<
+            Brand
+        >(
             '/admin/catalog/brands',
             request,
         )
-
     return response.data
 }
 
@@ -46,11 +50,12 @@ export async function updateBrand(
 ): Promise<Brand> {
 
     const response =
-        await apiClient.put<Brand>(
+        await apiClient.put<
+            Brand
+        >(
             `/admin/catalog/brands/${id}`,
             request,
         )
-
     return response.data
 }
 
@@ -63,19 +68,15 @@ export async function deleteBrand(
     )
 }
 
-
-// ========================================================
-// CATEGORIES
-// ========================================================
-
 export async function getCategories():
     Promise<Category[]> {
 
     const response =
-        await apiClient.get<Category[]>(
+        await apiClient.get<
+            Category[]
+        >(
             '/admin/catalog/categories',
         )
-
     return response.data
 }
 
@@ -84,11 +85,12 @@ export async function createCategory(
 ): Promise<Category> {
 
     const response =
-        await apiClient.post<Category>(
+        await apiClient.post<
+            Category
+        >(
             '/admin/catalog/categories',
             request,
         )
-
     return response.data
 }
 
@@ -98,11 +100,12 @@ export async function updateCategory(
 ): Promise<Category> {
 
     const response =
-        await apiClient.put<Category>(
+        await apiClient.put<
+            Category
+        >(
             `/admin/catalog/categories/${id}`,
             request,
         )
-
     return response.data
 }
 
@@ -115,21 +118,12 @@ export async function deleteCategory(
     )
 }
 
-
-// ========================================================
-// PRODUCTS
-// ========================================================
-
-interface ProductQuery {
-    q?: string
-    page?: number
-    size?: number
-    sort?: string
-}
-
 export async function getProducts(
     query: ProductQuery = {},
 ): Promise<PageResponse<Product>> {
+
+    const normalizedQuery =
+        query.q?.trim()
 
     const response =
         await apiClient.get<
@@ -138,16 +132,24 @@ export async function getProducts(
             '/admin/catalog/products',
             {
                 params: {
-                    q: query.q || undefined,
-                    page: query.page ?? 0,
-                    size: query.size ?? 20,
+                    q:
+                        normalizedQuery ||
+                        undefined,
+
+                    page:
+                        query.page ??
+                        0,
+
+                    size:
+                        query.size ??
+                        20,
+
                     sort:
                         query.sort ??
                         'nameAsc',
                 },
             },
         )
-
     return response.data
 }
 
@@ -156,11 +158,12 @@ export async function createProduct(
 ): Promise<Product> {
 
     const response =
-        await apiClient.post<Product>(
+        await apiClient.post<
+            Product
+        >(
             '/admin/catalog/products',
             request,
         )
-
     return response.data
 }
 
@@ -170,11 +173,12 @@ export async function updateProduct(
 ): Promise<Product> {
 
     const response =
-        await apiClient.put<Product>(
+        await apiClient.put<
+            Product
+        >(
             `/admin/catalog/products/${id}`,
             request,
         )
-
     return response.data
 }
 

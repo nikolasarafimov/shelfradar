@@ -11,6 +11,7 @@ import com.shelfradar.backend.service.StoreService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
@@ -30,18 +31,14 @@ public class StoreOwnerController {
             StoreService storeService,
             InventoryService inventoryService
     ) {
-        this.storeService =
-                storeService;
-
-        this.inventoryService =
-                inventoryService;
+        this.storeService = storeService;
+        this.inventoryService = inventoryService;
     }
 
     @GetMapping
     public List<StoreResponse> getMyStores(
             Authentication authentication
     ) {
-
         return storeService.getOwnedStores(
                 authentication.getName()
         );
@@ -50,11 +47,10 @@ public class StoreOwnerController {
     @GetMapping("/{storeId}")
     public StoreResponse getStore(
             Authentication authentication,
-
             @PathVariable
+            @Positive
             Long storeId
     ) {
-
         return storeService.getOwnedStore(
                 authentication.getName(),
                 storeId
@@ -64,15 +60,13 @@ public class StoreOwnerController {
     @PutMapping("/{storeId}")
     public StoreResponse updateStore(
             Authentication authentication,
-
             @PathVariable
+            @Positive
             Long storeId,
-
             @Valid
             @RequestBody
             StoreUpdateRequest request
     ) {
-
         return storeService.updateOwnedStore(
                 authentication.getName(),
                 storeId,
@@ -81,37 +75,23 @@ public class StoreOwnerController {
     }
 
     @GetMapping("/{storeId}/inventory")
-    public PageResponse<InventoryResponse>
-    getInventory(
+    public PageResponse<InventoryResponse> getInventory(
             Authentication authentication,
-
             @PathVariable
+            @Positive
             Long storeId,
-
-            @RequestParam(
-                    required = false
-            )
+            @RequestParam(required = false)
             String q,
-
-            @RequestParam(
-                    defaultValue = "0"
-            )
+            @RequestParam(defaultValue = "0")
             @Min(0)
             int page,
-
-            @RequestParam(
-                    defaultValue = "20"
-            )
+            @RequestParam(defaultValue = "20")
             @Min(1)
             @Max(100)
             int size,
-
-            @RequestParam(
-                    defaultValue = "nameAsc"
-            )
+            @RequestParam(defaultValue = "nameAsc")
             String sort
     ) {
-
         return inventoryService.getInventory(
                 authentication.getName(),
                 storeId,
@@ -126,15 +106,13 @@ public class StoreOwnerController {
     @ResponseStatus(HttpStatus.CREATED)
     public InventoryResponse createInventory(
             Authentication authentication,
-
             @PathVariable
+            @Positive
             Long storeId,
-
             @Valid
             @RequestBody
             InventoryCreateRequest request
     ) {
-
         return inventoryService.create(
                 authentication.getName(),
                 storeId,
@@ -142,23 +120,19 @@ public class StoreOwnerController {
         );
     }
 
-    @PutMapping(
-            "/{storeId}/inventory/{inventoryId}"
-    )
+    @PutMapping("/{storeId}/inventory/{inventoryId}")
     public InventoryResponse updateInventory(
             Authentication authentication,
-
             @PathVariable
+            @Positive
             Long storeId,
-
             @PathVariable
+            @Positive
             Long inventoryId,
-
             @Valid
             @RequestBody
             InventoryUpdateRequest request
     ) {
-
         return inventoryService.update(
                 authentication.getName(),
                 storeId,
@@ -167,22 +141,17 @@ public class StoreOwnerController {
         );
     }
 
-    @DeleteMapping(
-            "/{storeId}/inventory/{inventoryId}"
-    )
-    @ResponseStatus(
-            HttpStatus.NO_CONTENT
-    )
+    @DeleteMapping("/{storeId}/inventory/{inventoryId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteInventory(
             Authentication authentication,
-
             @PathVariable
+            @Positive
             Long storeId,
-
             @PathVariable
+            @Positive
             Long inventoryId
     ) {
-
         inventoryService.delete(
                 authentication.getName(),
                 storeId,

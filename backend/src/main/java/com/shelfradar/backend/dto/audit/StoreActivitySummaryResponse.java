@@ -7,6 +7,5 @@ public record StoreActivitySummaryResponse(
         String storeName,
 
         long actions
-
 ) {
 }

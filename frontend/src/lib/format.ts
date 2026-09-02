@@ -7,7 +7,6 @@ export function formatNumber(
     ).format(value)
 }
 
-
 export function formatMkd(
     value: number,
 ): string {
@@ -21,11 +20,9 @@ export function formatMkd(
     ).format(value)} MKD`
 }
 
-
 export function formatDateTime(
     value: string | null,
 ): string {
-
     if (!value) {
         return 'Never'
     }
@@ -41,7 +38,6 @@ export function formatDateTime(
     )
 }
 
-
 export function formatDistance(
     distanceKm: number | null,
 ): string | null {
@@ -56,6 +52,5 @@ export function formatDistance(
             distanceKm * 1000,
         )} m`
     }
-
     return `${distanceKm.toFixed(1)} km`
 }

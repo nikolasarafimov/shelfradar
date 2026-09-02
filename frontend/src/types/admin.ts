@@ -6,13 +6,11 @@ import type {
     StoreStatus,
 } from './store'
 
-
 export interface AdminOwner {
     id: number
     fullName: string
     email: string
 }
-
 
 export interface AdminStore {
     id: number
@@ -28,7 +26,6 @@ export interface AdminStore {
     createdAt: string
 }
 
-
 export interface AdminStoreDetail {
     store: AdminStore
     totalProducts: number
@@ -40,7 +37,6 @@ export interface AdminStoreDetail {
     inventoryValue: number
     lastInventoryUpdate: string | null
 }
-
 
 export interface AdminDashboard {
     totalStores: number
@@ -57,12 +53,10 @@ export interface AdminDashboard {
     pendingStorePreview: AdminStore[]
 }
 
-
 export interface AdminStoreFilters {
     cities: string[]
     statuses: StoreStatus[]
 }
-
 
 export type AdminStoreSort =
     | 'newest'
@@ -70,7 +64,6 @@ export type AdminStoreSort =
     | 'nameAsc'
     | 'nameDesc'
     | 'statusAsc'
-
 
 export interface AdminStoreSearchParams {
     q?: string
@@ -81,10 +74,8 @@ export interface AdminStoreSearchParams {
     sort?: AdminStoreSort
 }
 
-
 export type AdminStorePage =
     PageResponse<AdminStore>
-
 
 export interface AdminStoreUpdate {
     name: string

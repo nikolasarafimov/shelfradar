@@ -29,7 +29,6 @@ public class AdminAnalyticsService {
     private final AuditLogSearchRepository auditLogSearchRepository;
     private final AuditMapper auditMapper;
 
-
     public AdminAnalyticsService(
             AuditLogRepository auditLogRepository,
             AuditLogSearchRepository auditLogSearchRepository,
@@ -44,7 +43,6 @@ public class AdminAnalyticsService {
         this.auditMapper =
                 auditMapper;
     }
-
 
     public AdminAnalyticsResponse getAnalytics() {
 
@@ -63,20 +61,17 @@ public class AdminAnalyticsService {
                         ChronoUnit.DAYS
                 );
 
-
         long activity24h =
                 auditLogRepository
                         .countByOccurredAtGreaterThanEqual(
                                 last24Hours
                         );
 
-
         long activity7d =
                 auditLogRepository
                         .countByOccurredAtGreaterThanEqual(
                                 last7Days
                         );
-
 
         long inventoryChanges =
                 auditLogRepository
@@ -85,14 +80,12 @@ public class AdminAnalyticsService {
                                 last7Days
                         );
 
-
         long storeChanges =
                 auditLogRepository
                         .countByEntityTypeAndOccurredAtGreaterThanEqual(
                                 AuditEntityType.STORE,
                                 last7Days
                         );
-
 
         List<DailyActivityResponse>
                 dailyActivity =
@@ -113,7 +106,6 @@ public class AdminAnalyticsService {
                         )
                         .toList();
 
-
         List<StoreActivitySummaryResponse>
                 mostActiveStores =
                 auditLogRepository
@@ -133,7 +125,6 @@ public class AdminAnalyticsService {
                         )
                         .toList();
 
-
         List<AuditLogResponse>
                 recent =
                 auditLogRepository
@@ -145,7 +136,6 @@ public class AdminAnalyticsService {
                         )
                         .toList();
 
-
         return new AdminAnalyticsResponse(
                 activity24h,
                 activity7d,
@@ -156,7 +146,6 @@ public class AdminAnalyticsService {
                 recent
         );
     }
-
 
     public PageResponse<AuditLogResponse> searchAuditLog(
             String query,
@@ -178,7 +167,6 @@ public class AdminAnalyticsService {
                                 size
                         );
 
-
         return PageResponse.from(
                 result.map(
                         auditMapper
@@ -186,7 +174,6 @@ public class AdminAnalyticsService {
                 )
         );
     }
-
 
     private LocalDate toLocalDate(
             Object value

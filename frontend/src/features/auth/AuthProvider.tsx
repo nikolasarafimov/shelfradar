@@ -29,8 +29,8 @@ import type {
 } from './types'
 
 export default function AuthProvider({
-                                         children,
-                                     }: PropsWithChildren) {
+    children,
+}: PropsWithChildren) {
 
     const [user, setUser] =
         useState<AuthUser | null>(null)
@@ -41,7 +41,6 @@ export default function AuthProvider({
     ] = useState(true)
 
     useEffect(() => {
-
         async function initialize() {
 
             const token =
@@ -53,29 +52,24 @@ export default function AuthProvider({
             }
 
             try {
-
                 const currentUser =
                     await getCurrentUser()
 
                 setUser(currentUser)
 
             } catch {
-
                 clearAccessToken()
                 setUser(null)
 
             } finally {
-
                 setInitializing(false)
             }
         }
 
         void initialize()
-
     }, [])
 
     useEffect(() => {
-
         function handleExpiredAuthentication() {
             setUser(null)
         }
@@ -92,7 +86,6 @@ export default function AuthProvider({
                 handleExpiredAuthentication,
             )
         }
-
     }, [])
 
     const login =
@@ -107,13 +100,11 @@ export default function AuthProvider({
                         email,
                         password,
                     })
-
                 setAccessToken(
                     response.accessToken,
                 )
 
                 setUser(response.user)
-
                 return response.user
             },
             [],

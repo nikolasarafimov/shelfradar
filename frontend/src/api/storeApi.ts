@@ -11,37 +11,44 @@ import type {
     InventoryCreateRequest,
     InventoryItem,
     InventoryUpdateRequest,
-    Store,
-    StoreUpdateRequest,
     OwnerDashboard,
+    Store,
     StoreDashboard,
+    StoreUpdateRequest,
 } from '../types/store'
 
+
+type InventoryQuery = {
+    q?: string
+    page?: number
+    size?: number
+    sort?: string
+}
 
 export async function getMyStores():
     Promise<Store[]> {
 
     const response =
-        await apiClient.get<Store[]>(
+        await apiClient.get<
+            Store[]
+        >(
             '/store/stores',
         )
-
     return response.data
 }
-
 
 export async function getStore(
     storeId: number,
 ): Promise<Store> {
 
     const response =
-        await apiClient.get<Store>(
+        await apiClient.get<
+            Store
+        >(
             `/store/stores/${storeId}`,
         )
-
     return response.data
 }
-
 
 export async function updateStore(
     storeId: number,
@@ -49,27 +56,22 @@ export async function updateStore(
 ): Promise<Store> {
 
     const response =
-        await apiClient.put<Store>(
+        await apiClient.put<
+            Store
+        >(
             `/store/stores/${storeId}`,
             request,
         )
-
     return response.data
 }
-
-
-interface InventoryQuery {
-    q?: string
-    page?: number
-    size?: number
-    sort?: string
-}
-
 
 export async function getInventory(
     storeId: number,
     query: InventoryQuery = {},
 ): Promise<PageResponse<InventoryItem>> {
+
+    const normalizedQuery =
+        query.q?.trim()
 
     const response =
         await apiClient.get<
@@ -79,7 +81,7 @@ export async function getInventory(
             {
                 params: {
                     q:
-                        query.q ||
+                        normalizedQuery ||
                         undefined,
 
                     page:
@@ -96,10 +98,8 @@ export async function getInventory(
                 },
             },
         )
-
     return response.data
 }
-
 
 export async function createInventoryItem(
     storeId: number,
@@ -107,14 +107,14 @@ export async function createInventoryItem(
 ): Promise<InventoryItem> {
 
     const response =
-        await apiClient.post<InventoryItem>(
+        await apiClient.post<
+            InventoryItem
+        >(
             `/store/stores/${storeId}/inventory`,
             request,
         )
-
     return response.data
 }
-
 
 export async function updateInventoryItem(
     storeId: number,
@@ -123,14 +123,14 @@ export async function updateInventoryItem(
 ): Promise<InventoryItem> {
 
     const response =
-        await apiClient.put<InventoryItem>(
+        await apiClient.put<
+            InventoryItem
+        >(
             `/store/stores/${storeId}/inventory/${inventoryId}`,
             request,
         )
-
     return response.data
 }
-
 
 export async function deleteInventoryItem(
     storeId: number,
@@ -142,10 +142,12 @@ export async function deleteInventoryItem(
     )
 }
 
-
 export async function getStoreCatalogProducts(
     q = '',
 ): Promise<PageResponse<Product>> {
+
+    const normalizedQuery =
+        q.trim()
 
     const response =
         await apiClient.get<
@@ -155,15 +157,17 @@ export async function getStoreCatalogProducts(
             {
                 params: {
                     q:
-                        q ||
+                        normalizedQuery ||
                         undefined,
 
-                    page: 0,
-                    size: 100,
+                    page:
+                        0,
+
+                    size:
+                        100,
                 },
             },
         )
-
     return response.data
 }
 
@@ -176,10 +180,8 @@ export async function getOwnerDashboard():
         >(
             '/store/dashboard',
         )
-
     return response.data
 }
-
 
 export async function getStoreDashboard(
     storeId: number,
@@ -191,6 +193,5 @@ export async function getStoreDashboard(
         >(
             `/store/stores/${storeId}/dashboard`,
         )
-
     return response.data
 }

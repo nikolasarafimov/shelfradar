@@ -17,7 +17,6 @@ public class AuditService {
     private final AuditLogRepository auditLogRepository;
     private final AppUserRepository appUserRepository;
 
-
     public AuditService(
             AuditLogRepository auditLogRepository,
             AppUserRepository appUserRepository
@@ -28,7 +27,6 @@ public class AuditService {
         this.appUserRepository =
                 appUserRepository;
     }
-
 
     public void record(
             String actorEmail,
@@ -52,10 +50,8 @@ public class AuditService {
                                         )
                         );
 
-
         AuditLog log =
                 new AuditLog();
-
 
         log.setActorUserId(
                 actor.getId()
@@ -81,7 +77,6 @@ public class AuditService {
                 entityId
         );
 
-
         if (store != null) {
 
             log.setStoreId(
@@ -92,7 +87,6 @@ public class AuditService {
                     store.getName()
             );
         }
-
 
         if (product != null) {
 
@@ -105,19 +99,16 @@ public class AuditService {
             );
         }
 
-
         log.setDetails(
                 normalizeDetails(
                         details
                 )
         );
 
-
         auditLogRepository.save(
                 log
         );
     }
-
 
     private String normalizeDetails(
             String details
@@ -130,15 +121,12 @@ public class AuditService {
             return null;
         }
 
-
         String trimmed =
                 details.trim();
-
 
         if (trimmed.length() <= 1000) {
             return trimmed;
         }
-
 
         return trimmed.substring(
                 0,

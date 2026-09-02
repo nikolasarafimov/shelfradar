@@ -27,6 +27,5 @@ public record StoreDashboardResponse(
         List<InventoryResponse> alerts,
 
         List<InventoryResponse> recentUpdates
-
 ) {
 }

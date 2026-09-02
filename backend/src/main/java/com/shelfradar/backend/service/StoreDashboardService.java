@@ -36,7 +36,6 @@ public class StoreDashboardService {
     private final StoreService storeService;
     private final StoreMapper storeMapper;
 
-
     public StoreDashboardService(
             AppUserRepository appUserRepository,
             StoreRepository storeRepository,
@@ -60,7 +59,6 @@ public class StoreDashboardService {
                 storeMapper;
     }
 
-
     public OwnerDashboardResponse getOwnerDashboard(
             String email
     ) {
@@ -70,13 +68,11 @@ public class StoreDashboardService {
                         email
                 );
 
-
         List<Store> stores =
                 storeRepository
                         .findByOwnerIdOrderByNameAsc(
                                 owner.getId()
                         );
-
 
         if (stores.isEmpty()) {
 
@@ -92,7 +88,6 @@ public class StoreDashboardService {
             );
         }
 
-
         List<Long> storeIds =
                 stores
                         .stream()
@@ -101,13 +96,11 @@ public class StoreDashboardService {
                         )
                         .toList();
 
-
         List<Inventory> inventory =
                 inventoryRepository
                         .findDetailedByStoreIds(
                                 storeIds
                         );
-
 
         Map<Long, List<Inventory>>
                 inventoryByStore =
@@ -121,7 +114,6 @@ public class StoreDashboardService {
                                                         .getId()
                                 )
                         );
-
 
         List<StoreDashboardSummaryResponse>
                 summaries =
@@ -140,7 +132,6 @@ public class StoreDashboardService {
                         )
                         .toList();
 
-
         long totalProducts =
                 summaries
                         .stream()
@@ -149,7 +140,6 @@ public class StoreDashboardService {
                                         ::totalProducts
                         )
                         .sum();
-
 
         long availableProducts =
                 summaries
@@ -160,7 +150,6 @@ public class StoreDashboardService {
                         )
                         .sum();
 
-
         long lowStockProducts =
                 summaries
                         .stream()
@@ -169,7 +158,6 @@ public class StoreDashboardService {
                                         ::lowStockProducts
                         )
                         .sum();
-
 
         long outOfStockProducts =
                 summaries
@@ -180,7 +168,6 @@ public class StoreDashboardService {
                         )
                         .sum();
 
-
         long totalUnits =
                 summaries
                         .stream()
@@ -189,7 +176,6 @@ public class StoreDashboardService {
                                         ::totalUnits
                         )
                         .sum();
-
 
         BigDecimal inventoryValue =
                 summaries
@@ -203,7 +189,6 @@ public class StoreDashboardService {
                                 BigDecimal::add
                         );
 
-
         return new OwnerDashboardResponse(
                 stores.size(),
                 totalProducts,
@@ -216,7 +201,6 @@ public class StoreDashboardService {
         );
     }
 
-
     public StoreDashboardResponse getStoreDashboard(
             String email,
             Long storeId
@@ -228,19 +212,16 @@ public class StoreDashboardService {
                         storeId
                 );
 
-
         List<Inventory> inventory =
                 inventoryRepository
                         .findDetailedByStoreIdOrderByUpdatedAtDesc(
                                 storeId
                         );
 
-
         DashboardMetrics metrics =
                 calculateMetrics(
                         inventory
                 );
-
 
         List<InventoryResponse> alerts =
                 inventory
@@ -267,7 +248,6 @@ public class StoreDashboardService {
                         )
                         .toList();
 
-
         List<InventoryResponse> recentUpdates =
                 inventory
                         .stream()
@@ -279,7 +259,6 @@ public class StoreDashboardService {
                                         ::toInventoryResponse
                         )
                         .toList();
-
 
         return new StoreDashboardResponse(
                 storeMapper.toStoreResponse(
@@ -298,7 +277,6 @@ public class StoreDashboardService {
         );
     }
 
-
     private StoreDashboardSummaryResponse buildSummary(
             Store store,
             List<Inventory> inventory
@@ -308,7 +286,6 @@ public class StoreDashboardService {
                 calculateMetrics(
                         inventory
                 );
-
 
         return new StoreDashboardSummaryResponse(
                 storeMapper.toStoreResponse(
@@ -325,14 +302,12 @@ public class StoreDashboardService {
         );
     }
 
-
     private DashboardMetrics calculateMetrics(
             List<Inventory> inventory
     ) {
 
         long totalProducts =
                 inventory.size();
-
 
         long inStockProducts =
                 inventory
@@ -344,7 +319,6 @@ public class StoreDashboardService {
                         )
                         .count();
 
-
         long lowStockProducts =
                 inventory
                         .stream()
@@ -354,7 +328,6 @@ public class StoreDashboardService {
                                                 StockStatus.LOW_STOCK
                         )
                         .count();
-
 
         long outOfStockProducts =
                 inventory
@@ -366,11 +339,9 @@ public class StoreDashboardService {
                         )
                         .count();
 
-
         long availableProducts =
                 inStockProducts +
                         lowStockProducts;
-
 
         long totalUnits =
                 inventory
@@ -379,7 +350,6 @@ public class StoreDashboardService {
                                 Inventory::getQuantity
                         )
                         .sum();
-
 
         BigDecimal inventoryValue =
                 inventory
@@ -399,7 +369,6 @@ public class StoreDashboardService {
                                 BigDecimal::add
                         );
 
-
         Instant lastUpdatedAt =
                 inventory
                         .stream()
@@ -410,7 +379,6 @@ public class StoreDashboardService {
                                 Comparator.naturalOrder()
                         )
                         .orElse(null);
-
 
         return new DashboardMetrics(
                 totalProducts,
@@ -424,7 +392,6 @@ public class StoreDashboardService {
         );
     }
 
-
     private boolean needsAttention(
             Inventory inventory
     ) {
@@ -435,7 +402,6 @@ public class StoreDashboardService {
                 inventory.getStatus() ==
                         StockStatus.OUT_OF_STOCK;
     }
-
 
     private int alertRank(
             Inventory inventory
@@ -450,7 +416,6 @@ public class StoreDashboardService {
 
         return 1;
     }
-
 
     private AppUser findUserByEmail(
             String email
@@ -467,7 +432,6 @@ public class StoreDashboardService {
                                 )
                 );
     }
-
 
     private record DashboardMetrics(
 

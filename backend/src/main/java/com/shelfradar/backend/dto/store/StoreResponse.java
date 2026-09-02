@@ -26,6 +26,5 @@ public record StoreResponse(
         StoreStatus status,
 
         Instant createdAt
-
 ) {
 }

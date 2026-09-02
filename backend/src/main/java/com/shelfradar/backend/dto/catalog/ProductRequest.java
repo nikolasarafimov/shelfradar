@@ -2,6 +2,7 @@ package com.shelfradar.backend.dto.catalog;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 public record ProductRequest(
@@ -30,12 +31,17 @@ public record ProductRequest(
         @NotNull(
                 message = "Brand is required."
         )
+        @Positive(
+                message = "Brand ID must be positive."
+        )
         Long brandId,
 
         @NotNull(
                 message = "Category is required."
         )
+        @Positive(
+                message = "Category ID must be positive."
+        )
         Long categoryId
-
 ) {
 }

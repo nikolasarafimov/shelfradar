@@ -13,6 +13,5 @@ public record CatalogNameRequest(
                 message = "Name cannot exceed 120 characters."
         )
         String name
-
 ) {
 }

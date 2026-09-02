@@ -17,6 +17,5 @@ public record ProductResponse(
         CategoryResponse category,
 
         Instant createdAt
-
 ) {
 }

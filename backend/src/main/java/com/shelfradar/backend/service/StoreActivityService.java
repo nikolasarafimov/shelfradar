@@ -19,7 +19,6 @@ public class StoreActivityService {
     private final AuditLogRepository auditLogRepository;
     private final AuditMapper auditMapper;
 
-
     public StoreActivityService(
             StoreService storeService,
             AuditLogRepository auditLogRepository,
@@ -35,7 +34,6 @@ public class StoreActivityService {
                 auditMapper;
     }
 
-
     public PageResponse<AuditLogResponse> getStoreActivity(
             String email,
             Long storeId,
@@ -48,7 +46,6 @@ public class StoreActivityService {
                 storeId
         );
 
-
         PageRequest pageable =
                 PageRequest.of(
                         page,
@@ -59,14 +56,12 @@ public class StoreActivityService {
                         )
                 );
 
-
         Page<AuditLog> activity =
                 auditLogRepository
                         .findByStoreId(
                                 storeId,
                                 pageable
                         );
-
 
         return PageResponse.from(
                 activity.map(

@@ -6,7 +6,6 @@ import {
 
 export const apiClient = axios.create({
     baseURL: '/api',
-
     headers: {
         'Content-Type': 'application/json',
     },
@@ -24,7 +23,6 @@ apiClient.interceptors.request.use(
                 `Bearer ${token}`,
             )
         }
-
         return config
     },
 )
@@ -47,7 +45,6 @@ apiClient.interceptors.response.use(
                 ),
             )
         }
-
         return Promise.reject(error)
     },
 )

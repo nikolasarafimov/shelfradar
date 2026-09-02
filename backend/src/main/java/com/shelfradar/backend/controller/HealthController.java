@@ -45,7 +45,6 @@ public class HealthController {
         );
 
         response.put("postgis", postgisVersion);
-
         return response;
     }
 }

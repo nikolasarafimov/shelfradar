@@ -46,10 +46,8 @@ import AdminActivityPage
     from './pages/AdminActivityPage'
 
 export default function App() {
-
     return (
         <Routes>
-
             <Route
                 path="/"
                 element={
@@ -147,7 +145,6 @@ export default function App() {
                 }
             />
 
-
             <Route
                 path="/admin/stores/:storeId"
                 element={
@@ -169,7 +166,6 @@ export default function App() {
                     </ProtectedRoute>
                 }
             />
-
         </Routes>
     )
 }

@@ -28,6 +28,5 @@ public record AdminStoreResponse(
         AdminOwnerResponse owner,
 
         Instant createdAt
-
 ) {
 }

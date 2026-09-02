@@ -8,6 +8,5 @@ export async function getHealth():
         await apiClient.get<HealthResponse>(
             '/health',
         )
-
     return response.data
 }

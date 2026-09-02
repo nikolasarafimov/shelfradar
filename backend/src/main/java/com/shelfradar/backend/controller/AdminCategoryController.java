@@ -26,7 +26,6 @@ public class AdminCategoryController {
 
     @GetMapping
     public List<CategoryResponse> getAll() {
-
         return categoryService.getAll();
     }
 

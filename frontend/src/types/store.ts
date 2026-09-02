@@ -74,7 +74,6 @@ export interface StoreDashboardSummary {
     lastUpdatedAt: string | null
 }
 
-
 export interface OwnerDashboard {
     totalStores: number
     totalProducts: number
@@ -85,7 +84,6 @@ export interface OwnerDashboard {
     inventoryValue: number
     stores: StoreDashboardSummary[]
 }
-
 
 export interface StoreDashboard {
     store: Store

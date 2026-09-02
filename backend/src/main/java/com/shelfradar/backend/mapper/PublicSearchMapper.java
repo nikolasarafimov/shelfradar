@@ -17,7 +17,6 @@ public class PublicSearchMapper {
         this.catalogMapper = catalogMapper;
     }
 
-
     public PublicSearchResultResponse toSearchResult(
             Inventory inventory
     ) {
@@ -27,7 +26,6 @@ public class PublicSearchMapper {
                 null
         );
     }
-
 
     public PublicSearchResultResponse toSearchResult(
             Inventory inventory,
@@ -60,11 +58,9 @@ public class PublicSearchMapper {
         );
     }
 
-
     public PublicStoreResponse toStoreResponse(
             Store store
     ) {
-
         return new PublicStoreResponse(
                 store.getId(),
                 store.getName(),

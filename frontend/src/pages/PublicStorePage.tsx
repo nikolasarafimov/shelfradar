@@ -1,13 +1,23 @@
+import type {
+    ReactNode,
+} from 'react'
+
 import {
     useQuery,
 } from '@tanstack/react-query'
 
 import {
     ArrowLeft,
+    ArrowRight,
+    ArrowUpRight,
+    BadgeCheck,
+    Boxes,
     Clock3,
     MapPin,
     Package,
     Phone,
+    ShoppingBag,
+    Store,
 } from 'lucide-react'
 
 import {
@@ -25,12 +35,18 @@ import StockBadge
 import StoreLocationMap
     from '../components/public/StoreLocationMap'
 
+import {
+    formatMkd,
+    formatNumber,
+} from '../lib/format'
+
 
 export default function PublicStorePage() {
 
     const {
         storeId,
-    } = useParams()
+    } =
+        useParams()
 
 
     const parsedStoreId =
@@ -53,12 +69,14 @@ export default function PublicStorePage() {
                     ),
 
             enabled:
-                parsedStoreId !== null,
+                parsedStoreId !==
+                null,
         })
 
 
     if (
-        parsedStoreId === null
+        parsedStoreId ===
+        null
     ) {
 
         return (
@@ -67,7 +85,9 @@ export default function PublicStorePage() {
     }
 
 
-    if (storeQuery.isLoading) {
+    if (
+        storeQuery.isLoading
+    ) {
 
         return (
             <PageMessage
@@ -78,7 +98,22 @@ export default function PublicStorePage() {
 
 
     if (
-        storeQuery.isError ||
+        storeQuery.isError
+    ) {
+
+        return (
+            <ErrorMessage
+                onRetry={
+                    () => {
+                        void storeQuery.refetch()
+                    }
+                }
+            />
+        )
+    }
+
+
+    if (
         !storeQuery.data
     ) {
 
@@ -91,91 +126,96 @@ export default function PublicStorePage() {
     const detail =
         storeQuery.data
 
+
     const store =
         detail.store
 
 
     return (
-        <main className="min-h-screen bg-slate-50 text-slate-950">
+        <main className="relative min-h-dvh overflow-x-clip bg-[#020817] text-white">
+
+            <Background />
 
             <PublicHeader />
 
 
-            <div className="mx-auto max-w-7xl px-5 py-8 md:px-8">
+            <div className="relative z-10 mx-auto max-w-7xl px-5 pb-14 pt-6 md:px-8">
 
-                <Link
-                    to="/search"
-                    className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-950"
-                >
-                    <ArrowLeft
-                        size={17}
-                    />
+                <div className="animate-fade-up">
 
-                    Back to search
-                </Link>
+                    <Link
+                        to="/search"
+                        className="group inline-flex items-center gap-2 py-2 text-sm font-semibold text-slate-500 transition hover:text-sky-300"
+                    >
+
+                        <ArrowLeft
+                            size={15}
+                            className="transition-transform duration-200 group-hover:-translate-x-1"
+                        />
+
+                        Back to search
+
+                    </Link>
+
+                </div>
 
 
-                <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+                <section className="premium-card animate-fade-up animation-delay-100 mt-3 overflow-hidden rounded-[1.8rem] border border-slate-800/90 bg-slate-900/55 shadow-[0_30px_90px_-50px_rgba(14,165,233,0.28)] backdrop-blur-xl">
 
-                    <div className="flex flex-col justify-between gap-8 lg:flex-row">
+                    <div className="grid gap-7 p-6 md:p-7 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center">
 
-                        <div>
+                        <div className="min-w-0">
 
-                            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-sky-600">
-                                Store
-                            </p>
+                            <div className="inline-flex items-center gap-2 rounded-full border border-sky-900/60 bg-sky-950/35 px-3 py-1.5">
 
-                            <h1 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">
-                                {
-                                    store.name
-                                }
+                                <Store
+                                    size={12}
+                                    className="text-sky-400"
+                                />
+
+                                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-sky-300">
+                                    ShelfRadar Store
+                                </span>
+
+                            </div>
+
+
+                            <h1 className="mt-4 max-w-3xl text-3xl font-bold leading-tight tracking-[-0.04em] text-white sm:text-4xl lg:text-[2.7rem]">
+                                {store.name}
                             </h1>
 
 
-                            <div className="mt-6 space-y-3 text-sm text-slate-600">
+                            <div className="mt-6 flex flex-wrap gap-3">
 
-                                <div className="flex items-start gap-3">
-
-                                    <MapPin
-                                        size={18}
-                                        className="mt-0.5 shrink-0 text-slate-400"
-                                    />
-
-                                    <span>
-                                        {
-                                            store.address
-                                        }
-                                        ,{' '}
-                                        {
-                                            store.city
-                                        }
-                                    </span>
-
-                                </div>
+                                <InfoChip
+                                    icon={
+                                        <MapPin
+                                            size={15}
+                                        />
+                                    }
+                                >
+                                    {store.address}, {store.city}
+                                </InfoChip>
 
 
                                 {
                                     store.phone && (
 
-                                        <div className="flex items-center gap-3">
+                                        <a
+                                            href={
+                                                `tel:${store.phone}`
+                                            }
+                                            className="group inline-flex min-h-10 items-center gap-2.5 rounded-xl border border-slate-800 bg-[#020817]/55 px-3.5 text-sm text-slate-400 transition hover:border-sky-900 hover:text-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                                        >
 
                                             <Phone
-                                                size={18}
-                                                className="shrink-0 text-slate-400"
+                                                size={15}
+                                                className="text-sky-400"
                                             />
 
-                                            <a
-                                                href={
-                                                    `tel:${store.phone}`
-                                                }
-                                                className="hover:text-sky-600"
-                                            >
-                                                {
-                                                    store.phone
-                                                }
-                                            </a>
+                                            {store.phone}
 
-                                        </div>
+                                        </a>
                                     )
                                 }
 
@@ -183,20 +223,15 @@ export default function PublicStorePage() {
                                 {
                                     store.workingHours && (
 
-                                        <div className="flex items-center gap-3">
-
-                                            <Clock3
-                                                size={18}
-                                                className="shrink-0 text-slate-400"
-                                            />
-
-                                            <span>
-                                                {
-                                                    store.workingHours
-                                                }
-                                            </span>
-
-                                        </div>
+                                        <InfoChip
+                                            icon={
+                                                <Clock3
+                                                    size={15}
+                                                />
+                                            }
+                                        >
+                                            {store.workingHours}
+                                        </InfoChip>
                                     )
                                 }
 
@@ -205,24 +240,36 @@ export default function PublicStorePage() {
                         </div>
 
 
-                        <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[360px]">
+                        <div className="grid grid-cols-2 gap-3">
 
-                            <SummaryCard
+                            <StoreMetric
+                                icon={
+                                    <ShoppingBag
+                                        size={17}
+                                    />
+                                }
                                 label="Products listed"
                                 value={
-                                    String(
+                                    formatNumber(
                                         detail.totalProducts,
                                     )
                                 }
                             />
 
-                            <SummaryCard
+
+                            <StoreMetric
+                                icon={
+                                    <BadgeCheck
+                                        size={17}
+                                    />
+                                }
                                 label="Available now"
                                 value={
-                                    String(
+                                    formatNumber(
                                         detail.availableProducts,
                                     )
                                 }
+                                highlighted
                             />
 
                         </div>
@@ -232,62 +279,94 @@ export default function PublicStorePage() {
                 </section>
 
 
-                <section className="mt-8">
+                <section className="animate-fade-up animation-delay-200 mt-8">
 
-                    <h2 className="text-2xl font-bold">
-                        Location
-                    </h2>
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
 
-                    <div className="mt-4">
+                        <div>
 
-                        <StoreLocationMap
-                            store={
-                                store
-                            }
-                        />
+                            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-sky-400">
+                                Store inventory
+                            </p>
+
+
+                            <h2 className="mt-1 text-2xl font-bold tracking-tight text-white">
+                                Available products
+                            </h2>
+
+
+                            <p className="mt-1 text-sm text-slate-500">
+                                Current price and availability reported by this store.
+                            </p>
+
+                        </div>
+
+
+                        {
+                            detail.inventory.length >
+                            0 && (
+
+                                <div className="inline-flex w-fit items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/55 px-3 py-2 text-xs font-semibold text-slate-400">
+
+                                    <Boxes
+                                        size={13}
+                                        className="text-sky-400"
+                                    />
+
+                                    {
+                                        formatNumber(
+                                            detail.inventory.length,
+                                        )
+                                    }{' '}
+
+                                    {
+                                        detail.inventory.length ===
+                                        1
+                                            ? 'product'
+                                            : 'products'
+                                    }
+
+                                </div>
+                            )
+                        }
 
                     </div>
 
-                </section>
 
+                    <div className="mt-5 grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
 
-                <section className="mt-8 pb-12">
+                        {
+                            detail.inventory.length ===
+                            0 ? (
 
-                    <h2 className="text-2xl font-bold">
-                        Products
-                    </h2>
+                                <EmptyInventory />
 
-                    <p className="mt-1 text-sm text-slate-500">
-                        Current inventory information reported by this store.
-                    </p>
+                            ) : (
 
+                                <div className="grid gap-4 sm:grid-cols-2">
 
-                    {
-                        detail.inventory.length ===
-                        0 ? (
+                                    {
+                                        detail.inventory.map(
+                                            (
+                                                item,
+                                                index,
+                                            ) => (
 
-                            <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-10 text-center text-slate-500">
-                                No products are currently listed.
-                            </div>
+                                                <article
+                                                    key={
+                                                        item.inventoryId
+                                                    }
+                                                    className="premium-card animate-fade-up group flex min-h-[205px] flex-col rounded-3xl border border-slate-800/90 bg-slate-900/55 p-5 shadow-[0_22px_60px_-38px_rgba(0,0,0,0.9)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-sky-900/80 hover:bg-slate-900/80 hover:shadow-[0_28px_70px_-38px_rgba(14,165,233,0.22)] motion-reduce:transform-none"
+                                                    style={{
+                                                        animationDelay:
+                                                            `${Math.min(
+                                                                index,
+                                                                7,
+                                                            ) * 70 + 220}ms`,
+                                                    }}
+                                                >
 
-                        ) : (
-
-                            <div className="mt-6 grid gap-4">
-
-                                {
-                                    detail.inventory.map(
-                                        item => (
-
-                                            <article
-                                                key={
-                                                    item.inventoryId
-                                                }
-                                                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
-                                            >
-
-                                                <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
-
-                                                    <div className="flex min-w-0 gap-4">
+                                                    <div className="flex min-w-0 items-start gap-4">
 
                                                         <ProductThumbnail
                                                             name={
@@ -299,30 +378,38 @@ export default function PublicStorePage() {
                                                         />
 
 
-                                                        <div className="min-w-0">
+                                                        <div className="min-w-0 flex-1">
 
-                                                            <p className="text-xs font-medium text-slate-400">
+                                                            <p className="truncate text-[10px] font-bold uppercase tracking-[0.1em] text-sky-400">
+
                                                                 {
                                                                     item.product.brand.name
                                                                 }
-                                                                {' · '}
+
+                                                                <span className="mx-1.5 text-slate-700">
+                                                                    ·
+                                                                </span>
+
                                                                 {
                                                                     item.product.category.name
                                                                 }
+
                                                             </p>
+
 
                                                             <Link
                                                                 to={
                                                                     `/products/${item.product.id}`
                                                                 }
-                                                                className="mt-1 block font-semibold text-slate-950 hover:text-sky-600"
+                                                                className="mt-1.5 block line-clamp-2 text-base font-bold leading-5 text-white transition hover:text-sky-300"
                                                             >
                                                                 {
                                                                     item.product.name
                                                                 }
                                                             </Link>
 
-                                                            <div className="mt-3">
+
+                                                            <div className="mt-4">
 
                                                                 <StockBadge
                                                                     status={
@@ -337,39 +424,147 @@ export default function PublicStorePage() {
                                                     </div>
 
 
-                                                    <div className="sm:text-right">
+                                                    <div className="my-4 border-t border-slate-800/80" />
 
-                                                        <p className="text-2xl font-bold">
-                                                            {
-                                                                formatPrice(
-                                                                    item.price,
-                                                                )
-                                                            }
-                                                        </p>
 
-                                                        <p className="text-xs font-medium text-slate-400">
-                                                            MKD
-                                                        </p>
+                                                    <div className="mt-auto flex items-end justify-between gap-4">
 
-                                                        <p className="mt-2 text-xs text-slate-500">
-                                                            Quantity:{' '}
-                                                            {
-                                                                item.quantity
-                                                            }
-                                                        </p>
+                                                        <div>
+
+                                                            <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-600">
+                                                                Current price
+                                                            </p>
+
+
+                                                            <p className="mt-1 whitespace-nowrap text-xl font-bold tracking-tight text-white">
+                                                                {
+                                                                    formatMkd(
+                                                                        item.price,
+                                                                    )
+                                                                }
+                                                            </p>
+
+                                                        </div>
+
+
+                                                        <div className="text-right">
+
+                                                            <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-600">
+                                                                Quantity
+                                                            </p>
+
+
+                                                            <p className="mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-300">
+
+                                                                <Boxes
+                                                                    size={13}
+                                                                    className="text-slate-600"
+                                                                />
+
+                                                                {
+                                                                    formatNumber(
+                                                                        item.quantity,
+                                                                    )
+                                                                }
+
+                                                            </p>
+
+                                                        </div>
 
                                                     </div>
 
-                                                </div>
 
-                                            </article>
-                                        ),
-                                    )
-                                }
+                                                    <Link
+                                                        to={
+                                                            `/products/${item.product.id}`
+                                                        }
+                                                        className="group/link mt-4 inline-flex min-h-9 items-center justify-between rounded-xl border border-slate-800 bg-[#020817]/45 px-3 text-xs font-bold text-slate-400 transition hover:border-sky-900 hover:bg-sky-500/[0.06] hover:text-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                                                    >
+
+                                                        View product
+
+                                                        <ArrowUpRight
+                                                            size={13}
+                                                            className="transition-transform duration-200 group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5"
+                                                        />
+
+                                                    </Link>
+
+                                                </article>
+                                            ),
+                                        )
+                                    }
+
+                                </div>
+                            )
+                        }
+
+
+                        <aside className="lg:sticky lg:top-28">
+
+                            <div className="mb-3 flex items-center justify-between">
+
+                                <div>
+
+                                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-sky-400">
+                                        Location
+                                    </p>
+
+                                    <h3 className="mt-1 text-lg font-bold text-white">
+                                        Find this store
+                                    </h3>
+
+                                </div>
+
+
+                                <MapPin
+                                    size={18}
+                                    className="text-sky-400"
+                                />
 
                             </div>
-                        )
-                    }
+
+
+                            <StoreLocationMap
+                                store={
+                                    store
+                                }
+                            />
+
+
+                            <div className="mt-3 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
+
+                                <div className="flex items-start gap-3">
+
+                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-500/10 text-sky-400">
+
+                                        <MapPin
+                                            size={15}
+                                        />
+
+                                    </div>
+
+
+                                    <div className="min-w-0">
+
+                                        <p className="text-sm font-semibold text-slate-200">
+                                            {store.name}
+                                        </p>
+
+
+                                        <p className="mt-1 text-xs leading-5 text-slate-500">
+                                            {store.address}, {store.city}
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </aside>
+
+                    </div>
 
                 </section>
 
@@ -388,23 +583,31 @@ function ProductThumbnail({
     imageUrl: string | null
 }) {
 
-    if (imageUrl) {
+    if (
+        imageUrl
+    ) {
 
         return (
             <img
-                src={imageUrl}
-                alt={name}
-                className="h-20 w-20 shrink-0 rounded-xl border border-slate-100 object-cover"
+                src={
+                    imageUrl
+                }
+                alt={
+                    name
+                }
+                decoding="async"
+                className="h-16 w-16 shrink-0 rounded-2xl border border-slate-800 bg-[#020817] object-cover shadow-lg shadow-black/20"
             />
         )
     }
 
 
     return (
-        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
+        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-slate-800 bg-[#020817] text-slate-600">
 
             <Package
-                size={28}
+                size={24}
+                strokeWidth={1.5}
             />
 
         </div>
@@ -412,24 +615,132 @@ function ProductThumbnail({
 }
 
 
-function SummaryCard({
-                         label,
-                         value,
-                     }: {
-    label: string
-    value: string
+function InfoChip({
+                      icon,
+                      children,
+                  }: {
+    icon: ReactNode
+    children: ReactNode
 }) {
 
     return (
-        <div className="rounded-xl bg-slate-50 p-4">
+        <div className="inline-flex min-h-10 items-center gap-2.5 rounded-xl border border-slate-800 bg-[#020817]/55 px-3.5 text-sm text-slate-400">
 
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                {label}
-            </p>
+            <span className="text-sky-400">
+                {icon}
+            </span>
 
-            <p className="mt-2 text-xl font-bold">
-                {value}
-            </p>
+            <span>
+                {children}
+            </span>
+
+        </div>
+    )
+}
+
+
+function StoreMetric({
+                         icon,
+                         label,
+                         value,
+                         highlighted = false,
+                     }: {
+    icon: ReactNode
+    label: string
+    value: string
+    highlighted?: boolean
+}) {
+
+    return (
+        <div
+            className={
+                highlighted
+                    ? 'relative overflow-hidden rounded-2xl border border-sky-900/60 bg-sky-950/25 p-4'
+                    : 'relative overflow-hidden rounded-2xl border border-slate-800 bg-[#020817]/45 p-4'
+            }
+        >
+
+            {
+                highlighted && (
+
+                    <div
+                        aria-hidden="true"
+                        className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-sky-500/10 blur-2xl"
+                    />
+                )
+            }
+
+
+            <div className="relative">
+
+                <div
+                    className={
+                        highlighted
+                            ? 'flex h-9 w-9 items-center justify-center rounded-xl bg-sky-500/10 text-sky-400'
+                            : 'flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-slate-500'
+                    }
+                >
+                    {icon}
+                </div>
+
+
+                <p className="mt-4 text-2xl font-bold tracking-tight text-white">
+                    {value}
+                </p>
+
+
+                <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
+                    {label}
+                </p>
+
+            </div>
+
+        </div>
+    )
+}
+
+
+function EmptyInventory() {
+
+    return (
+        <div className="premium-card flex min-h-[330px] items-center justify-center rounded-[1.8rem] border border-dashed border-slate-800 bg-slate-900/25 p-8 text-center">
+
+            <div className="max-w-sm">
+
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900 text-slate-500">
+
+                    <Package
+                        size={23}
+                    />
+
+                </div>
+
+
+                <h3 className="mt-5 text-xl font-bold text-white">
+                    No products listed
+                </h3>
+
+
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                    This store currently has no public inventory offers.
+                </p>
+
+
+                <Link
+                    to="/search?browse=all"
+                    className="group mt-5 inline-flex items-center gap-2 rounded-xl border border-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-300 transition hover:border-sky-800 hover:bg-slate-900 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                >
+
+                    Browse other products
+
+                    <ArrowRight
+                        size={14}
+                        className="transition-transform group-hover:translate-x-1"
+                    />
+
+                </Link>
+
+            </div>
 
         </div>
     )
@@ -439,27 +750,81 @@ function SummaryCard({
 function PublicHeader() {
 
     return (
-        <header className="border-b border-slate-200 bg-white">
+        <header className="sticky top-0 z-50 border-b border-slate-900/90 bg-[#020817]/90 backdrop-blur-xl">
 
-            <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 md:px-8">
+            <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 md:px-8">
 
                 <Link
                     to="/"
-                    className="text-xl font-bold tracking-tight"
+                    aria-label="ShelfRadar home"
+                    className="group flex items-center"
                 >
-                    ShelfRadar
+
+                    <img
+                        src="/shelfradar-logo.png"
+                        alt="ShelfRadar"
+                        className="h-14 w-auto object-contain drop-shadow-[0_0_18px_rgba(56,189,248,0.10)] transition duration-300 group-hover:scale-[1.025]"
+                    />
+
                 </Link>
 
-                <Link
-                    to="/login"
-                    className="text-sm font-medium text-slate-600 hover:text-slate-950"
+
+                <nav
+                    aria-label="Public navigation"
+                    className="flex items-center gap-2 sm:gap-3"
                 >
-                    Staff Login
-                </Link>
+
+                    <Link
+                        to="/search?browse=all"
+                        className="hidden rounded-xl bg-slate-900/60 px-4 py-2.5 text-sm font-semibold text-slate-400 transition hover:-translate-y-0.5 hover:bg-slate-800 hover:text-white motion-reduce:transform-none sm:inline-flex"
+                    >
+                        Browse products
+                    </Link>
+
+
+                    <Link
+                        to="/login"
+                        className="rounded-xl border border-slate-700 bg-slate-900/40 px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:-translate-y-0.5 hover:border-slate-500 hover:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 motion-reduce:transform-none"
+                    >
+                        Staff Login
+                    </Link>
+
+                </nav>
 
             </div>
 
         </header>
+    )
+}
+
+
+function Background() {
+
+    return (
+        <div
+            aria-hidden="true"
+            className="pointer-events-none fixed inset-0 overflow-hidden"
+        >
+
+            <div className="animate-glow-drift absolute left-1/2 top-[-270px] h-[580px] w-[880px] -translate-x-1/2 rounded-full bg-sky-500/[0.07] blur-[150px]" />
+
+            <div className="animate-glow-drift absolute -left-56 top-[420px] h-[440px] w-[440px] rounded-full bg-cyan-500/[0.025] blur-[135px] [animation-delay:900ms]" />
+
+            <div className="animate-glow-drift absolute -right-56 top-[300px] h-[460px] w-[460px] rounded-full bg-blue-500/[0.025] blur-[140px] [animation-delay:1500ms]" />
+
+
+            <div
+                className="absolute inset-0 opacity-[0.024]"
+                style={{
+                    backgroundImage:
+                        'linear-gradient(rgba(148,163,184,0.28) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.28) 1px, transparent 1px)',
+
+                    backgroundSize:
+                        '46px 46px',
+                }}
+            />
+
+        </div>
     )
 }
 
@@ -471,12 +836,103 @@ function PageMessage({
 }) {
 
     return (
-        <main className="min-h-screen bg-slate-50">
+        <main className="relative min-h-dvh overflow-x-clip bg-[#020817] text-white">
+
+            <Background />
 
             <PublicHeader />
 
-            <div className="mx-auto max-w-7xl px-5 py-16 text-center text-slate-500">
-                {message}
+
+            <div
+                role="status"
+                aria-live="polite"
+                aria-busy="true"
+                className="relative z-10 mx-auto max-w-7xl px-5 py-20 text-center md:px-8"
+            >
+
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900 text-sky-400">
+
+                    <Store
+                        size={22}
+                    />
+
+                </div>
+
+
+                <p className="mt-5 text-sm font-medium text-slate-400">
+                    {message}
+                </p>
+
+            </div>
+
+        </main>
+    )
+}
+
+
+function ErrorMessage({
+                          onRetry,
+                      }: {
+    onRetry: () => void
+}) {
+
+    return (
+        <main className="relative min-h-dvh overflow-x-clip bg-[#020817] text-white">
+
+            <Background />
+
+            <PublicHeader />
+
+
+            <div className="relative z-10 mx-auto max-w-7xl px-5 py-20 text-center md:px-8">
+
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-red-900/50 bg-red-950/20 text-red-400">
+
+                    <Store
+                        size={22}
+                    />
+
+                </div>
+
+
+                <h1 className="mt-5 text-2xl font-bold">
+                    Unable to load store
+                </h1>
+
+
+                <p className="mt-2 text-sm text-slate-500">
+                    ShelfRadar could not retrieve this store right now.
+                </p>
+
+
+                <div className="mt-5 flex flex-wrap justify-center gap-3">
+
+                    <button
+                        type="button"
+                        onClick={
+                            onRetry
+                        }
+                        className="inline-flex min-h-10 items-center justify-center rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+                    >
+                        Try again
+                    </button>
+
+
+                    <Link
+                        to="/search"
+                        className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-300 transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                    >
+
+                        <ArrowLeft
+                            size={14}
+                        />
+
+                        Return to search
+
+                    </Link>
+
+                </div>
+
             </div>
 
         </main>
@@ -487,21 +943,45 @@ function PageMessage({
 function NotFoundMessage() {
 
     return (
-        <main className="min-h-screen bg-slate-50">
+        <main className="relative min-h-dvh overflow-x-clip bg-[#020817] text-white">
+
+            <Background />
 
             <PublicHeader />
 
-            <div className="mx-auto max-w-7xl px-5 py-16 text-center">
 
-                <h1 className="text-2xl font-bold">
+            <div className="relative z-10 mx-auto max-w-7xl px-5 py-20 text-center md:px-8">
+
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900 text-slate-500">
+
+                    <Store
+                        size={22}
+                    />
+
+                </div>
+
+
+                <h1 className="mt-5 text-2xl font-bold">
                     Store not found.
                 </h1>
 
+
+                <p className="mt-2 text-sm text-slate-500">
+                    The requested store is unavailable or no longer public.
+                </p>
+
+
                 <Link
                     to="/search"
-                    className="mt-4 inline-block text-sm font-medium text-sky-600 hover:text-sky-700"
+                    className="mt-5 inline-flex items-center gap-2 rounded-xl border border-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-300 transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
                 >
+
+                    <ArrowLeft
+                        size={14}
+                    />
+
                     Return to search
+
                 </Link>
 
             </div>
@@ -515,33 +995,29 @@ function parsePositiveId(
     value: string | undefined,
 ): number | null {
 
-    if (!value) {
-        return null
-    }
-
-    const parsed =
-        Number(value)
-
     if (
-        !Number.isInteger(parsed) ||
-        parsed <= 0
+        !value
     ) {
         return null
     }
 
+
+    const parsed =
+        Number(
+            value,
+        )
+
+
+    if (
+        !Number.isInteger(
+            parsed,
+        ) ||
+        parsed <=
+        0
+    ) {
+        return null
+    }
+
+
     return parsed
-}
-
-
-function formatPrice(
-    value: number,
-): string {
-
-    return new Intl.NumberFormat(
-        'en-US',
-        {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 2,
-        },
-    ).format(value)
 }

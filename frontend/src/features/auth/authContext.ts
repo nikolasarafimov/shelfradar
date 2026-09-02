@@ -7,7 +7,6 @@ import type {
 } from './types'
 
 export interface AuthContextValue {
-
     user: AuthUser | null
 
     initializing: boolean

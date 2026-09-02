@@ -46,7 +46,6 @@ public class AdminStoreService {
     private final AdminStoreMapper adminStoreMapper;
     private final AuditService auditService;
 
-
     public AdminStoreService(
             StoreRepository storeRepository,
             ProductRepository productRepository,
@@ -56,7 +55,6 @@ public class AdminStoreService {
             AdminStoreMapper adminStoreMapper,
             AuditService auditService
     ) {
-
         this.storeRepository =
                 storeRepository;
 
@@ -79,66 +77,54 @@ public class AdminStoreService {
                 auditService;
     }
 
-
     public AdminDashboardResponse getDashboard() {
 
         long totalStores =
                 storeRepository.count();
-
 
         long activeStores =
                 storeRepository.countByStatus(
                         StoreStatus.ACTIVE
                 );
 
-
         long pendingStores =
                 storeRepository.countByStatus(
                         StoreStatus.PENDING
                 );
-
 
         long inactiveStores =
                 storeRepository.countByStatus(
                         StoreStatus.INACTIVE
                 );
 
-
         long totalProducts =
                 productRepository.count();
-
 
         long storeOwners =
                 appUserRepository.countByRole(
                         UserRole.STORE_OWNER
                 );
 
-
         long inventoryItems =
                 inventoryRepository.count();
-
 
         long lowStockItems =
                 inventoryRepository.countByStatus(
                         StockStatus.LOW_STOCK
                 );
 
-
         long outOfStockItems =
                 inventoryRepository.countByStatus(
                         StockStatus.OUT_OF_STOCK
                 );
 
-
         Long totalUnitsValue =
                 inventoryRepository
                         .sumTotalUnits();
 
-
         BigDecimal inventoryValue =
                 inventoryRepository
                         .sumInventoryValue();
-
 
         List<AdminStoreResponse> pendingPreview =
                 storeRepository
@@ -151,7 +137,6 @@ public class AdminStoreService {
                                         ::toResponse
                         )
                         .toList();
-
 
         return new AdminDashboardResponse(
                 totalStores,
@@ -173,7 +158,6 @@ public class AdminStoreService {
         );
     }
 
-
     public PageResponse<AdminStoreResponse> searchStores(
             String query,
             StoreStatus status,
@@ -194,7 +178,6 @@ public class AdminStoreService {
                                 sort
                         );
 
-
         return PageResponse.from(
                 stores.map(
                         adminStoreMapper
@@ -202,7 +185,6 @@ public class AdminStoreService {
                 )
         );
     }
-
 
     public AdminStoreFiltersResponse getFilters() {
 
@@ -214,7 +196,6 @@ public class AdminStoreService {
                 )
         );
     }
-
 
     public List<AdminOwnerResponse> getStoreOwners() {
 
@@ -230,7 +211,6 @@ public class AdminStoreService {
                 .toList();
     }
 
-
     public AdminStoreDetailResponse getStore(
             Long storeId
     ) {
@@ -240,20 +220,17 @@ public class AdminStoreService {
                         storeId
                 );
 
-
         List<Inventory> inventory =
                 inventoryRepository
                         .findDetailedByStoreIdOrderByUpdatedAtDesc(
                                 storeId
                         );
 
-
         return buildDetail(
                 store,
                 inventory
         );
     }
-
 
     @Transactional
     public AdminStoreDetailResponse changeStatus(
@@ -267,13 +244,10 @@ public class AdminStoreService {
                         storeId
                 );
 
-
         StoreStatus previousStatus =
                 store.getStatus();
 
-
         if (previousStatus == status) {
-
             return buildDetail(
                     store,
                     inventoryRepository
@@ -283,17 +257,14 @@ public class AdminStoreService {
             );
         }
 
-
         store.setStatus(
                 status
         );
-
 
         Store savedStore =
                 storeRepository.save(
                         store
                 );
-
 
         auditService.record(
                 actorEmail,
@@ -308,7 +279,6 @@ public class AdminStoreService {
                         + savedStore.getStatus()
         );
 
-
         return buildDetail(
                 savedStore,
                 inventoryRepository
@@ -317,7 +287,6 @@ public class AdminStoreService {
                         )
         );
     }
-
 
     @Transactional
     public AdminStoreDetailResponse updateStore(
@@ -330,7 +299,6 @@ public class AdminStoreService {
                 findStore(
                         storeId
                 );
-
 
         AppUser newOwner =
                 appUserRepository
@@ -345,10 +313,6 @@ public class AdminStoreService {
                                         )
                         );
 
-
-        /*
-         * Capture the current owner before making any changes.
-         */
         AppUser previousOwner =
                 store.getOwner();
 
@@ -358,10 +322,6 @@ public class AdminStoreService {
         String previousOwnerEmail =
                 previousOwner.getEmail();
 
-
-        /*
-         * Normalize the values that will actually be persisted.
-         */
         String newName =
                 normalizeRequired(
                         request.name()
@@ -393,10 +353,6 @@ public class AdminStoreService {
                         request.workingHours()
                 );
 
-
-        /*
-         * Determine what changed BEFORE mutating the managed entity.
-         */
         String profileAuditDetails =
                 buildProfileUpdateDetails(
                         store,
@@ -409,17 +365,12 @@ public class AdminStoreService {
                         newWorkingHours
                 );
 
-
         boolean ownerChanged =
                 !Objects.equals(
                         previousOwnerId,
                         newOwner.getId()
                 );
 
-
-        /*
-         * Apply the store configuration changes.
-         */
         store.setName(
                 newName
         );
@@ -452,20 +403,11 @@ public class AdminStoreService {
                 newOwner
         );
 
-
         Store savedStore =
                 storeRepository.save(
                         store
                 );
 
-
-        /*
-         * Record profile changes only when one or more actual
-         * profile fields changed.
-         *
-         * Changing only the owner must not produce a false
-         * STORE_PROFILE_UPDATED audit row.
-         */
         if (profileAuditDetails != null) {
 
             auditService.record(
@@ -479,11 +421,6 @@ public class AdminStoreService {
             );
         }
 
-
-        /*
-         * Owner reassignment is a separate business event and
-         * therefore receives its own audit entry.
-         */
         if (ownerChanged) {
 
             auditService.record(
@@ -500,7 +437,6 @@ public class AdminStoreService {
             );
         }
 
-
         return buildDetail(
                 savedStore,
                 inventoryRepository
@@ -509,7 +445,6 @@ public class AdminStoreService {
                         )
         );
     }
-
 
     private AdminStoreDetailResponse buildDetail(
             Store store,
@@ -526,7 +461,6 @@ public class AdminStoreService {
                         )
                         .count();
 
-
         long lowStock =
                 inventory
                         .stream()
@@ -536,7 +470,6 @@ public class AdminStoreService {
                                                 StockStatus.LOW_STOCK
                         )
                         .count();
-
 
         long outOfStock =
                 inventory
@@ -548,7 +481,6 @@ public class AdminStoreService {
                         )
                         .count();
 
-
         long totalUnits =
                 inventory
                         .stream()
@@ -556,7 +488,6 @@ public class AdminStoreService {
                                 Inventory::getQuantity
                         )
                         .sum();
-
 
         BigDecimal inventoryValue =
                 inventory
@@ -576,7 +507,6 @@ public class AdminStoreService {
                                 BigDecimal::add
                         );
 
-
         Instant lastUpdate =
                 inventory
                         .stream()
@@ -593,7 +523,6 @@ public class AdminStoreService {
                                 null
                         );
 
-
         return new AdminStoreDetailResponse(
                 adminStoreMapper.toResponse(
                         store
@@ -609,7 +538,6 @@ public class AdminStoreService {
         );
     }
 
-
     private String buildProfileUpdateDetails(
             Store store,
             String newName,
@@ -623,7 +551,6 @@ public class AdminStoreService {
 
         List<String> changes =
                 new ArrayList<>();
-
 
         if (
                 !Objects.equals(
@@ -644,7 +571,6 @@ public class AdminStoreService {
             );
         }
 
-
         if (
                 !Objects.equals(
                         store.getAddress(),
@@ -663,7 +589,6 @@ public class AdminStoreService {
                     )
             );
         }
-
 
         if (
                 !Objects.equals(
@@ -684,7 +609,6 @@ public class AdminStoreService {
             );
         }
 
-
         if (
                 !sameDecimal(
                         store.getLatitude(),
@@ -700,7 +624,6 @@ public class AdminStoreService {
             );
         }
 
-
         if (
                 !sameDecimal(
                         store.getLongitude(),
@@ -715,7 +638,6 @@ public class AdminStoreService {
                             + newLongitude
             );
         }
-
 
         if (
                 !Objects.equals(
@@ -736,7 +658,6 @@ public class AdminStoreService {
             );
         }
 
-
         if (
                 !Objects.equals(
                         store.getWorkingHours(),
@@ -756,11 +677,9 @@ public class AdminStoreService {
             );
         }
 
-
         if (changes.isEmpty()) {
             return null;
         }
-
 
         return "Administrator updated store profile: "
                 + String.join(
@@ -770,12 +689,10 @@ public class AdminStoreService {
                 + ".";
     }
 
-
     private boolean sameDecimal(
             BigDecimal first,
             BigDecimal second
     ) {
-
         if (
                 first == null &&
                         second == null
@@ -797,11 +714,9 @@ public class AdminStoreService {
         ) == 0;
     }
 
-
     private Store findStore(
             Long storeId
     ) {
-
         return storeRepository
                 .findById(
                         storeId
@@ -814,7 +729,6 @@ public class AdminStoreService {
                 );
     }
 
-
     private String normalizeRequired(
             String value
     ) {
@@ -826,7 +740,6 @@ public class AdminStoreService {
                         " "
                 );
     }
-
 
     private String normalizeNullable(
             String value
@@ -842,7 +755,6 @@ public class AdminStoreService {
 
         return value.trim();
     }
-
 
     private String formatNullable(
             String value

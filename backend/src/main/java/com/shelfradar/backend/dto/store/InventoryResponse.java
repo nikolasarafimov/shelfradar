@@ -21,6 +21,5 @@ public record InventoryResponse(
         StockStatus status,
 
         Instant updatedAt
-
 ) {
 }

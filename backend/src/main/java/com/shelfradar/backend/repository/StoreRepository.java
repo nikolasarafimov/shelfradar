@@ -54,7 +54,6 @@ public interface StoreRepository
             StoreStatus status
     );
 
-
     @EntityGraph(
             attributePaths = {
                     "owner"
@@ -63,7 +62,6 @@ public interface StoreRepository
     List<Store> findTop5ByStatusOrderByCreatedAtAsc(
             StoreStatus status
     );
-
 
     @Query("""
         SELECT DISTINCT s.city

@@ -36,7 +36,6 @@ public class InventoryService {
     private final StoreMapper storeMapper;
     private final AuditService auditService;
 
-
     public InventoryService(
             InventoryRepository inventoryRepository,
             ProductRepository productRepository,
@@ -61,7 +60,6 @@ public class InventoryService {
                 auditService;
     }
 
-
     public PageResponse<InventoryResponse> getInventory(
             String email,
             Long storeId,
@@ -76,7 +74,6 @@ public class InventoryService {
                 storeId
         );
 
-
         Pageable pageable =
                 PageRequest.of(
                         page,
@@ -86,15 +83,12 @@ public class InventoryService {
                         )
                 );
 
-
         String normalizedQuery =
                 query == null
                         ? ""
                         : query.trim();
 
-
         Page<Inventory> result;
-
 
         if (normalizedQuery.isEmpty()) {
 
@@ -116,7 +110,6 @@ public class InventoryService {
                             );
         }
 
-
         return PageResponse.from(
                 result.map(
                         storeMapper
@@ -124,7 +117,6 @@ public class InventoryService {
                 )
         );
     }
-
 
     @Transactional
     public InventoryResponse create(
@@ -139,7 +131,6 @@ public class InventoryService {
                         storeId
                 );
 
-
         Product product =
                 productRepository
                         .findById(
@@ -151,7 +142,6 @@ public class InventoryService {
                                                 "Product not found."
                                         )
                         );
-
 
         if (
                 inventoryRepository
@@ -166,16 +156,13 @@ public class InventoryService {
             );
         }
 
-
         validateStatus(
                 request.quantity(),
                 request.status()
         );
 
-
         Inventory inventory =
                 new Inventory();
-
 
         inventory.setStore(
                 store
@@ -197,12 +184,10 @@ public class InventoryService {
                 request.status()
         );
 
-
         Inventory saved =
                 inventoryRepository.save(
                         inventory
                 );
-
 
         auditService.record(
                 email,
@@ -219,13 +204,11 @@ public class InventoryService {
                         + saved.getStatus()
         );
 
-
         return storeMapper
                 .toInventoryResponse(
                         saved
                 );
     }
-
 
     @Transactional
     public InventoryResponse update(
@@ -240,7 +223,6 @@ public class InventoryService {
                 storeId
         );
 
-
         Inventory inventory =
                 inventoryRepository
                         .findByIdAndStoreId(
@@ -254,12 +236,10 @@ public class InventoryService {
                                         )
                         );
 
-
         validateStatus(
                 request.quantity(),
                 request.status()
         );
-
 
         BigDecimal oldPrice =
                 inventory.getPrice();
@@ -269,7 +249,6 @@ public class InventoryService {
 
         StockStatus oldStatus =
                 inventory.getStatus();
-
 
         inventory.setPrice(
                 request.price()
@@ -283,12 +262,10 @@ public class InventoryService {
                 request.status()
         );
 
-
         Inventory saved =
                 inventoryRepository.save(
                         inventory
                 );
-
 
         auditService.record(
                 email,
@@ -311,13 +288,11 @@ public class InventoryService {
                         + saved.getStatus()
         );
 
-
         return storeMapper
                 .toInventoryResponse(
                         saved
                 );
     }
-
 
     @Transactional
     public void delete(
@@ -331,7 +306,6 @@ public class InventoryService {
                 storeId
         );
 
-
         Inventory inventory =
                 inventoryRepository
                         .findByIdAndStoreId(
@@ -344,7 +318,6 @@ public class InventoryService {
                                                 "Inventory item not found."
                                         )
                         );
-
 
         auditService.record(
                 email,
@@ -361,12 +334,10 @@ public class InventoryService {
                         + inventory.getStatus()
         );
 
-
         inventoryRepository.delete(
                 inventory
         );
     }
-
 
     private void validateStatus(
             Integer quantity,
@@ -380,7 +351,6 @@ public class InventoryService {
             );
         }
 
-
         if (status == null) {
 
             throw new InvalidInventoryStateException(
@@ -388,14 +358,12 @@ public class InventoryService {
             );
         }
 
-
         if (quantity < 0) {
 
             throw new InvalidInventoryStateException(
                     "Quantity cannot be negative."
             );
         }
-
 
         if (
                 quantity == 0 &&
@@ -406,7 +374,6 @@ public class InventoryService {
                     "A product with quantity 0 must be OUT_OF_STOCK."
             );
         }
-
 
         if (
                 quantity > 0 &&
@@ -419,7 +386,6 @@ public class InventoryService {
         }
     }
 
-
     private Sort resolveSort(
             String value
     ) {
@@ -431,7 +397,6 @@ public class InventoryService {
                     "product.name"
             );
         }
-
 
         return switch (
                 value

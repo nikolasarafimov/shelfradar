@@ -2,7 +2,6 @@ import type {
     PageResponse,
 } from './catalog'
 
-
 export type AuditAction =
     | 'INVENTORY_CREATED'
     | 'INVENTORY_UPDATED'
@@ -20,14 +19,12 @@ export type AuditAction =
     | 'CATEGORY_UPDATED'
     | 'CATEGORY_DELETED'
 
-
 export type AuditEntityType =
     | 'INVENTORY'
     | 'STORE'
     | 'PRODUCT'
     | 'BRAND'
     | 'CATEGORY'
-
 
 export interface AuditLogEntry {
     id: number
@@ -45,19 +42,16 @@ export interface AuditLogEntry {
     occurredAt: string
 }
 
-
 export interface DailyActivity {
     date: string
     actions: number
 }
-
 
 export interface StoreActivitySummary {
     storeId: number
     storeName: string | null
     actions: number
 }
-
 
 export interface AdminAnalytics {
     activityLast24Hours: number
@@ -69,7 +63,6 @@ export interface AdminAnalytics {
     recentActivity: AuditLogEntry[]
 }
 
-
 export interface AuditSearchParams {
     q?: string
     action?: AuditAction
@@ -78,7 +71,6 @@ export interface AuditSearchParams {
     page?: number
     size?: number
 }
-
 
 export type AuditLogPage =
     PageResponse<AuditLogEntry>

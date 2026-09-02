@@ -20,6 +20,5 @@ public record OwnerDashboardResponse(
         BigDecimal inventoryValue,
 
         List<StoreDashboardSummaryResponse> stores
-
 ) {
 }

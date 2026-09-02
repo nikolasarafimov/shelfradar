@@ -39,7 +39,6 @@ public class AuditLogSearchRepository {
         Map<String, Object> parameters =
                 new HashMap<>();
 
-
         if (
                 query != null &&
                         !query.isBlank()
@@ -68,7 +67,6 @@ public class AuditLogSearchRepository {
             );
         }
 
-
         if (action != null) {
 
             where.append(
@@ -82,7 +80,6 @@ public class AuditLogSearchRepository {
                     action
             );
         }
-
 
         if (entityType != null) {
 
@@ -98,7 +95,6 @@ public class AuditLogSearchRepository {
             );
         }
 
-
         if (storeId != null) {
 
             where.append(
@@ -112,7 +108,6 @@ public class AuditLogSearchRepository {
                     storeId
             );
         }
-
 
         String dataJpql =
                 """
@@ -128,7 +123,6 @@ public class AuditLogSearchRepository {
                             a.id DESC
                         """;
 
-
         String countJpql =
                 """
                 SELECT COUNT(a)
@@ -136,7 +130,6 @@ public class AuditLogSearchRepository {
                 """
                         +
                         where;
-
 
         TypedQuery<AuditLog> dataQuery =
                 entityManager.createQuery(
@@ -149,7 +142,6 @@ public class AuditLogSearchRepository {
                         countJpql,
                         Long.class
                 );
-
 
         parameters.forEach(
                 (name, value) -> {
@@ -166,7 +158,6 @@ public class AuditLogSearchRepository {
                 }
         );
 
-
         dataQuery.setFirstResult(
                 page * size
         );
@@ -174,7 +165,6 @@ public class AuditLogSearchRepository {
         dataQuery.setMaxResults(
                 size
         );
-
 
         return new PageImpl<>(
                 dataQuery.getResultList(),

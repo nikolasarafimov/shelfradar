@@ -20,17 +20,15 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({
-                                           allowedRole,
-                                           children,
-                                       }: ProtectedRouteProps) {
-
+    allowedRole,
+    children,
+}: ProtectedRouteProps) {
     const {
         user,
         initializing,
     } = useAuth()
 
     if (initializing) {
-
         return (
             <main className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
                 <p className="text-slate-400">
@@ -41,7 +39,6 @@ export default function ProtectedRoute({
     }
 
     if (!user) {
-
         return (
             <Navigate
                 to="/login"
@@ -51,7 +48,6 @@ export default function ProtectedRoute({
     }
 
     if (user.role !== allowedRole) {
-
         return (
             <Navigate
                 to="/unauthorized"
@@ -59,6 +55,5 @@ export default function ProtectedRoute({
             />
         )
     }
-
     return children
 }

@@ -8,10 +8,15 @@ import type {
     PublicSearchParams,
 } from '../types/publicSearch'
 
-
 export async function searchPublicProducts(
     params: PublicSearchParams,
 ): Promise<PublicSearchPage> {
+
+    const normalizedQuery =
+        params.q?.trim()
+
+    const normalizedCity =
+        params.city?.trim()
 
     const response =
         await apiClient.get<
@@ -21,7 +26,7 @@ export async function searchPublicProducts(
             {
                 params: {
                     q:
-                        params.q ||
+                        normalizedQuery ||
                         undefined,
 
                     brandId:
@@ -34,7 +39,7 @@ export async function searchPublicProducts(
                     params.status,
 
                     city:
-                        params.city ||
+                        normalizedCity ||
                         undefined,
 
                     page:
@@ -60,10 +65,8 @@ export async function searchPublicProducts(
                 },
             },
         )
-
     return response.data
 }
-
 
 export async function getPublicSearchFilters():
     Promise<PublicSearchFilters> {
@@ -74,6 +77,5 @@ export async function getPublicSearchFilters():
         >(
             '/public/filters',
         )
-
     return response.data
 }

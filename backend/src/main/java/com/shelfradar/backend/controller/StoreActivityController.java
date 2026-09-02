@@ -17,14 +17,12 @@ public class StoreActivityController {
     private final StoreActivityService
             storeActivityService;
 
-
     public StoreActivityController(
             StoreActivityService storeActivityService
     ) {
         this.storeActivityService =
                 storeActivityService;
     }
-
 
     @GetMapping("/stores/{storeId}/activity")
     public PageResponse<AuditLogResponse> getStoreActivity(

@@ -38,24 +38,15 @@ createRoot(
         'root',
     )!,
 ).render(
-
     <StrictMode>
-
         <BrowserRouter>
-
             <QueryClientProvider
                 client={queryClient}
             >
-
                 <AuthProvider>
-
                     <App />
-
                 </AuthProvider>
-
             </QueryClientProvider>
-
         </BrowserRouter>
-
     </StrictMode>,
 )

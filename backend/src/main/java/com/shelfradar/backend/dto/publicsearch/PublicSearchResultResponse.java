@@ -23,6 +23,5 @@ public record PublicSearchResultResponse(
         Instant updatedAt,
 
         Double distanceKm
-
 ) {
 }

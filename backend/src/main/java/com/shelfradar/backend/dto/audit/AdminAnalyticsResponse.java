@@ -17,6 +17,5 @@ public record AdminAnalyticsResponse(
         List<StoreActivitySummaryResponse> mostActiveStores,
 
         List<AuditLogResponse> recentActivity
-
 ) {
 }

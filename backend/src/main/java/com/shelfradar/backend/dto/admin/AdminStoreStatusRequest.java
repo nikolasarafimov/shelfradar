@@ -4,9 +4,7 @@ import com.shelfradar.backend.entity.enums.StoreStatus;
 import jakarta.validation.constraints.NotNull;
 
 public record AdminStoreStatusRequest(
-
         @NotNull
         StoreStatus status
-
 ) {
 }

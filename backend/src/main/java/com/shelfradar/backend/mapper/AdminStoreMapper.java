@@ -12,7 +12,6 @@ public class AdminStoreMapper {
     public AdminStoreResponse toResponse(
             Store store
     ) {
-
         return new AdminStoreResponse(
                 store.getId(),
                 store.getName(),
@@ -29,7 +28,6 @@ public class AdminStoreMapper {
                 store.getCreatedAt()
         );
     }
-
 
     public AdminOwnerResponse toOwnerResponse(
             AppUser owner

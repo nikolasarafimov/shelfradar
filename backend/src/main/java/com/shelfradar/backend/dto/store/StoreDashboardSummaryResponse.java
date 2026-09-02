@@ -22,6 +22,5 @@ public record StoreDashboardSummaryResponse(
         BigDecimal inventoryValue,
 
         Instant lastUpdatedAt
-
 ) {
 }

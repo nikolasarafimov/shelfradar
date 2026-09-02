@@ -31,7 +31,6 @@ public class PublicBrowseService {
     private final CatalogMapper catalogMapper;
     private final PublicSearchMapper publicSearchMapper;
 
-
     public PublicBrowseService(
             ProductRepository productRepository,
             StoreRepository storeRepository,
@@ -45,7 +44,6 @@ public class PublicBrowseService {
         this.catalogMapper = catalogMapper;
         this.publicSearchMapper = publicSearchMapper;
     }
-
 
     public PublicProductDetailResponse getProduct(
             Long productId
@@ -61,14 +59,12 @@ public class PublicBrowseService {
                                         )
                         );
 
-
         List<Inventory> inventory =
                 inventoryRepository
                         .findPublicOffersByProductId(
                                 productId,
                                 StoreStatus.ACTIVE
                         );
-
 
         List<Inventory> sortedInventory =
                 inventory
@@ -91,7 +87,6 @@ public class PublicBrowseService {
                         )
                         .toList();
 
-
         List<PublicSearchResultResponse> offers =
                 sortedInventory
                         .stream()
@@ -101,7 +96,6 @@ public class PublicBrowseService {
                         )
                         .toList();
 
-
         int availableStores =
                 (int)
                         inventory
@@ -110,7 +104,6 @@ public class PublicBrowseService {
                                         this::isAvailable
                                 )
                                 .count();
-
 
         BigDecimal lowestPrice =
                 inventory
@@ -126,7 +119,6 @@ public class PublicBrowseService {
                         )
                         .orElse(null);
 
-
         return new PublicProductDetailResponse(
                 catalogMapper.toProductResponse(
                         product
@@ -137,7 +129,6 @@ public class PublicBrowseService {
                 availableStores
         );
     }
-
 
     public PublicStoreDetailResponse getStore(
             Long storeId
@@ -156,14 +147,12 @@ public class PublicBrowseService {
                                         )
                         );
 
-
         List<Inventory> inventory =
                 inventoryRepository
                         .findPublicInventoryByStoreId(
                                 storeId,
                                 StoreStatus.ACTIVE
                         );
-
 
         List<PublicSearchResultResponse> inventoryResponses =
                 inventory
@@ -174,7 +163,6 @@ public class PublicBrowseService {
                         )
                         .toList();
 
-
         int availableProducts =
                 (int)
                         inventory
@@ -183,7 +171,6 @@ public class PublicBrowseService {
                                         this::isAvailable
                                 )
                                 .count();
-
 
         return new PublicStoreDetailResponse(
                 publicSearchMapper
@@ -196,7 +183,6 @@ public class PublicBrowseService {
         );
     }
 
-
     private boolean isAvailable(
             Inventory inventory
     ) {
@@ -204,7 +190,6 @@ public class PublicBrowseService {
         return inventory.getStatus() !=
                 StockStatus.OUT_OF_STOCK;
     }
-
 
     private int availabilityRank(
             Inventory inventory

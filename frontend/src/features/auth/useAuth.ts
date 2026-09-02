@@ -7,7 +7,6 @@ import {
 } from './authContext'
 
 export function useAuth() {
-
     const context =
         useContext(AuthContext)
 
@@ -16,6 +15,5 @@ export function useAuth() {
             'useAuth must be used inside AuthProvider.',
         )
     }
-
     return context
 }

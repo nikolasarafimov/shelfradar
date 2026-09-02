@@ -19,7 +19,6 @@ public class AdminAnalyticsController {
     private final AdminAnalyticsService
             adminAnalyticsService;
 
-
     public AdminAnalyticsController(
             AdminAnalyticsService adminAnalyticsService
     ) {
@@ -27,14 +26,12 @@ public class AdminAnalyticsController {
                 adminAnalyticsService;
     }
 
-
     @GetMapping("/analytics")
     public AdminAnalyticsResponse getAnalytics() {
 
         return adminAnalyticsService
                 .getAnalytics();
     }
-
 
     @GetMapping("/audit")
     public PageResponse<AuditLogResponse> getAuditLog(

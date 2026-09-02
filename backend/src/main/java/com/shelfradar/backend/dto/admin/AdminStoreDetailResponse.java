@@ -22,6 +22,5 @@ public record AdminStoreDetailResponse(
         BigDecimal inventoryValue,
 
         Instant lastInventoryUpdate
-
 ) {
 }

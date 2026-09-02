@@ -15,6 +15,5 @@ public record PublicSearchFiltersResponse(
         List<String> cities,
 
         List<StockStatus> statuses
-
 ) {
 }

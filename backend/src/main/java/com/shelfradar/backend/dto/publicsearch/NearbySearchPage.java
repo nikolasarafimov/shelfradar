@@ -7,6 +7,5 @@ public record NearbySearchPage(
         List<NearbySearchHit> content,
 
         long totalElements
-
 ) {
 }

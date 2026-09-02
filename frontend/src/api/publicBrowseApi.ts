@@ -7,7 +7,6 @@ import type {
     PublicStoreDetail,
 } from '../types/publicSearch'
 
-
 export async function getPublicProduct(
     productId: number,
 ): Promise<PublicProductDetail> {
@@ -18,21 +17,18 @@ export async function getPublicProduct(
         >(
             `/public/products/${productId}`,
         )
-
     return response.data
 }
-
 
 export async function getPublicStore(
     storeId: number,
 ): Promise<PublicStoreDetail> {
 
-    const response =
+    const response=
         await apiClient.get<
             PublicStoreDetail
         >(
             `/public/stores/${storeId}`,
         )
-
     return response.data
 }

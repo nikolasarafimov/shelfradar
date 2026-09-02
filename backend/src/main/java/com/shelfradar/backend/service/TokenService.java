@@ -95,7 +95,6 @@ public class TokenService {
             Instant expiresAt,
 
             long expiresInSeconds
-
     ) {
     }
 }

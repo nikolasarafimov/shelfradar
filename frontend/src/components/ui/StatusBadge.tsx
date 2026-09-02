@@ -3,15 +3,13 @@ import type {
     StoreStatus,
 } from '../../types/store'
 
-
 type Status =
     StockStatus |
     StoreStatus
 
-
 export default function StatusBadge({
-                                        status,
-                                    }: {
+    status,
+}: {
     status: Status
 }) {
 
@@ -19,7 +17,6 @@ export default function StatusBadge({
         getStatusConfig(
             status,
         )
-
 
     return (
         <span
@@ -30,16 +27,13 @@ export default function StatusBadge({
     )
 }
 
-
 function getStatusConfig(
     status: Status,
 ): {
     label: string
     className: string
 } {
-
     switch (status) {
-
         case 'ACTIVE':
             return {
                 label:
@@ -48,7 +42,6 @@ function getStatusConfig(
                 className:
                     'bg-emerald-950 text-emerald-300 ring-emerald-800',
             }
-
 
         case 'PENDING':
             return {
@@ -59,7 +52,6 @@ function getStatusConfig(
                     'bg-amber-950 text-amber-300 ring-amber-800',
             }
 
-
         case 'INACTIVE':
             return {
                 label:
@@ -68,7 +60,6 @@ function getStatusConfig(
                 className:
                     'bg-slate-800 text-slate-400 ring-slate-700',
             }
-
 
         case 'IN_STOCK':
             return {
@@ -79,7 +70,6 @@ function getStatusConfig(
                     'bg-emerald-950 text-emerald-300 ring-emerald-800',
             }
 
-
         case 'LOW_STOCK':
             return {
                 label:
@@ -88,7 +78,6 @@ function getStatusConfig(
                 className:
                     'bg-amber-950 text-amber-300 ring-amber-800',
             }
-
 
         case 'OUT_OF_STOCK':
             return {

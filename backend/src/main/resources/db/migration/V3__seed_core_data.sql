@@ -1,7 +1,3 @@
--- =========================================================
--- USERS
--- =========================================================
-
 INSERT INTO app_users
 (
     full_name,
@@ -35,11 +31,6 @@ VALUES
         'STORE_OWNER'
     );
 
-
--- =========================================================
--- BRANDS
--- =========================================================
-
 INSERT INTO brands (name)
 VALUES
     ('Coca-Cola'),
@@ -48,22 +39,12 @@ VALUES
     ('Milka'),
     ('Lay''s');
 
-
--- =========================================================
--- CATEGORIES
--- =========================================================
-
 INSERT INTO categories (name)
 VALUES
     ('Beverages'),
     ('Dairy'),
     ('Snacks'),
     ('Chocolate');
-
-
--- =========================================================
--- PRODUCTS
--- =========================================================
 
 INSERT INTO products
 (
@@ -116,11 +97,6 @@ VALUES
         (SELECT id FROM brands WHERE name = 'Lay''s'),
         (SELECT id FROM categories WHERE name = 'Snacks')
     );
-
-
--- =========================================================
--- STORES
--- =========================================================
 
 INSERT INTO stores
 (
@@ -181,11 +157,6 @@ VALUES
         )
     );
 
-
--- =========================================================
--- INVENTORY
--- =========================================================
-
 INSERT INTO inventory
 (
     store_id,
@@ -195,8 +166,6 @@ INSERT INTO inventory
     status
 )
 VALUES
-
--- Market Center
 (
     (SELECT id FROM stores WHERE name = 'Market Center'),
     (SELECT id FROM products WHERE name = 'Coca-Cola Original 1L'),
@@ -226,7 +195,6 @@ VALUES
     'OUT_OF_STOCK'
 ),
 
--- Fresh Market Aerodrom
 (
     (SELECT id FROM stores WHERE name = 'Fresh Market Aerodrom'),
     (SELECT id FROM products WHERE name = 'Coca-Cola Original 1L'),
@@ -256,7 +224,6 @@ VALUES
     'IN_STOCK'
 ),
 
--- City Market Karposh
 (
     (SELECT id FROM stores WHERE name = 'City Market Karposh'),
     (SELECT id FROM products WHERE name = 'Coca-Cola Original 1L'),

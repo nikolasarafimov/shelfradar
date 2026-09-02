@@ -18,21 +18,17 @@ public interface AuditLogRepository
             Instant from
     );
 
-
     long countByEntityTypeAndOccurredAtGreaterThanEqual(
             AuditEntityType entityType,
             Instant from
     );
 
-
     List<AuditLog> findTop10ByOrderByOccurredAtDesc();
-
 
     Page<AuditLog> findByStoreId(
             Long storeId,
             Pageable pageable
     );
-
 
     @Query(
             value = """
@@ -57,7 +53,6 @@ public interface AuditLogRepository
             @Param("from")
             Instant from
     );
-
 
     @Query(
             value = """

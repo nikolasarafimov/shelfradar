@@ -8,7 +8,6 @@ import type {
     AuditSearchParams,
 } from '../types/audit'
 
-
 export async function getAdminAnalytics():
     Promise<AdminAnalytics> {
 
@@ -18,10 +17,8 @@ export async function getAdminAnalytics():
         >(
             '/admin/analytics',
         )
-
     return response.data
 }
-
 
 export async function getAdminAudit(
     params: AuditSearchParams,
@@ -57,10 +54,8 @@ export async function getAdminAudit(
                 },
             },
         )
-
     return response.data
 }
-
 
 export async function getStoreActivity(
     storeId: number,
@@ -80,6 +75,5 @@ export async function getStoreActivity(
                 },
             },
         )
-
     return response.data
 }

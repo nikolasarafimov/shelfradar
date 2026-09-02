@@ -15,7 +15,6 @@ export async function login(
             '/auth/login',
             request,
         )
-
     return response.data
 }
 
@@ -26,6 +25,5 @@ export async function getCurrentUser():
         await apiClient.get<AuthUser>(
             '/auth/me',
         )
-
     return response.data
 }

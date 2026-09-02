@@ -16,7 +16,6 @@ import type {
     StoreStatus,
 } from '../types/store'
 
-
 export async function getAdminDashboard():
     Promise<AdminDashboard> {
 
@@ -26,10 +25,8 @@ export async function getAdminDashboard():
         >(
             '/admin/dashboard',
         )
-
     return response.data
 }
-
 
 export async function getAdminStores(
     params: AdminStoreSearchParams,
@@ -67,10 +64,8 @@ export async function getAdminStores(
                 },
             },
         )
-
     return response.data
 }
-
 
 export async function getAdminStoreFilters():
     Promise<AdminStoreFilters> {
@@ -81,10 +76,8 @@ export async function getAdminStoreFilters():
         >(
             '/admin/stores/filters',
         )
-
     return response.data
 }
-
 
 export async function getAdminStore(
     storeId: number,
@@ -96,10 +89,8 @@ export async function getAdminStore(
         >(
             `/admin/stores/${storeId}`,
         )
-
     return response.data
 }
-
 
 export async function updateAdminStoreStatus(
     storeId: number,
@@ -115,10 +106,8 @@ export async function updateAdminStoreStatus(
                 status,
             },
         )
-
     return response.data
 }
-
 
 export async function updateAdminStore(
     storeId: number,
@@ -132,10 +121,8 @@ export async function updateAdminStore(
             `/admin/stores/${storeId}`,
             request,
         )
-
     return response.data
 }
-
 
 export async function getAdminStoreOwners():
     Promise<AdminOwner[]> {
@@ -146,6 +133,5 @@ export async function getAdminStoreOwners():
         >(
             '/admin/store-owners',
         )
-
     return response.data
 }

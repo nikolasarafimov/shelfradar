@@ -4,6 +4,7 @@ import {
 
 import type {
     FormEvent,
+    ReactNode,
 } from 'react'
 
 import {
@@ -12,10 +13,25 @@ import {
     useQueryClient,
 } from '@tanstack/react-query'
 
+import type {
+    QueryClient,
+} from '@tanstack/react-query'
+
 import {
     ArrowLeft,
+    Boxes,
+    Building2,
     CheckCircle2,
+    CircleDollarSign,
+    Clock3,
+    LoaderCircle,
+    MapPin,
+    PackageCheck,
+    PackageX,
+    Phone,
     Power,
+    Save,
+    UserRound,
 } from 'lucide-react'
 
 import {
@@ -33,8 +49,33 @@ import {
 import AdminLayout
     from '../components/admin/AdminLayout'
 
+import EmptyState
+    from '../components/ui/EmptyState'
+
+import ErrorState
+    from '../components/ui/ErrorState'
+
+import LoadingState
+    from '../components/ui/LoadingState'
+
+import MetricCard
+    from '../components/ui/MetricCard'
+
+import PageHeader
+    from '../components/ui/PageHeader'
+
+import StatusBadge
+    from '../components/ui/StatusBadge'
+
+import {
+    formatMkd,
+    formatNumber,
+} from '../lib/format'
+
 import type {
+    AdminOwner,
     AdminStoreDetail,
+    AdminStoreUpdate,
 } from '../types/admin'
 
 import type {
@@ -60,6 +101,24 @@ export default function AdminStoreDetailPage() {
         useQueryClient()
 
 
+    const [
+        statusMessage,
+        setStatusMessage,
+    ] =
+        useState<string | null>(
+            null,
+        )
+
+
+    const [
+        statusError,
+        setStatusError,
+    ] =
+        useState<string | null>(
+            null,
+        )
+
+
     const storeQuery =
         useQuery({
             queryKey: [
@@ -74,7 +133,8 @@ export default function AdminStoreDetailPage() {
                     ),
 
             enabled:
-                parsedStoreId !== null,
+                parsedStoreId !==
+                null,
         })
 
 
@@ -86,15 +146,19 @@ export default function AdminStoreDetailPage() {
 
             queryFn:
             getAdminStoreOwners,
+
+            enabled:
+                parsedStoreId !==
+                null,
         })
 
 
     const statusMutation =
         useMutation({
+
             mutationFn:
                 (
-                    status:
-                    StoreStatus,
+                    status: StoreStatus,
                 ) =>
                     updateAdminStoreStatus(
                         parsedStoreId!,
@@ -104,35 +168,97 @@ export default function AdminStoreDetailPage() {
             onSuccess:
                 async () => {
 
+                    setStatusError(
+                        null,
+                    )
+
+                    setStatusMessage(
+                        'Store status updated successfully.',
+                    )
+
+
                     await refreshAdminData(
                         queryClient,
                         parsedStoreId!,
                     )
                 },
+
+            onError:
+                () => {
+
+                    setStatusMessage(
+                        null,
+                    )
+
+                    setStatusError(
+                        'Unable to update the store status.',
+                    )
+                },
         })
 
 
+    function changeStatus(
+        status: StoreStatus,
+    ) {
+
+        setStatusMessage(
+            null,
+        )
+
+        setStatusError(
+            null,
+        )
+
+
+        statusMutation.mutate(
+            status,
+        )
+    }
+
+
     if (
-        parsedStoreId === null
+        parsedStoreId ===
+        null
     ) {
 
         return (
             <AdminLayout>
-                <p>
-                    Invalid store.
-                </p>
+
+                <div className="space-y-6">
+
+                    <BackToStores />
+
+
+                    <ErrorState
+                        title="Invalid store"
+                        message="The requested store identifier is not valid."
+                    />
+
+                </div>
+
             </AdminLayout>
         )
     }
 
 
-    if (storeQuery.isLoading) {
+    if (
+        storeQuery.isLoading
+    ) {
 
         return (
             <AdminLayout>
-                <p className="text-slate-400">
-                    Loading store...
-                </p>
+
+                <div className="space-y-6">
+
+                    <BackToStores />
+
+
+                    <LoadingState
+                        message="Loading store..."
+                    />
+
+                </div>
+
             </AdminLayout>
         )
     }
@@ -145,9 +271,24 @@ export default function AdminStoreDetailPage() {
 
         return (
             <AdminLayout>
-                <p>
-                    Store not found.
-                </p>
+
+                <div className="space-y-6">
+
+                    <BackToStores />
+
+
+                    <ErrorState
+                        title="Store unavailable"
+                        message="ShelfRadar could not load this store."
+                        onRetry={
+                            () => {
+                                void storeQuery.refetch()
+                            }
+                        }
+                    />
+
+                </div>
+
             </AdminLayout>
         )
     }
@@ -160,187 +301,305 @@ export default function AdminStoreDetailPage() {
     return (
         <AdminLayout>
 
-            <Link
-                to="/admin/stores"
-                className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white"
-            >
-                <ArrowLeft
-                    size={17}
+            <div className="space-y-8">
+
+                <BackToStores />
+
+
+                <PageHeader
+                    eyebrow="Store Administration"
+                    title={
+                        detail.store.name
+                    }
+                    description={
+                        `${detail.store.address}, ${detail.store.city}`
+                    }
+                    actions={
+                        <>
+                            <StatusBadge
+                                status={
+                                    detail.store.status
+                                }
+                            />
+
+
+                            {
+                                detail.store.status !==
+                                'ACTIVE' && (
+
+                                    <button
+                                        type="button"
+                                        disabled={
+                                            statusMutation.isPending
+                                        }
+                                        onClick={
+                                            () =>
+                                                changeStatus(
+                                                    'ACTIVE',
+                                                )
+                                        }
+                                        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-emerald-800/60 bg-emerald-950/30 px-4 text-sm font-semibold text-emerald-300 transition hover:border-emerald-700 hover:bg-emerald-950/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+
+                                        {
+                                            statusMutation.isPending
+                                                ? (
+                                                    <LoaderCircle
+                                                        size={15}
+                                                        className="animate-spin"
+                                                    />
+                                                )
+                                                : (
+                                                    <CheckCircle2
+                                                        size={15}
+                                                    />
+                                                )
+                                        }
+
+
+                                        {
+                                            statusMutation.isPending
+                                                ? 'Updating...'
+                                                : detail.store.status ===
+                                                'PENDING'
+                                                    ? 'Approve Store'
+                                                    : 'Activate Store'
+                                        }
+
+                                    </button>
+                                )
+                            }
+
+
+                            {
+                                detail.store.status ===
+                                'ACTIVE' && (
+
+                                    <button
+                                        type="button"
+                                        disabled={
+                                            statusMutation.isPending
+                                        }
+                                        onClick={
+                                            () => {
+
+                                                const confirmed =
+                                                    window.confirm(
+                                                        'Deactivate this store?',
+                                                    )
+
+
+                                                if (
+                                                    confirmed
+                                                ) {
+
+                                                    changeStatus(
+                                                        'INACTIVE',
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-red-900/60 bg-red-950/15 px-4 text-sm font-semibold text-red-400 transition hover:border-red-800 hover:bg-red-950/30 hover:text-red-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+
+                                        {
+                                            statusMutation.isPending
+                                                ? (
+                                                    <LoaderCircle
+                                                        size={15}
+                                                        className="animate-spin"
+                                                    />
+                                                )
+                                                : (
+                                                    <Power
+                                                        size={15}
+                                                    />
+                                                )
+                                        }
+
+
+                                        {
+                                            statusMutation.isPending
+                                                ? 'Updating...'
+                                                : 'Deactivate'
+                                        }
+
+                                    </button>
+                                )
+                            }
+                        </>
+                    }
                 />
 
-                Back to stores
-            </Link>
+
+                {
+                    statusMessage && (
+
+                        <div
+                            role="status"
+                            className="flex items-start gap-2.5 rounded-xl border border-emerald-900/50 bg-emerald-950/20 px-4 py-3 text-xs leading-5 text-emerald-300"
+                        >
+
+                            <CheckCircle2
+                                size={15}
+                                className="mt-0.5 shrink-0"
+                            />
+
+                            <span>
+                                {statusMessage}
+                            </span>
+
+                        </div>
+                    )
+                }
 
 
-            <div className="mt-6 flex flex-col justify-between gap-5 md:flex-row md:items-start">
+                {
+                    statusError && (
 
-                <div>
+                        <div
+                            role="alert"
+                            className="rounded-xl border border-red-900/50 bg-red-950/20 px-4 py-3 text-xs leading-5 text-red-300"
+                        >
+                            {statusError}
+                        </div>
+                    )
+                }
 
-                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-sky-400">
-                        Store Administration
-                    </p>
 
-                    <h1 className="mt-2 text-3xl font-bold">
-                        {
-                            detail.store.name
+                <section
+                    aria-label="Store inventory statistics"
+                    className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+                >
+
+                    <MetricCard
+                        icon={
+                            <Boxes
+                                size={20}
+                            />
                         }
-                    </h1>
-
-                    <p className="mt-2 text-slate-400">
-                        {
-                            detail.store.address
+                        label="Products"
+                        value={
+                            formatNumber(
+                                detail.totalProducts,
+                            )
                         }
-                        ,{' '}
-                        {
-                            detail.store.city
+                    />
+
+
+                    <MetricCard
+                        icon={
+                            <PackageCheck
+                                size={20}
+                            />
                         }
-                    </p>
+                        label="Available"
+                        value={
+                            formatNumber(
+                                detail.availableProducts,
+                            )
+                        }
+                    />
 
-                </div>
+
+                    <MetricCard
+                        icon={
+                            <Clock3
+                                size={20}
+                            />
+                        }
+                        label="Low stock"
+                        value={
+                            formatNumber(
+                                detail.lowStockProducts,
+                            )
+                        }
+                        attention={
+                            detail.lowStockProducts >
+                            0
+                        }
+                    />
 
 
-                <div className="flex flex-wrap gap-2">
+                    <MetricCard
+                        icon={
+                            <PackageX
+                                size={20}
+                            />
+                        }
+                        label="Out of stock"
+                        value={
+                            formatNumber(
+                                detail.outOfStockProducts,
+                            )
+                        }
+                        attention={
+                            detail.outOfStockProducts >
+                            0
+                        }
+                    />
 
-                    {
-                        detail.store.status !==
-                        'ACTIVE' && (
+                </section>
 
-                            <button
-                                type="button"
-                                disabled={
-                                    statusMutation.isPending
-                                }
-                                onClick={
-                                    () =>
-                                        statusMutation.mutate(
-                                            'ACTIVE',
-                                        )
-                                }
-                                className="flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 font-semibold text-slate-950"
-                            >
-                                <CheckCircle2
-                                    size={17}
-                                />
 
-                                {
-                                    detail.store.status ===
-                                    'PENDING'
-                                        ? 'Approve Store'
-                                        : 'Activate Store'
-                                }
-                            </button>
-                        )
+                <section
+                    aria-label="Store inventory totals"
+                    className="grid gap-4 sm:grid-cols-2"
+                >
+
+                    <MetricCard
+                        icon={
+                            <Boxes
+                                size={20}
+                            />
+                        }
+                        label="Units"
+                        value={
+                            formatNumber(
+                                detail.totalUnits,
+                            )
+                        }
+                    />
+
+
+                    <MetricCard
+                        icon={
+                            <CircleDollarSign
+                                size={20}
+                            />
+                        }
+                        label="Inventory value"
+                        value={
+                            formatMkd(
+                                detail.inventoryValue,
+                            )
+                        }
+                        hint="Current stock value, not revenue"
+                    />
+
+                </section>
+
+
+                <AdminStoreEditor
+                    key={
+                        detail.store.id
                     }
-
-
-                    {
-                        detail.store.status ===
-                        'ACTIVE' && (
-
-                            <button
-                                type="button"
-                                disabled={
-                                    statusMutation.isPending
-                                }
-                                onClick={
-                                    () => {
-
-                                        if (
-                                            window.confirm(
-                                                'Deactivate this store?',
-                                            )
-                                        ) {
-
-                                            statusMutation.mutate(
-                                                'INACTIVE',
-                                            )
-                                        }
-                                    }
-                                }
-                                className="flex items-center gap-2 rounded-xl border border-red-900 px-4 py-2.5 font-semibold text-red-400"
-                            >
-                                <Power
-                                    size={17}
-                                />
-
-                                Deactivate
-                            </button>
-                        )
+                    detail={
+                        detail
                     }
-
-                </div>
+                    owners={
+                        ownersQuery.data ??
+                        []
+                    }
+                    ownersLoading={
+                        ownersQuery.isLoading
+                    }
+                    ownersError={
+                        ownersQuery.isError
+                    }
+                />
 
             </div>
-
-
-            <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-
-                <Metric
-                    label="Products"
-                    value={
-                        detail.totalProducts
-                    }
-                />
-
-                <Metric
-                    label="Available"
-                    value={
-                        detail.availableProducts
-                    }
-                />
-
-                <Metric
-                    label="Low stock"
-                    value={
-                        detail.lowStockProducts
-                    }
-                />
-
-                <Metric
-                    label="Out of stock"
-                    value={
-                        detail.outOfStockProducts
-                    }
-                />
-
-            </section>
-
-
-            <section className="mt-4 grid gap-4 sm:grid-cols-2">
-
-                <Info
-                    label="Units"
-                    value={
-                        formatNumber(
-                            detail.totalUnits,
-                        )
-                    }
-                />
-
-                <Info
-                    label="Inventory value"
-                    value={
-                        `${formatPrice(
-                            detail.inventoryValue,
-                        )} MKD`
-                    }
-                />
-
-            </section>
-
-
-            <AdminStoreEditor
-                key={
-                    detail.store.id
-                }
-                detail={
-                    detail
-                }
-                owners={
-                    ownersQuery.data ??
-                    []
-                }
-            />
 
         </AdminLayout>
     )
@@ -350,18 +609,18 @@ export default function AdminStoreDetailPage() {
 function AdminStoreEditor({
                               detail,
                               owners,
+                              ownersLoading,
+                              ownersError,
                           }: {
     detail: AdminStoreDetail
-    owners:
-        Array<{
-            id: number
-            fullName: string
-            email: string
-        }>
+    owners: AdminOwner[]
+    ownersLoading: boolean
+    ownersError: boolean
 }) {
 
     const queryClient =
         useQueryClient()
+
 
     const store =
         detail.store
@@ -375,6 +634,7 @@ function AdminStoreEditor({
             store.name,
         )
 
+
     const [
         address,
         setAddress,
@@ -383,6 +643,7 @@ function AdminStoreEditor({
             store.address,
         )
 
+
     const [
         city,
         setCity,
@@ -390,6 +651,7 @@ function AdminStoreEditor({
         useState(
             store.city,
         )
+
 
     const [
         latitude,
@@ -401,6 +663,7 @@ function AdminStoreEditor({
             ),
         )
 
+
     const [
         longitude,
         setLongitude,
@@ -411,6 +674,7 @@ function AdminStoreEditor({
             ),
         )
 
+
     const [
         phone,
         setPhone,
@@ -420,6 +684,7 @@ function AdminStoreEditor({
             '',
         )
 
+
     const [
         workingHours,
         setWorkingHours,
@@ -428,6 +693,7 @@ function AdminStoreEditor({
             store.workingHours ??
             '',
         )
+
 
     const [
         ownerId,
@@ -439,62 +705,105 @@ function AdminStoreEditor({
             ),
         )
 
+
     const [
-        message,
-        setMessage,
+        successMessage,
+        setSuccessMessage,
     ] =
         useState<string | null>(
             null,
         )
 
 
+    const [
+        errorMessage,
+        setErrorMessage,
+    ] =
+        useState<string | null>(
+            null,
+        )
+
+
+    const ownerOptions =
+        owners.some(
+            owner =>
+                owner.id ===
+                store.owner.id,
+        )
+            ? owners
+            : [
+                store.owner,
+                ...owners,
+            ]
+
+
     const mutation =
         useMutation({
+
             mutationFn:
-                () =>
+                (
+                    request: AdminStoreUpdate,
+                ) =>
                     updateAdminStore(
                         store.id,
-                        {
-                            name:
-                                name.trim(),
-
-                            address:
-                                address.trim(),
-
-                            city:
-                                city.trim(),
-
-                            latitude:
-                                Number(
-                                    latitude,
-                                ),
-
-                            longitude:
-                                Number(
-                                    longitude,
-                                ),
-
-                            phone:
-                                phone.trim() ||
-                                null,
-
-                            workingHours:
-                                workingHours.trim() ||
-                                null,
-
-                            ownerId:
-                                Number(
-                                    ownerId,
-                                ),
-                        },
+                        request,
                     ),
 
             onSuccess:
-                async () => {
+                async (
+                    _data,
+                    request,
+                ) => {
 
-                    setMessage(
+                    setName(
+                        request.name,
+                    )
+
+                    setAddress(
+                        request.address,
+                    )
+
+                    setCity(
+                        request.city,
+                    )
+
+                    setLatitude(
+                        String(
+                            request.latitude,
+                        ),
+                    )
+
+                    setLongitude(
+                        String(
+                            request.longitude,
+                        ),
+                    )
+
+                    setPhone(
+                        request.phone ??
+                        '',
+                    )
+
+                    setWorkingHours(
+                        request.workingHours ??
+                        '',
+                    )
+
+                    setOwnerId(
+                        String(
+                            request.ownerId,
+                        ),
+                    )
+
+
+                    setErrorMessage(
+                        null,
+                    )
+
+                    setSuccessMessage(
                         'Store updated successfully.',
                     )
+
 
                     await refreshAdminData(
                         queryClient,
@@ -505,64 +814,338 @@ function AdminStoreEditor({
             onError:
                 () => {
 
-                    setMessage(
-                        'Unable to update store.',
+                    setSuccessMessage(
+                        null,
+                    )
+
+                    setErrorMessage(
+                        'Unable to update store configuration.',
                     )
                 },
         })
 
 
+    function clearMessages() {
+
+        if (
+            successMessage
+        ) {
+
+            setSuccessMessage(
+                null,
+            )
+        }
+
+
+        if (
+            errorMessage
+        ) {
+
+            setErrorMessage(
+                null,
+            )
+        }
+    }
+
+
     function handleSubmit(
-        event:
-        FormEvent<HTMLFormElement>,
+        event: FormEvent<HTMLFormElement>,
     ) {
 
         event.preventDefault()
 
-        setMessage(
+
+        const trimmedName =
+            name.trim()
+
+
+        const trimmedAddress =
+            address.trim()
+
+
+        const trimmedCity =
+            city.trim()
+
+
+        const trimmedLatitude =
+            latitude.trim()
+
+
+        const trimmedLongitude =
+            longitude.trim()
+
+
+        const trimmedPhone =
+            phone.trim()
+
+
+        const trimmedWorkingHours =
+            workingHours.trim()
+
+
+        setSuccessMessage(
             null,
         )
 
-        mutation.mutate()
+        setErrorMessage(
+            null,
+        )
+
+
+        if (
+            !trimmedName
+        ) {
+
+            setErrorMessage(
+                'Store name is required.',
+            )
+
+            return
+        }
+
+
+        if (
+            !trimmedAddress
+        ) {
+
+            setErrorMessage(
+                'Address is required.',
+            )
+
+            return
+        }
+
+
+        if (
+            !trimmedCity
+        ) {
+
+            setErrorMessage(
+                'City is required.',
+            )
+
+            return
+        }
+
+
+        if (
+            !trimmedLatitude
+        ) {
+
+            setErrorMessage(
+                'Latitude is required.',
+            )
+
+            return
+        }
+
+
+        if (
+            !trimmedLongitude
+        ) {
+
+            setErrorMessage(
+                'Longitude is required.',
+            )
+
+            return
+        }
+
+
+        const numericLatitude =
+            Number(
+                trimmedLatitude,
+            )
+
+
+        const numericLongitude =
+            Number(
+                trimmedLongitude,
+            )
+
+
+        const numericOwnerId =
+            Number(
+                ownerId,
+            )
+
+
+        if (
+            !Number.isFinite(
+                numericLatitude,
+            ) ||
+            numericLatitude <
+            -90 ||
+            numericLatitude >
+            90
+        ) {
+
+            setErrorMessage(
+                'Latitude must be between -90 and 90.',
+            )
+
+            return
+        }
+
+
+        if (
+            !Number.isFinite(
+                numericLongitude,
+            ) ||
+            numericLongitude <
+            -180 ||
+            numericLongitude >
+            180
+        ) {
+
+            setErrorMessage(
+                'Longitude must be between -180 and 180.',
+            )
+
+            return
+        }
+
+
+        if (
+            !Number.isInteger(
+                numericOwnerId,
+            ) ||
+            numericOwnerId <=
+            0
+        ) {
+
+            setErrorMessage(
+                'Select a valid Store Owner.',
+            )
+
+            return
+        }
+
+
+        mutation.mutate({
+            name:
+            trimmedName,
+
+            address:
+            trimmedAddress,
+
+            city:
+            trimmedCity,
+
+            latitude:
+            numericLatitude,
+
+            longitude:
+            numericLongitude,
+
+            phone:
+                trimmedPhone ||
+                null,
+
+            workingHours:
+                trimmedWorkingHours ||
+                null,
+
+            ownerId:
+            numericOwnerId,
+        })
     }
 
 
     return (
-        <section className="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-6">
+        <section className="premium-card overflow-hidden rounded-3xl border border-slate-800/90 bg-slate-900/55 shadow-[0_24px_70px_-45px_rgba(14,165,233,0.18)] backdrop-blur-xl">
 
-            <h2 className="text-xl font-semibold">
-                Store Configuration
-            </h2>
+            <div className="flex items-start gap-3 border-b border-slate-800/80 px-5 py-5 sm:px-6">
 
-            <p className="mt-1 text-sm text-slate-400">
-                Update store information or assign it to another Store Owner.
-            </p>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-900/50 bg-sky-950/30 text-sky-400">
+
+                    <Building2
+                        size={17}
+                    />
+
+                </div>
+
+
+                <div>
+
+                    <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-sky-400">
+                        Administration
+                    </p>
+
+
+                    <h2 className="mt-0.5 text-xl font-bold tracking-tight text-white">
+                        Store Configuration
+                    </h2>
+
+
+                    <p className="mt-1 text-xs leading-5 text-slate-500">
+                        Update store information, map location or assign the store to another Store Owner.
+                    </p>
+
+                </div>
+
+            </div>
 
 
             <form
                 onSubmit={
                     handleSubmit
                 }
-                className="mt-6 grid gap-5 md:grid-cols-2"
+                className="grid gap-5 p-5 md:grid-cols-2 sm:p-6"
             >
 
                 <Field
+                    id="admin-store-name"
                     label="Store Name"
                     value={
                         name
                     }
                     onChange={
-                        setName
+                        value => {
+
+                            setName(
+                                value,
+                            )
+
+                            clearMessages()
+                        }
+                    }
+                    disabled={
+                        mutation.isPending
+                    }
+                    required
+                    icon={
+                        <Building2
+                            size={15}
+                        />
                     }
                 />
 
+
                 <Field
+                    id="admin-store-city"
                     label="City"
                     value={
                         city
                     }
                     onChange={
-                        setCity
+                        value => {
+
+                            setCity(
+                                value,
+                            )
+
+                            clearMessages()
+                        }
+                    }
+                    disabled={
+                        mutation.isPending
+                    }
+                    required
+                    icon={
+                        <MapPin
+                            size={15}
+                        />
                     }
                 />
 
@@ -570,12 +1153,29 @@ function AdminStoreEditor({
                 <div className="md:col-span-2">
 
                     <Field
+                        id="admin-store-address"
                         label="Address"
                         value={
                             address
                         }
                         onChange={
-                            setAddress
+                            value => {
+
+                                setAddress(
+                                    value,
+                                )
+
+                                clearMessages()
+                            }
+                        }
+                        disabled={
+                            mutation.isPending
+                        }
+                        required
+                        icon={
+                            <MapPin
+                                size={15}
+                            />
                         }
                     />
 
@@ -583,103 +1183,258 @@ function AdminStoreEditor({
 
 
                 <Field
+                    id="admin-store-latitude"
                     label="Latitude"
                     value={
                         latitude
                     }
                     onChange={
-                        setLatitude
+                        value => {
+
+                            setLatitude(
+                                value,
+                            )
+
+                            clearMessages()
+                        }
                     }
                     type="number"
+                    min={
+                        -90
+                    }
+                    max={
+                        90
+                    }
+                    step="any"
+                    disabled={
+                        mutation.isPending
+                    }
+                    required
+                    icon={
+                        <MapPin
+                            size={15}
+                        />
+                    }
                 />
 
+
                 <Field
+                    id="admin-store-longitude"
                     label="Longitude"
                     value={
                         longitude
                     }
                     onChange={
-                        setLongitude
+                        value => {
+
+                            setLongitude(
+                                value,
+                            )
+
+                            clearMessages()
+                        }
                     }
                     type="number"
+                    min={
+                        -180
+                    }
+                    max={
+                        180
+                    }
+                    step="any"
+                    disabled={
+                        mutation.isPending
+                    }
+                    required
+                    icon={
+                        <MapPin
+                            size={15}
+                        />
+                    }
                 />
 
 
                 <Field
+                    id="admin-store-phone"
                     label="Phone"
                     value={
                         phone
                     }
                     onChange={
-                        setPhone
+                        value => {
+
+                            setPhone(
+                                value,
+                            )
+
+                            clearMessages()
+                        }
+                    }
+                    type="tel"
+                    autoComplete="tel"
+                    placeholder="+389..."
+                    disabled={
+                        mutation.isPending
+                    }
+                    icon={
+                        <Phone
+                            size={15}
+                        />
                     }
                 />
 
+
                 <Field
+                    id="admin-store-hours"
                     label="Working Hours"
                     value={
                         workingHours
                     }
                     onChange={
-                        setWorkingHours
+                        value => {
+
+                            setWorkingHours(
+                                value,
+                            )
+
+                            clearMessages()
+                        }
+                    }
+                    placeholder="Mon-Sun 08:00-22:00"
+                    disabled={
+                        mutation.isPending
+                    }
+                    icon={
+                        <Clock3
+                            size={15}
+                        />
                     }
                 />
 
 
-                <label className="block md:col-span-2">
+                <div className="md:col-span-2">
 
-                    <span className="mb-2 block text-sm text-slate-300">
-                        Store Owner
-                    </span>
-
-                    <select
-                        value={
-                            ownerId
-                        }
-                        onChange={
-                            event =>
-                                setOwnerId(
-                                    event.target.value,
-                                )
-                        }
-                        className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
+                    <label
+                        htmlFor="admin-store-owner"
+                        className="mb-2 block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500"
                     >
+                        Store Owner
+                    </label>
 
-                        {
-                            owners.map(
-                                owner => (
 
-                                    <option
-                                        key={
-                                            owner.id
-                                        }
-                                        value={
-                                            owner.id
-                                        }
-                                    >
-                                        {
-                                            owner.fullName
-                                        }
-                                        {' — '}
-                                        {
-                                            owner.email
-                                        }
-                                    </option>
-                                ),
-                            )
-                        }
+                    <div className="relative">
 
-                    </select>
+                        <UserRound
+                            size={15}
+                            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-600"
+                        />
 
-                </label>
+
+                        <select
+                            id="admin-store-owner"
+                            value={
+                                ownerId
+                            }
+                            disabled={
+                                mutation.isPending ||
+                                ownersLoading ||
+                                ownersError
+                            }
+                            onChange={
+                                event => {
+
+                                    setOwnerId(
+                                        event.target.value,
+                                    )
+
+                                    clearMessages()
+                                }
+                            }
+                            className={`${inputClassName} pl-11`}
+                        >
+
+                            {
+                                ownerOptions.map(
+                                    owner => (
+
+                                        <option
+                                            key={
+                                                owner.id
+                                            }
+                                            value={
+                                                owner.id
+                                            }
+                                        >
+                                            {
+                                                owner.fullName
+                                            }
+                                            {' — '}
+                                            {
+                                                owner.email
+                                            }
+                                        </option>
+                                    ),
+                                )
+                            }
+
+                        </select>
+
+                    </div>
+
+
+                    {
+                        ownersLoading && (
+
+                            <p className="mt-2 text-xs text-slate-500">
+                                Loading Store Owners...
+                            </p>
+                        )
+                    }
+
+
+                    {
+                        ownersError && (
+
+                            <p className="mt-2 text-xs text-amber-400">
+                                Store Owner list is unavailable. The current owner will remain assigned.
+                            </p>
+                        )
+                    }
+
+                </div>
 
 
                 {
-                    message && (
+                    successMessage && (
 
-                        <p className="text-sm text-slate-300 md:col-span-2">
-                            {message}
-                        </p>
+                        <div
+                            role="status"
+                            className="flex items-start gap-2.5 rounded-xl border border-emerald-900/50 bg-emerald-950/20 px-4 py-3 text-xs leading-5 text-emerald-300 md:col-span-2"
+                        >
+
+                            <CheckCircle2
+                                size={15}
+                                className="mt-0.5 shrink-0"
+                            />
+
+                            <span>
+                                {successMessage}
+                            </span>
+
+                        </div>
+                    )
+                }
+
+
+                {
+                    errorMessage && (
+
+                        <div
+                            role="alert"
+                            className="rounded-xl border border-red-900/50 bg-red-950/20 px-4 py-3 text-xs leading-5 text-red-300 md:col-span-2"
+                        >
+                            {errorMessage}
+                        </div>
                     )
                 }
 
@@ -691,13 +1446,32 @@ function AdminStoreEditor({
                         disabled={
                             mutation.isPending
                         }
-                        className="rounded-xl bg-sky-500 px-5 py-3 font-semibold text-slate-950 disabled:opacity-50"
+                        className="shine-button inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-400 px-5 text-sm font-bold text-slate-950 transition duration-200 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 disabled:cursor-not-allowed disabled:opacity-45"
                     >
+
                         {
                             mutation.isPending
-                                ? 'Saving...'
-                                : 'Save Configuration'
+                                ? (
+                                    <>
+                                        <LoaderCircle
+                                            size={15}
+                                            className="animate-spin"
+                                        />
+
+                                        Saving...
+                                    </>
+                                )
+                                : (
+                                    <>
+                                        <Save
+                                            size={15}
+                                        />
+
+                                        Save Configuration
+                                    </>
+                                )
                         }
+
                     </button>
 
                 </div>
@@ -709,98 +1483,125 @@ function AdminStoreEditor({
 }
 
 
+function BackToStores() {
+
+    return (
+        <Link
+            to="/admin/stores"
+            className="inline-flex w-fit items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+        >
+
+            <ArrowLeft
+                size={16}
+            />
+
+            Back to stores
+
+        </Link>
+    )
+}
+
+
 function Field({
+                   id,
                    label,
                    value,
                    onChange,
                    type = 'text',
+                   placeholder,
+                   required = false,
+                   disabled = false,
+                   min,
+                   max,
+                   step,
+                   autoComplete,
+                   icon,
                }: {
+    id: string
     label: string
     value: string
-    onChange:
-        (value: string) => void
+    onChange: (value: string) => void
     type?: string
+    placeholder?: string
+    required?: boolean
+    disabled?: boolean
+    min?: number
+    max?: number
+    step?: string
+    autoComplete?: string
+    icon?: ReactNode
 }) {
 
     return (
-        <label className="block">
+        <div>
 
-            <span className="mb-2 block text-sm text-slate-300">
+            <label
+                htmlFor={
+                    id
+                }
+                className="mb-2 block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500"
+            >
                 {label}
-            </span>
-
-            <input
-                type={
-                    type
-                }
-                step={
-                    type === 'number'
-                        ? 'any'
-                        : undefined
-                }
-                value={
-                    value
-                }
-                onChange={
-                    event =>
-                        onChange(
-                            event.target.value,
-                        )
-                }
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
-            />
-
-        </label>
-    )
-}
+            </label>
 
 
-function Metric({
-                    label,
-                    value,
-                }: {
-    label: string
-    value: number
-}) {
+            <div className="relative">
 
-    return (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-
-            <p className="text-3xl font-bold">
                 {
-                    formatNumber(
-                        value,
+                    icon && (
+
+                        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-600">
+                            {icon}
+                        </span>
                     )
                 }
-            </p>
-
-            <p className="mt-1 text-sm text-slate-400">
-                {label}
-            </p>
-
-        </div>
-    )
-}
 
 
-function Info({
-                  label,
-                  value,
-              }: {
-    label: string
-    value: string
-}) {
+                <input
+                    id={
+                        id
+                    }
+                    type={
+                        type
+                    }
+                    value={
+                        value
+                    }
+                    placeholder={
+                        placeholder
+                    }
+                    required={
+                        required
+                    }
+                    disabled={
+                        disabled
+                    }
+                    min={
+                        min
+                    }
+                    max={
+                        max
+                    }
+                    step={
+                        step
+                    }
+                    autoComplete={
+                        autoComplete
+                    }
+                    onChange={
+                        event =>
+                            onChange(
+                                event.target.value,
+                            )
+                    }
+                    className={`${inputClassName} ${
+                        icon
+                            ? 'pl-11'
+                            : ''
+                    }`}
+                />
 
-    return (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-
-            <p className="text-sm text-slate-500">
-                {label}
-            </p>
-
-            <p className="mt-2 text-xl font-semibold">
-                {value}
-            </p>
+            </div>
 
         </div>
     )
@@ -808,8 +1609,7 @@ function Info({
 
 
 async function refreshAdminData(
-    queryClient:
-    ReturnType<typeof useQueryClient>,
+    queryClient: QueryClient,
     storeId: number,
 ) {
 
@@ -838,6 +1638,18 @@ async function refreshAdminData(
                 'admin-store-filters',
             ],
         }),
+
+        queryClient.invalidateQueries({
+            queryKey: [
+                'admin-audit',
+            ],
+        }),
+
+        queryClient.invalidateQueries({
+            queryKey: [
+                'admin-analytics',
+            ],
+        }),
     ])
 }
 
@@ -846,38 +1658,27 @@ function parseId(
     value: string | undefined,
 ): number | null {
 
-    if (!value) {
+    if (
+        !value
+    ) {
         return null
     }
 
-    const parsed =
-        Number(value)
 
-    return Number.isInteger(parsed) &&
-    parsed > 0
+    const parsed =
+        Number(
+            value,
+        )
+
+
+    return Number.isInteger(
+        parsed,
+    ) &&
+    parsed >
+    0
         ? parsed
         : null
 }
 
-
-function formatNumber(
-    value: number,
-): string {
-
-    return new Intl.NumberFormat(
-        'en-US',
-    ).format(value)
-}
-
-
-function formatPrice(
-    value: number,
-): string {
-
-    return new Intl.NumberFormat(
-        'en-US',
-        {
-            maximumFractionDigits: 2,
-        },
-    ).format(value)
-}
+const inputClassName =
+    'min-h-12 w-full rounded-xl border border-slate-700 bg-[#020817]/85 px-4 text-sm text-white outline-none transition duration-200 placeholder:text-slate-600 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 disabled:cursor-not-allowed disabled:opacity-50'

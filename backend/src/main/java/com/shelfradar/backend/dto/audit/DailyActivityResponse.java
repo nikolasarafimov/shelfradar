@@ -7,6 +7,5 @@ public record DailyActivityResponse(
         LocalDate date,
 
         long actions
-
 ) {
 }

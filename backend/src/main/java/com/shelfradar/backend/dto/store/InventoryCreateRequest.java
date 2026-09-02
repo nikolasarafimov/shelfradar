@@ -4,12 +4,14 @@ import com.shelfradar.backend.entity.enums.StockStatus;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
 
 public record InventoryCreateRequest(
 
         @NotNull
+        @Positive
         Long productId,
 
         @NotNull
@@ -25,6 +27,5 @@ public record InventoryCreateRequest(
 
         @NotNull
         StockStatus status
-
 ) {
 }
