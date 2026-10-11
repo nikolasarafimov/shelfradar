@@ -1,56 +1,93 @@
 @baseUrl = http://localhost:8080
 
 
-### Search with location
+### ========================================================
+### SEARCH WITH LOCATION
+### Expected: 200
+### Returns distanceKm for each result
+### ========================================================
 
-GET {{baseUrl}}/api/public/search?q=Coca-Cola&latitude=41.998100&longitude=21.425400
-
-
-### Nearest Coca-Cola
-
-GET {{baseUrl}}/api/public/search?q=Coca-Cola&latitude=41.998100&longitude=21.425400&sort=distanceAsc
-
-
-### Within 1 km
-
-GET {{baseUrl}}/api/public/search?q=Coca-Cola&latitude=41.998100&longitude=21.425400&radiusKm=1&sort=distanceAsc
+GET {{baseUrl}}/api/public/search?q=Coca-Cola&latitude=41.998100&longitude=21.425400&page=0&size=20
+Accept: application/json
 
 
-### Within 3 km
+### ========================================================
+### NEAREST COCA-COLA
+### Expected: 200
+### ========================================================
 
-GET {{baseUrl}}/api/public/search?q=Coca-Cola&latitude=41.998100&longitude=21.425400&radiusKm=3&sort=distanceAsc
-
-
-### Within 5 km
-
-GET {{baseUrl}}/api/public/search?latitude=41.998100&longitude=21.425400&radiusKm=5&sort=distanceAsc
-
-
-### In stock + nearest
-
-GET {{baseUrl}}/api/public/search?q=Coca-Cola&status=IN_STOCK&latitude=41.998100&longitude=21.425400&sort=distanceAsc
+GET {{baseUrl}}/api/public/search?q=Coca-Cola&latitude=41.998100&longitude=21.425400&sort=distanceAsc&page=0&size=20
+Accept: application/json
 
 
-### Missing longitude - expected 400
+### ========================================================
+### COCA-COLA WITHIN 3 KM
+### Expected: 200
+### ========================================================
+
+GET {{baseUrl}}/api/public/search?q=Coca-Cola&latitude=41.998100&longitude=21.425400&radiusKm=3&sort=distanceAsc&page=0&size=20
+Accept: application/json
+
+
+### ========================================================
+### IN-STOCK COCA-COLA NEAREST FIRST
+### Expected: 200
+### ========================================================
+
+GET {{baseUrl}}/api/public/search?q=Coca-Cola&status=IN_STOCK&latitude=41.998100&longitude=21.425400&sort=distanceAsc&page=0&size=20
+Accept: application/json
+
+
+### ========================================================
+### MISSING LONGITUDE
+### Expected: 400
+### ========================================================
 
 GET {{baseUrl}}/api/public/search?latitude=41.998100
+Accept: application/json
 
 
-### Invalid latitude - expected 400
+### ========================================================
+### INVALID LATITUDE
+### Expected: 400
+### ========================================================
 
 GET {{baseUrl}}/api/public/search?latitude=120&longitude=21.425400
+Accept: application/json
 
 
-### Invalid longitude - expected 400
+### ========================================================
+### INVALID LONGITUDE
+### Expected: 400
+### ========================================================
 
 GET {{baseUrl}}/api/public/search?latitude=41.998100&longitude=200
+Accept: application/json
 
 
-### Radius without coordinates - expected 400
+### ========================================================
+### RADIUS WITHOUT LOCATION
+### Expected: 400
+### ========================================================
 
 GET {{baseUrl}}/api/public/search?radiusKm=5
+Accept: application/json
 
 
-### Distance sort without location - expected 400
+### ========================================================
+### INVALID RADIUS
+### Radius must be greater than 0 and at most 100 km
+### Expected: 400
+### ========================================================
+
+GET {{baseUrl}}/api/public/search?latitude=41.998100&longitude=21.425400&radiusKm=0
+Accept: application/json
+
+
+### ========================================================
+### DISTANCE SORT WITHOUT LOCATION
+### Expected: 400
+### ========================================================
 
 GET {{baseUrl}}/api/public/search?sort=distanceAsc
+Accept: application/json

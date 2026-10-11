@@ -222,7 +222,7 @@ public class AdminStoreService {
 
         List<Inventory> inventory =
                 inventoryRepository
-                        .findDetailedByStoreIdOrderByUpdatedAtDesc(
+                        .findByStoreId(
                                 storeId
                         );
 
@@ -251,7 +251,7 @@ public class AdminStoreService {
             return buildDetail(
                     store,
                     inventoryRepository
-                            .findDetailedByStoreIdOrderByUpdatedAtDesc(
+                            .findByStoreId(
                                     storeId
                             )
             );
@@ -282,7 +282,7 @@ public class AdminStoreService {
         return buildDetail(
                 savedStore,
                 inventoryRepository
-                        .findDetailedByStoreIdOrderByUpdatedAtDesc(
+                        .findByStoreId(
                                 storeId
                         )
         );
@@ -440,7 +440,7 @@ public class AdminStoreService {
         return buildDetail(
                 savedStore,
                 inventoryRepository
-                        .findDetailedByStoreIdOrderByUpdatedAtDesc(
+                        .findByStoreId(
                                 storeId
                         )
         );
@@ -693,6 +693,7 @@ public class AdminStoreService {
             BigDecimal first,
             BigDecimal second
     ) {
+
         if (
                 first == null &&
                         second == null
@@ -700,14 +701,12 @@ public class AdminStoreService {
             return true;
         }
 
-
         if (
                 first == null ||
                         second == null
         ) {
             return false;
         }
-
 
         return first.compareTo(
                 second
@@ -717,6 +716,7 @@ public class AdminStoreService {
     private Store findStore(
             Long storeId
     ) {
+
         return storeRepository
                 .findById(
                         storeId
@@ -751,7 +751,6 @@ public class AdminStoreService {
         ) {
             return null;
         }
-
 
         return value.trim();
     }

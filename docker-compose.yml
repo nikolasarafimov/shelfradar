@@ -22,6 +22,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+      start_period: 5s
 
 
   backend:
@@ -39,7 +40,7 @@ services:
 
       SECURITY_JWT_ISSUER: shelfradar-api
       SECURITY_JWT_EXPIRATION_MINUTES: 60
-      SECURITY_JWT_SECRET: ${JWT_SECRET:-shelfradar-local-development-secret-key-change-before-production-123456}
+      SECURITY_JWT_SECRET: "${JWT_SECRET:?JWT_SECRET must be set in .env}"
 
     depends_on:
       db:

@@ -38,11 +38,20 @@ public class PublicBrowseService {
             CatalogMapper catalogMapper,
             PublicSearchMapper publicSearchMapper
     ) {
-        this.productRepository = productRepository;
-        this.storeRepository = storeRepository;
-        this.inventoryRepository = inventoryRepository;
-        this.catalogMapper = catalogMapper;
-        this.publicSearchMapper = publicSearchMapper;
+        this.productRepository =
+                productRepository;
+
+        this.storeRepository =
+                storeRepository;
+
+        this.inventoryRepository =
+                inventoryRepository;
+
+        this.catalogMapper =
+                catalogMapper;
+
+        this.publicSearchMapper =
+                publicSearchMapper;
     }
 
     public PublicProductDetailResponse getProduct(
@@ -51,7 +60,9 @@ public class PublicBrowseService {
 
         Product product =
                 productRepository
-                        .findById(productId)
+                        .findById(
+                                productId
+                        )
                         .orElseThrow(
                                 () ->
                                         new ResourceNotFoundException(
@@ -83,6 +94,9 @@ public class PublicBrowseService {
                                                                 .getStore()
                                                                 .getName(),
                                                 String.CASE_INSENSITIVE_ORDER
+                                        )
+                                        .thenComparing(
+                                                Inventory::getId
                                         )
                         )
                         .toList();
@@ -117,7 +131,9 @@ public class PublicBrowseService {
                         .min(
                                 BigDecimal::compareTo
                         )
-                        .orElse(null);
+                        .orElse(
+                                null
+                        );
 
         return new PublicProductDetailResponse(
                 catalogMapper.toProductResponse(

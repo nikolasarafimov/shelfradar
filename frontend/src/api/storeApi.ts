@@ -1,11 +1,13 @@
-import {
-    apiClient,
-} from './client'
+import { apiClient } from './client'
 
 import type {
     PageResponse,
     Product,
 } from '../types/catalog'
+
+import type {
+    AuditLogPage,
+} from '../types/audit'
 
 import type {
     InventoryCreateRequest,
@@ -17,7 +19,6 @@ import type {
     StoreUpdateRequest,
 } from '../types/store'
 
-
 type InventoryQuery = {
     q?: string
     page?: number
@@ -27,26 +28,22 @@ type InventoryQuery = {
 
 export async function getMyStores():
     Promise<Store[]> {
-
     const response =
-        await apiClient.get<
-            Store[]
-        >(
+        await apiClient.get<Store[]>(
             '/store/stores',
         )
+
     return response.data
 }
 
 export async function getStore(
     storeId: number,
 ): Promise<Store> {
-
     const response =
-        await apiClient.get<
-            Store
-        >(
+        await apiClient.get<Store>(
             `/store/stores/${storeId}`,
         )
+
     return response.data
 }
 
@@ -54,14 +51,12 @@ export async function updateStore(
     storeId: number,
     request: StoreUpdateRequest,
 ): Promise<Store> {
-
     const response =
-        await apiClient.put<
-            Store
-        >(
+        await apiClient.put<Store>(
             `/store/stores/${storeId}`,
             request,
         )
+
     return response.data
 }
 
@@ -69,7 +64,6 @@ export async function getInventory(
     storeId: number,
     query: InventoryQuery = {},
 ): Promise<PageResponse<InventoryItem>> {
-
     const normalizedQuery =
         query.q?.trim()
 
@@ -98,6 +92,7 @@ export async function getInventory(
                 },
             },
         )
+
     return response.data
 }
 
@@ -105,14 +100,12 @@ export async function createInventoryItem(
     storeId: number,
     request: InventoryCreateRequest,
 ): Promise<InventoryItem> {
-
     const response =
-        await apiClient.post<
-            InventoryItem
-        >(
+        await apiClient.post<InventoryItem>(
             `/store/stores/${storeId}/inventory`,
             request,
         )
+
     return response.data
 }
 
@@ -121,14 +114,12 @@ export async function updateInventoryItem(
     inventoryId: number,
     request: InventoryUpdateRequest,
 ): Promise<InventoryItem> {
-
     const response =
-        await apiClient.put<
-            InventoryItem
-        >(
+        await apiClient.put<InventoryItem>(
             `/store/stores/${storeId}/inventory/${inventoryId}`,
             request,
         )
+
     return response.data
 }
 
@@ -136,7 +127,6 @@ export async function deleteInventoryItem(
     storeId: number,
     inventoryId: number,
 ): Promise<void> {
-
     await apiClient.delete(
         `/store/stores/${storeId}/inventory/${inventoryId}`,
     )
@@ -145,7 +135,6 @@ export async function deleteInventoryItem(
 export async function getStoreCatalogProducts(
     q = '',
 ): Promise<PageResponse<Product>> {
-
     const normalizedQuery =
         q.trim()
 
@@ -168,30 +157,46 @@ export async function getStoreCatalogProducts(
                 },
             },
         )
+
     return response.data
 }
 
 export async function getOwnerDashboard():
     Promise<OwnerDashboard> {
-
     const response =
-        await apiClient.get<
-            OwnerDashboard
-        >(
+        await apiClient.get<OwnerDashboard>(
             '/store/dashboard',
         )
+
     return response.data
 }
 
 export async function getStoreDashboard(
     storeId: number,
 ): Promise<StoreDashboard> {
-
     const response =
-        await apiClient.get<
-            StoreDashboard
-        >(
+        await apiClient.get<StoreDashboard>(
             `/store/stores/${storeId}/dashboard`,
         )
+
+    return response.data
+}
+
+export async function getStoreActivity(
+    storeId: number,
+    page = 0,
+    size = 20,
+): Promise<AuditLogPage> {
+    const response =
+        await apiClient.get<AuditLogPage>(
+            `/store/stores/${storeId}/activity`,
+            {
+                params: {
+                    page,
+                    size,
+                },
+            },
+        )
+
     return response.data
 }

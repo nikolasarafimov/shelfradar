@@ -14,6 +14,11 @@ import {
 } from '@tanstack/react-query'
 
 import {
+    AnimatePresence,
+    motion,
+} from 'motion/react'
+
+import {
     Boxes,
     ChevronLeft,
     ChevronRight,
@@ -24,6 +29,7 @@ import {
     Pencil,
     Search,
     Trash2,
+    TriangleAlert,
     X,
 } from 'lucide-react'
 
@@ -44,86 +50,80 @@ import type {
     StockStatus,
 } from '../../types/store'
 
-import EmptyState
-    from '../ui/EmptyState'
+import EmptyState from '../ui/EmptyState'
+import ErrorState from '../ui/ErrorState'
+import LoadingState from '../ui/LoadingState'
+import StatusBadge from '../ui/StatusBadge'
 
-import ErrorState
-    from '../ui/ErrorState'
+interface InventoryManagerProps {
+    storeId: number
+}
 
-import LoadingState
-    from '../ui/LoadingState'
+interface InventoryFormState {
+    productId: string
+    price: string
+    quantity: string
+    status: StockStatus
+}
 
-import StatusBadge
-    from '../ui/StatusBadge'
+const EMPTY_FORM: InventoryFormState = {
+    productId: '',
+    price: '',
+    quantity: '',
+    status: 'IN_STOCK',
+}
+
+const inputClassName =
+    'field min-h-12 px-4 text-sm disabled:cursor-not-allowed disabled:opacity-50'
 
 export default function InventoryManager({
-    storeId,
-}: {
-    storeId: number
-}) {
-
+                                             storeId,
+                                         }: InventoryManagerProps) {
     const queryClient =
         useQueryClient()
 
     const [
         page,
         setPage,
-    ] =
-        useState(0)
+    ] = useState(0)
 
     const [
         searchInput,
         setSearchInput,
-    ] =
-        useState('')
+    ] = useState('')
 
     const [
         search,
         setSearch,
-    ] =
-        useState('')
+    ] = useState('')
 
     const [
         editingItem,
         setEditingItem,
-    ] =
-        useState<InventoryItem | null>(
-            null,
-        )
+    ] = useState<InventoryItem | null>(
+        null,
+    )
 
     const [
-        productId,
-        setProductId,
-    ] =
-        useState('')
-
-    const [
-        price,
-        setPrice,
-    ] =
-        useState('')
-
-    const [
-        quantity,
-        setQuantity,
-    ] =
-        useState('')
-
-    const [
-        status,
-        setStatus,
-    ] =
-        useState<StockStatus>(
-            'IN_STOCK',
-        )
+        form,
+        setForm,
+    ] = useState<InventoryFormState>({
+        ...EMPTY_FORM,
+    })
 
     const [
         error,
         setError,
-    ] =
-        useState<string | null>(
-            null,
-        )
+    ] = useState<string | null>(
+        null,
+    )
+
+    const [
+        deleteTarget,
+        setDeleteTarget,
+    ] = useState<InventoryItem | null>(
+        null,
+    )
 
     const inventoryQuery =
         useQuery({
@@ -139,16 +139,10 @@ export default function InventoryManager({
                     getInventory(
                         storeId,
                         {
-                            q:
-                            search,
-
+                            q: search,
                             page,
-
-                            size:
-                                10,
-
-                            sort:
-                                'nameAsc',
+                            size: 10,
+                            sort: 'nameAsc',
                         },
                     ),
         })
@@ -197,24 +191,19 @@ export default function InventoryManager({
 
     const saveMutation =
         useMutation({
-
             mutationFn:
                 async () => {
-
                     const numericPrice =
                         Number(
-                            price,
+                            form.price,
                         )
 
                     const numericQuantity =
                         Number(
-                            quantity,
+                            form.quantity,
                         )
 
-                    if (
-                        editingItem !==
-                        null
-                    ) {
+                    if (editingItem) {
                         return updateInventoryItem(
                             storeId,
                             editingItem.id,
@@ -225,7 +214,8 @@ export default function InventoryManager({
                                 quantity:
                                 numericQuantity,
 
-                                status,
+                                status:
+                                form.status,
                             },
                         )
                     }
@@ -235,7 +225,7 @@ export default function InventoryManager({
                         {
                             productId:
                                 Number(
-                                    productId,
+                                    form.productId,
                                 ),
 
                             price:
@@ -244,14 +234,14 @@ export default function InventoryManager({
                             quantity:
                             numericQuantity,
 
-                            status,
+                            status:
+                            form.status,
                         },
                     )
                 },
 
             onSuccess:
                 async () => {
-
                     resetForm()
 
                     await refreshStoreData()
@@ -259,20 +249,16 @@ export default function InventoryManager({
 
             onError:
                 () => {
-
                     setError(
-                        'Unable to save inventory item. Check product, price, quantity, status and duplicates.',
+                        'Unable to save this inventory item. Check the product, price, quantity and stock status.',
                     )
                 },
         })
 
     const deleteMutation =
         useMutation({
-
             mutationFn:
-                (
-                    inventoryId: number,
-                ) =>
+                (inventoryId: number) =>
                     deleteInventoryItem(
                         storeId,
                         inventoryId,
@@ -287,7 +273,6 @@ export default function InventoryManager({
                         editingItem?.id ===
                         inventoryId
                     ) {
-
                         resetForm()
                     }
 
@@ -296,10 +281,8 @@ export default function InventoryManager({
 
                     if (
                         currentData &&
-                        currentData.content.length ===
-                        1 &&
-                        page >
-                        0
+                        currentData.content.length === 1 &&
+                        page > 0
                     ) {
                         setPage(
                             current =>
@@ -310,6 +293,10 @@ export default function InventoryManager({
                         )
                     }
 
+                    setDeleteTarget(
+                        null,
+                    )
+
                     setError(
                         null,
                     )
@@ -319,12 +306,28 @@ export default function InventoryManager({
 
             onError:
                 () => {
+                    setDeleteTarget(
+                        null,
+                    )
 
                     setError(
-                        'Unable to delete inventory item.',
+                        'Unable to remove this inventory item.',
                     )
                 },
         })
+
+    function updateForm(
+        values: Partial<InventoryFormState>,
+    ) {
+        setForm(
+            current => ({
+                ...current,
+                ...values,
+            }),
+        )
+
+        clearFormError()
+    }
 
     function handleSearch(
         event: FormEvent<HTMLFormElement>,
@@ -341,7 +344,6 @@ export default function InventoryManager({
     }
 
     function clearSearch() {
-
         setSearchInput(
             '',
         )
@@ -358,107 +360,19 @@ export default function InventoryManager({
     function handleSubmit(
         event: FormEvent<HTMLFormElement>,
     ) {
-
         event.preventDefault()
 
-        if (
-            !editingItem &&
-            !productId
-        ) {
+        const validationError =
+            validateInventoryForm(
+                form,
+                editingItem !== null,
+            )
+
+        if (validationError) {
             setError(
-                'Product is required.',
-            )
-            return
-        }
-
-        if (
-            price === '' ||
-            quantity === ''
-        ) {
-            setError(
-                'Price and quantity are required.',
-            )
-            return
-        }
-
-        const numericProductId =
-            Number(
-                productId,
+                validationError,
             )
 
-        const numericPrice =
-            Number(
-                price,
-            )
-
-        const numericQuantity =
-            Number(
-                quantity,
-            )
-
-        if (
-            !editingItem &&
-            (
-                !Number.isInteger(
-                    numericProductId,
-                ) ||
-                numericProductId <=
-                0
-            )
-        ) {
-            setError(
-                'Select a valid product.',
-            )
-            return
-        }
-
-        if (
-            !Number.isFinite(
-                numericPrice,
-            ) ||
-            numericPrice <
-            0
-        ) {
-            setError(
-                'Price must be zero or greater.',
-            )
-            return
-        }
-
-        if (
-            !Number.isInteger(
-                numericQuantity,
-            ) ||
-            numericQuantity <
-            0
-        ) {
-            setError(
-                'Quantity must be a whole number of zero or greater.',
-            )
-            return
-        }
-
-        if (
-            numericQuantity ===
-            0 &&
-            status !==
-            'OUT_OF_STOCK'
-        ) {
-            setError(
-                'Quantity 0 must use Out of Stock status.',
-            )
-            return
-        }
-
-        if (
-            numericQuantity >
-            0 &&
-            status ===
-            'OUT_OF_STOCK'
-        ) {
-            setError(
-                'A product with quantity above 0 cannot be Out of Stock.',
-            )
             return
         }
 
@@ -472,67 +386,48 @@ export default function InventoryManager({
     function beginEdit(
         item: InventoryItem,
     ) {
-
         setEditingItem(
             item,
         )
 
-        setProductId(
-            String(
-                item.product.id,
-            ),
-        )
+        setForm({
+            productId:
+                String(
+                    item.product.id,
+                ),
 
-        setPrice(
-            String(
-                item.price,
-            ),
-        )
+            price:
+                String(
+                    item.price,
+                ),
 
-        setQuantity(
-            String(
-                item.quantity,
-            ),
-        )
+            quantity:
+                String(
+                    item.quantity,
+                ),
 
-        setStatus(
+            status:
             item.status,
-        )
+        })
 
         setError(
             null,
         )
 
         window.scrollTo({
-            top:
-                0,
-
-            behavior:
-                'smooth',
+            top: 0,
+            behavior: 'smooth',
         })
     }
 
     function resetForm() {
-
         setEditingItem(
             null,
         )
 
-        setProductId(
-            '',
-        )
-
-        setPrice(
-            '',
-        )
-
-        setQuantity(
-            '',
-        )
-
-        setStatus(
-            'IN_STOCK',
-        )
+        setForm({
+            ...EMPTY_FORM,
+        })
 
         setError(
             null,
@@ -540,39 +435,11 @@ export default function InventoryManager({
     }
 
     function clearFormError() {
-
-        if (
-            error
-        ) {
-
+        if (error) {
             setError(
                 null,
             )
         }
-    }
-
-    function handleDelete(
-        item: InventoryItem,
-    ) {
-
-        const confirmed =
-            window.confirm(
-                `Remove ${item.product.name} from this store?`,
-            )
-
-        if (
-            !confirmed
-        ) {
-            return
-        }
-
-        setError(
-            null,
-        )
-
-        deleteMutation.mutate(
-            item.id,
-        )
     }
 
     const data =
@@ -590,423 +457,357 @@ export default function InventoryManager({
         )
 
     return (
-        <div className="space-y-6">
-            <section className="premium-card overflow-hidden rounded-3xl border border-slate-800/90 bg-slate-900/55 shadow-[0_24px_70px_-45px_rgba(14,165,233,0.2)] backdrop-blur-xl">
-                <div className="flex items-center gap-3 border-b border-slate-800/80 px-5 py-5 sm:px-6">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-900/50 bg-sky-950/30 text-sky-400">
-                        {
-                            editingItem
-                                ? (
-                                    <Pencil
-                                        size={16}
-                                    />
-                                )
-                                : (
-                                    <PackagePlus
-                                        size={17}
-                                    />
-                                )
-                        }
-                    </div>
+        <>
+            <div className="space-y-6">
+                <section className="premium-card overflow-hidden rounded-2xl">
+                    <div className="relative flex items-center gap-3 border-b border-slate-800/80 px-5 py-5 sm:px-6">
+                        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-sky-300/15 bg-sky-300/[0.08] text-sky-300">
+                            {editingItem ? (
+                                <Pencil
+                                    className="size-4"
+                                    strokeWidth={1.8}
+                                    aria-hidden="true"
+                                />
+                            ) : (
+                                <PackagePlus
+                                    className="size-[18px]"
+                                    strokeWidth={1.8}
+                                    aria-hidden="true"
+                                />
+                            )}
+                        </div>
 
-                    <div className="min-w-0">
-                        <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-sky-400">
-                            {
-                                editingItem
+                        <div className="min-w-0">
+                            <p className="eyebrow">
+                                {editingItem
                                     ? 'Edit store offer'
-                                    : 'New store offer'
-                            }
-                        </p>
+                                    : 'New store offer'}
+                            </p>
 
-                        <h2 className="mt-0.5 truncate text-lg font-bold tracking-tight text-white">
-                            {
-                                editingItem
-                                    ? 'Update Inventory'
-                                    : 'Add Product to Inventory'
-                            }
-                        </h2>
+                            <h2 className="mt-1.5 truncate text-lg font-semibold tracking-[-0.025em] text-slate-50">
+                                {editingItem
+                                    ? 'Update inventory'
+                                    : 'Add product to inventory'}
+                            </h2>
 
-                        <p className="mt-1 text-xs text-slate-500">
-                            {
-                                editingItem
+                            <p className="mt-1 text-xs leading-5 text-slate-500">
+                                {editingItem
                                     ? `Editing ${editingItem.product.name}`
-                                    : 'Define the product price, quantity and availability.'
-                            }
-                        </p>
-                    </div>
-                </div>
-
-                <form
-                    onSubmit={
-                        handleSubmit
-                    }
-                    className="grid gap-5 p-5 sm:grid-cols-2 sm:p-6 xl:grid-cols-4"
-                >
-                    <FieldWrapper
-                        label="Product"
-                        htmlFor="inventory-product"
-                    >
-                        <select
-                            id="inventory-product"
-                            value={
-                                productId
-                            }
-                            disabled={
-                                editingItem !==
-                                null ||
-                                isMutating ||
-                                productsQuery.isLoading ||
-                                productsQuery.isError
-                            }
-                            onChange={
-                                event => {
-
-                                    setProductId(
-                                        event.target.value,
-                                    )
-
-                                    clearFormError()
-                                }
-                            }
-                            className={inputClassName}
-                        >
-                            <option value="">
-                                {
-                                    productsQuery.isLoading
-                                        ? 'Loading products...'
-                                        : productsQuery.isError
-                                            ? 'Catalog unavailable'
-                                            : 'Select product'
-                                }
-                            </option>
-                            {
-                                productsQuery.data?.content.map(
-                                    product => (
-
-                                        <option
-                                            key={
-                                                product.id
-                                            }
-                                            value={
-                                                product.id
-                                            }
-                                        >
-                                            {
-                                                product.name
-                                            }
-                                        </option>
-                                    ),
-                                )
-                            }
-                        </select>
-                    </FieldWrapper>
-
-                    <FieldWrapper
-                        label="Price"
-                        htmlFor="inventory-price"
-                    >
-                        <div className="relative">
-                            <CircleDollarSign
-                                size={15}
-                                className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600"
-                            />
-
-                            <input
-                                id="inventory-price"
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={
-                                    price
-                                }
-                                disabled={
-                                    isMutating
-                                }
-                                onChange={
-                                    event => {
-
-                                        setPrice(
-                                            event.target.value,
-                                        )
-
-                                        clearFormError()
-                                    }
-                                }
-                                placeholder="0.00"
-                                className={`${inputClassName} pl-11`}
-                            />
+                                    : 'Set the product price, quantity and current availability.'}
+                            </p>
                         </div>
-                    </FieldWrapper>
-
-                    <FieldWrapper
-                        label="Quantity"
-                        htmlFor="inventory-quantity"
-                    >
-                        <div className="relative">
-                            <Boxes
-                                size={15}
-                                className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600"
-                            />
-
-                            <input
-                                id="inventory-quantity"
-                                type="number"
-                                min="0"
-                                step="1"
-                                value={
-                                    quantity
-                                }
-                                disabled={
-                                    isMutating
-                                }
-                                onChange={
-                                    event => {
-
-                                        setQuantity(
-                                            event.target.value,
-                                        )
-
-                                        clearFormError()
-                                    }
-                                }
-                                placeholder="0"
-                                className={`${inputClassName} pl-11`}
-                            />
-                        </div>
-                    </FieldWrapper>
-
-                    <FieldWrapper
-                        label="Status"
-                        htmlFor="inventory-status"
-                    >
-                        <select
-                            id="inventory-status"
-                            value={
-                                status
-                            }
-                            disabled={
-                                isMutating
-                            }
-                            onChange={
-                                event => {
-
-                                    setStatus(
-                                        event.target.value as StockStatus,
-                                    )
-
-                                    clearFormError()
-                                }
-                            }
-                            className={inputClassName}
-                        >
-                            <option value="IN_STOCK">
-                                In Stock
-                            </option>
-
-                            <option value="LOW_STOCK">
-                                Low Stock
-                            </option>
-
-                            <option value="OUT_OF_STOCK">
-                                Out of Stock
-                            </option>
-                        </select>
-                    </FieldWrapper>
-                    {
-                        !editingItem &&
-                        productsQuery.isError && (
-                            <div
-                                role="alert"
-                                className="rounded-xl border border-red-900/40 bg-red-950/20 px-4 py-3 text-xs leading-5 text-red-300 sm:col-span-2 xl:col-span-4"
-                            >
-                                Product catalog could not be loaded. Adding a new inventory item is temporarily unavailable.
-                            </div>
-                        )
-                    }
-
-                    {
-                        error && (
-                            <div
-                                role="alert"
-                                className="rounded-xl border border-red-900/40 bg-red-950/20 px-4 py-3 text-xs leading-5 text-red-300 sm:col-span-2 xl:col-span-4"
-                            >
-                                {error}
-                            </div>
-                        )
-                    }
-
-                    <div className="flex flex-wrap gap-2 sm:col-span-2 xl:col-span-4">
-                        <button
-                            type="submit"
-                            disabled={
-                                isMutating ||
-                                catalogUnavailable ||
-                                (
-                                    !editingItem &&
-                                    !productId
-                                ) ||
-                                price ===
-                                '' ||
-                                quantity ===
-                                ''
-                            }
-                            className="shine-button inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-400 px-5 text-sm font-bold text-slate-950 transition duration-200 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45"
-                        >
-                            {
-                                saveMutation.isPending
-                                    ? (
-                                        <>
-                                            <LoaderCircle
-                                                size={15}
-                                                className="animate-spin"
-                                            />
-
-                                            Saving...
-                                        </>
-                                    )
-                                    : editingItem
-                                        ? (
-                                            <>
-                                                <Pencil
-                                                    size={14}
-                                                />
-
-                                                Save Changes
-                                            </>
-                                        )
-                                        : (
-                                            <>
-                                                <PackagePlus
-                                                    size={15}
-                                                />
-
-                                                Add Product
-                                            </>
-                                        )
-                            }
-                        </button>
-                        {
-                            editingItem && (
-                                <button
-                                    type="button"
-                                    onClick={
-                                        resetForm
-                                    }
-                                    disabled={
-                                        isMutating
-                                    }
-                                    className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/50 px-4 text-sm font-semibold text-slate-400 transition hover:border-slate-600 hover:bg-slate-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                    <X size={14}/>
-                                    Cancel
-                                </button>
-                            )
-                        }
-                    </div>
-                </form>
-            </section>
-
-            <section className="premium-card overflow-hidden rounded-3xl border border-slate-800/90 bg-slate-900/55 shadow-[0_24px_70px_-45px_rgba(0,0,0,0.8)] backdrop-blur-xl">
-                <div className="flex flex-col gap-5 border-b border-slate-800/80 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
-                    <div>
-                        <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-sky-400">
-                            Store catalog
-                        </p>
-
-                        <h2 className="mt-1 text-xl font-bold tracking-tight text-white">
-                            Inventory
-                        </h2>
-
-                        <p className="mt-1 text-xs text-slate-500">
-                            {
-                                inventoryQuery.isLoading
-                                    ? 'Loading inventory...'
-                                    : data
-                                        ? `${data.totalElements} products`
-                                        : 'Manage products available at this store.'
-                            }
-                        </p>
                     </div>
 
                     <form
-                        onSubmit={
-                            handleSearch
-                        }
-                        className="flex w-full gap-2 lg:w-auto"
+                        onSubmit={handleSubmit}
+                        className="grid gap-5 p-5 sm:grid-cols-2 sm:p-6 xl:grid-cols-4"
                     >
-                        <label
-                            className="sr-only"
-                            htmlFor="inventory-search"
+                        <FieldWrapper
+                            label="Product"
+                            htmlFor="inventory-product"
                         >
-                            Search inventory
-                        </label>
-
-                        <div className="relative min-w-0 flex-1 lg:w-72">
-                            <Search
-                                size={15}
-                                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600"
-                            />
-
-                            <input
-                                id="inventory-search"
-                                type="search"
-                                placeholder="Search inventory..."
-                                value={
-                                    searchInput
+                            <select
+                                id="inventory-product"
+                                value={form.productId}
+                                disabled={
+                                    editingItem !== null ||
+                                    isMutating ||
+                                    productsQuery.isLoading ||
+                                    productsQuery.isError
                                 }
                                 onChange={
                                     event =>
-                                        setSearchInput(
+                                        updateForm({
+                                            productId:
                                             event.target.value,
-                                        )
+                                        })
                                 }
-                                className="min-h-11 w-full rounded-xl border border-slate-700 bg-[#020817]/80 pl-10 pr-10 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10"
-                            />
-                            {
-                                searchInput && (
+                                className={inputClassName}
+                            >
+                                <option value="">
+                                    {productsQuery.isLoading
+                                        ? 'Loading products...'
+                                        : productsQuery.isError
+                                            ? 'Catalog unavailable'
+                                            : 'Select product'}
+                                </option>
 
-                                    <button
-                                        type="button"
-                                        onClick={
-                                            clearSearch
-                                        }
-                                        aria-label="Clear inventory search"
-                                        className="absolute right-2.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-800 hover:text-slate-300"
-                                    >
+                                {productsQuery.data?.content.map(
+                                    product => (
+                                        <option
+                                            key={product.id}
+                                            value={product.id}
+                                        >
+                                            {product.name}
+                                        </option>
+                                    ),
+                                )}
+                            </select>
+                        </FieldWrapper>
 
-                                        <X
-                                            size={13}
+                        <FieldWrapper
+                            label="Price"
+                            htmlFor="inventory-price"
+                        >
+                            <div className="relative">
+                                <CircleDollarSign
+                                    className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-600"
+                                    aria-hidden="true"
+                                />
+
+                                <input
+                                    id="inventory-price"
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={form.price}
+                                    disabled={isMutating}
+                                    onChange={
+                                        event =>
+                                            updateForm({
+                                                price:
+                                                event.target.value,
+                                            })
+                                    }
+                                    placeholder="0.00"
+                                    className={`${inputClassName} pl-11`}
+                                />
+                            </div>
+                        </FieldWrapper>
+
+                        <FieldWrapper
+                            label="Quantity"
+                            htmlFor="inventory-quantity"
+                        >
+                            <div className="relative">
+                                <Boxes
+                                    className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-600"
+                                    aria-hidden="true"
+                                />
+
+                                <input
+                                    id="inventory-quantity"
+                                    type="number"
+                                    min="0"
+                                    step="1"
+                                    value={form.quantity}
+                                    disabled={isMutating}
+                                    onChange={
+                                        event =>
+                                            updateForm({
+                                                quantity:
+                                                event.target.value,
+                                            })
+                                    }
+                                    placeholder="0"
+                                    className={`${inputClassName} pl-11`}
+                                />
+                            </div>
+                        </FieldWrapper>
+
+                        <FieldWrapper
+                            label="Status"
+                            htmlFor="inventory-status"
+                        >
+                            <select
+                                id="inventory-status"
+                                value={form.status}
+                                disabled={isMutating}
+                                onChange={
+                                    event =>
+                                        updateForm({
+                                            status:
+                                                event.target.value as StockStatus,
+                                        })
+                                }
+                                className={inputClassName}
+                            >
+                                <option value="IN_STOCK">
+                                    In stock
+                                </option>
+
+                                <option value="LOW_STOCK">
+                                    Low stock
+                                </option>
+
+                                <option value="OUT_OF_STOCK">
+                                    Out of stock
+                                </option>
+                            </select>
+                        </FieldWrapper>
+
+                        {!editingItem &&
+                            productsQuery.isError && (
+                                <div className="sm:col-span-2 xl:col-span-4">
+                                    <InlineAlert>
+                                        Product catalog could not be loaded. Adding a new inventory item is temporarily unavailable.
+                                    </InlineAlert>
+                                </div>
+                            )}
+
+                        {error && (
+                            <div className="sm:col-span-2 xl:col-span-4">
+                                <InlineAlert>
+                                    {error}
+                                </InlineAlert>
+                            </div>
+                        )}
+
+                        <div className="flex flex-wrap gap-2.5 sm:col-span-2 xl:col-span-4">
+                            <button
+                                type="submit"
+                                disabled={
+                                    isMutating ||
+                                    catalogUnavailable ||
+                                    (
+                                        !editingItem &&
+                                        !form.productId
+                                    ) ||
+                                    form.price === '' ||
+                                    form.quantity === ''
+                                }
+                                className="shine-button inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-400 to-cyan-300 px-5 text-sm font-semibold text-slate-950 shadow-[0_12px_32px_rgba(14,165,233,0.18)] transition duration-200 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45"
+                            >
+                                {saveMutation.isPending ? (
+                                    <>
+                                        <LoaderCircle
+                                            className="size-4 animate-spin"
+                                            aria-hidden="true"
                                         />
 
-                                    </button>
-                                )
-                            }
+                                        Saving...
+                                    </>
+                                ) : editingItem ? (
+                                    <>
+                                        <Pencil
+                                            className="size-3.5"
+                                            aria-hidden="true"
+                                        />
+
+                                        Save changes
+                                    </>
+                                ) : (
+                                    <>
+                                        <PackagePlus
+                                            className="size-4"
+                                            aria-hidden="true"
+                                        />
+
+                                        Add product
+                                    </>
+                                )}
+                            </button>
+
+                            {editingItem && (
+                                <button
+                                    type="button"
+                                    onClick={resetForm}
+                                    disabled={isMutating}
+                                    className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/50 px-4 text-sm font-medium text-slate-400 transition duration-200 hover:border-slate-600 hover:bg-slate-800/70 hover:text-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    <X
+                                        className="size-4"
+                                        aria-hidden="true"
+                                    />
+
+                                    Cancel
+                                </button>
+                            )}
+                        </div>
+                    </form>
+                </section>
+
+                <section className="premium-card overflow-hidden rounded-2xl">
+                    <div className="relative flex flex-col gap-5 border-b border-slate-800/80 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+                        <div>
+                            <p className="eyebrow">
+                                Store catalog
+                            </p>
+
+                            <h2 className="mt-1.5 text-xl font-semibold tracking-[-0.03em] text-slate-50">
+                                Inventory
+                            </h2>
+
+                            <p className="mt-1 text-xs text-slate-500">
+                                {inventoryQuery.isLoading
+                                    ? 'Loading inventory...'
+                                    : data
+                                        ? `${data.totalElements} products`
+                                        : 'Manage products available at this store.'}
+                            </p>
                         </div>
 
-                        <button
-                            type="submit"
-                            className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/60 px-4 text-sm font-semibold text-slate-300 transition hover:border-sky-900 hover:bg-sky-950/20 hover:text-sky-300"
+                        <form
+                            onSubmit={handleSearch}
+                            className="flex w-full gap-2 lg:w-auto"
                         >
-                            <Search size={14}/>
+                            <label
+                                className="sr-only"
+                                htmlFor="inventory-search"
+                            >
+                                Search inventory
+                            </label>
 
-                            <span className="hidden sm:inline">
-                                Search
-                            </span>
-                        </button>
-                    </form>
-                </div>
-                {
-                    inventoryQuery.isLoading && (
+                            <div className="relative min-w-0 flex-1 lg:w-72">
+                                <Search
+                                    className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-600"
+                                    aria-hidden="true"
+                                />
+
+                                <input
+                                    id="inventory-search"
+                                    type="search"
+                                    placeholder="Search inventory..."
+                                    value={searchInput}
+                                    onChange={
+                                        event =>
+                                            setSearchInput(
+                                                event.target.value,
+                                            )
+                                    }
+                                    className="field min-h-11 w-full pl-10 pr-10 text-sm"
+                                />
+
+                                {searchInput && (
+                                    <button
+                                        type="button"
+                                        onClick={clearSearch}
+                                        aria-label="Clear inventory search"
+                                        className="absolute right-2.5 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-600 transition duration-200 hover:bg-slate-800 hover:text-slate-300"
+                                    >
+                                        <X
+                                            className="size-3.5"
+                                            aria-hidden="true"
+                                        />
+                                    </button>
+                                )}
+                            </div>
+
+                            <button
+                                type="submit"
+                                className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/50 px-4 text-sm font-medium text-slate-300 transition duration-200 hover:border-sky-300/20 hover:bg-sky-300/[0.06] hover:text-sky-300"
+                            >
+                                <Search
+                                    className="size-4"
+                                    aria-hidden="true"
+                                />
+
+                                <span className="hidden sm:inline">
+                                    Search
+                                </span>
+                            </button>
+                        </form>
+                    </div>
+
+                    {inventoryQuery.isLoading && (
                         <div className="p-5 sm:p-6">
                             <LoadingState
                                 message="Loading inventory..."
                             />
                         </div>
-                    )
-                }
+                    )}
 
-                {
-                    inventoryQuery.isError && (
+                    {inventoryQuery.isError && (
                         <div className="p-5 sm:p-6">
                             <ErrorState
                                 title="Inventory unavailable"
@@ -1018,58 +819,49 @@ export default function InventoryManager({
                                 }
                             />
                         </div>
-                    )
-                }
+                    )}
 
-                {
-                    data &&
-                    data.content.length ===
-                    0 &&
-                    !inventoryQuery.isLoading &&
-                    !inventoryQuery.isError && (
-                        <div className="p-5 sm:p-6">
-                            <EmptyState
-                                title={
-                                    search
-                                        ? 'No matching products'
-                                        : 'No inventory items yet'
-                                }
-                                message={
-                                    search
-                                        ? 'No inventory products match the current search.'
-                                        : 'Add your first product to make this store searchable.'
-                                }
-                            />
-                            {
-                                search && (
-                                    <div className="mt-4 text-center">
-                                        <button
-                                            type="button"
-                                            onClick={
-                                                clearSearch
-                                            }
-                                            className="text-xs font-semibold text-sky-400 transition hover:text-sky-300"
-                                        >
-                                            Clear search
-                                        </button>
-                                    </div>
-                                )
-                            }
-                        </div>
-                    )
-                }
+                    {data &&
+                        data.content.length === 0 &&
+                        !inventoryQuery.isLoading &&
+                        !inventoryQuery.isError && (
+                            <div className="p-5 sm:p-6">
+                                <EmptyState
+                                    title={
+                                        search
+                                            ? 'No matching products'
+                                            : 'No inventory items yet'
+                                    }
+                                    message={
+                                        search
+                                            ? 'No inventory products match the current search.'
+                                            : 'Add your first product to make this store searchable.'
+                                    }
+                                    action={
+                                        search ? (
+                                            <button
+                                                type="button"
+                                                onClick={clearSearch}
+                                                className="rounded-xl border border-sky-300/15 bg-sky-300/[0.07] px-4 py-2 text-xs font-semibold text-sky-300 transition hover:bg-sky-300/10"
+                                            >
+                                                Clear search
+                                            </button>
+                                        ) : undefined
+                                    }
+                                />
+                            </div>
+                        )}
 
-                {
-                    data &&
-                    data.content.length >
-                    0 &&
-                    !inventoryQuery.isLoading &&
-                    !inventoryQuery.isError && (
-                        <div className="divide-y divide-slate-800/70">
-                            {
-                                data.content.map(
-                                    item => {
-
+                    {data &&
+                        data.content.length > 0 &&
+                        !inventoryQuery.isLoading &&
+                        !inventoryQuery.isError && (
+                            <div className="divide-y divide-slate-800/70">
+                                {data.content.map(
+                                    (
+                                        item,
+                                        index,
+                                    ) => {
                                         const isEditing =
                                             editingItem?.id ===
                                             item.id
@@ -1080,27 +872,38 @@ export default function InventoryManager({
                                             item.id
 
                                         return (
-                                            <article
-                                                key={
-                                                    item.id
-                                                }
+                                            <motion.article
+                                                key={item.id}
+                                                initial={{
+                                                    opacity: 0,
+                                                    y: 8,
+                                                }}
+                                                animate={{
+                                                    opacity: 1,
+                                                    y: 0,
+                                                }}
+                                                transition={{
+                                                    duration: 0.3,
+                                                    delay:
+                                                        Math.min(
+                                                            index,
+                                                            7,
+                                                        ) * 0.035,
+                                                }}
                                                 className={
                                                     isEditing
-                                                        ? 'grid gap-5 bg-sky-950/15 px-5 py-4 sm:px-6 md:grid-cols-[minmax(0,1fr)_auto]'
-                                                        : 'grid gap-5 px-5 py-4 transition duration-200 hover:bg-slate-800/25 sm:px-6 md:grid-cols-[minmax(0,1fr)_auto]'
+                                                        ? 'grid gap-5 bg-sky-400/[0.045] px-5 py-4 sm:px-6 md:grid-cols-[minmax(0,1fr)_auto]'
+                                                        : 'grid gap-5 px-5 py-4 transition-colors duration-200 hover:bg-white/[0.018] sm:px-6 md:grid-cols-[minmax(0,1fr)_auto]'
                                                 }
                                             >
                                                 <div className="flex min-w-0 items-start gap-4">
-                                                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-slate-800 bg-[#020817]/70 text-slate-600">
-                                                        <Package
-                                                            size={21}
-                                                            strokeWidth={1.6}
-                                                        />
-                                                    </div>
+                                                    <ProductArtwork
+                                                        item={item}
+                                                    />
 
                                                     <div className="min-w-0">
                                                         <div className="flex flex-wrap items-center gap-2.5">
-                                                            <h3 className="truncate text-sm font-bold text-slate-100">
+                                                            <h3 className="truncate text-sm font-semibold text-slate-100">
                                                                 {
                                                                     item.product.name
                                                                 }
@@ -1111,30 +914,30 @@ export default function InventoryManager({
                                                                     item.status
                                                                 }
                                                             />
-                                                            {
-                                                                isEditing && (
 
-                                                                    <span className="rounded-full border border-amber-900/50 bg-amber-950/20 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.1em] text-amber-400">
-                                                                        Editing
-                                                                    </span>
-                                                                )
-                                                            }
+                                                            {isEditing && (
+                                                                <span className="rounded-full bg-amber-300/[0.08] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.1em] text-amber-300 ring-1 ring-inset ring-amber-300/15">
+                                                                    Editing
+                                                                </span>
+                                                            )}
                                                         </div>
 
                                                         <p className="mt-1.5 truncate text-xs text-slate-500">
                                                             {
                                                                 item.product.brand.name
                                                             }
+
                                                             <span className="mx-1.5 text-slate-700">
                                                                 ·
                                                             </span>
+
                                                             {
                                                                 item.product.category.name
                                                             }
                                                         </p>
 
                                                         <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
-                                                            <span className="text-sm font-bold text-slate-200">
+                                                            <span className="text-sm font-semibold text-slate-200">
                                                                 {
                                                                     formatMkd(
                                                                         item.price,
@@ -1144,10 +947,11 @@ export default function InventoryManager({
 
                                                             <span className="inline-flex items-center gap-1.5 text-xs text-slate-500">
                                                                 <Boxes
-                                                                    size={12}
+                                                                    className="size-3"
+                                                                    aria-hidden="true"
                                                                 />
 
-                                                                Quantity:{' '}
+                                                                Quantity:
 
                                                                 <strong className="font-semibold text-slate-300">
                                                                     {
@@ -1168,17 +972,17 @@ export default function InventoryManager({
                                                                     item,
                                                                 )
                                                         }
-                                                        disabled={
-                                                            isMutating
-                                                        }
+                                                        disabled={isMutating}
                                                         aria-label={
                                                             `Edit ${item.product.name}`
                                                         }
-                                                        className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900/50 px-3 text-xs font-semibold text-slate-400 transition hover:border-sky-900 hover:bg-sky-950/20 hover:text-sky-300 disabled:cursor-not-allowed disabled:opacity-40"
+                                                        className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-slate-700/80 bg-slate-900/50 px-3 text-xs font-medium text-slate-400 transition duration-200 hover:border-sky-300/20 hover:bg-sky-300/[0.06] hover:text-sky-300 disabled:cursor-not-allowed disabled:opacity-40"
                                                     >
                                                         <Pencil
-                                                            size={13}
+                                                            className="size-3.5"
+                                                            aria-hidden="true"
                                                         />
+
                                                         Edit
                                                     </button>
 
@@ -1186,128 +990,233 @@ export default function InventoryManager({
                                                         type="button"
                                                         onClick={
                                                             () =>
-                                                                handleDelete(
+                                                                setDeleteTarget(
                                                                     item,
                                                                 )
                                                         }
-                                                        disabled={
-                                                            isMutating
-                                                        }
+                                                        disabled={isMutating}
                                                         aria-label={
                                                             `Delete ${item.product.name}`
                                                         }
-                                                        className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-red-950 bg-red-950/10 px-3 text-xs font-semibold text-red-400 transition hover:border-red-900 hover:bg-red-950/30 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-40"
+                                                        className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-rose-300/10 bg-rose-300/[0.05] px-3 text-xs font-medium text-rose-300/80 transition duration-200 hover:border-rose-300/20 hover:bg-rose-300/[0.09] hover:text-rose-200 disabled:cursor-not-allowed disabled:opacity-40"
                                                     >
+                                                        {isDeleting ? (
+                                                            <LoaderCircle
+                                                                className="size-3.5 animate-spin"
+                                                                aria-hidden="true"
+                                                            />
+                                                        ) : (
+                                                            <Trash2
+                                                                className="size-3.5"
+                                                                aria-hidden="true"
+                                                            />
+                                                        )}
 
-                                                        {
-                                                            isDeleting
-                                                                ? (
-                                                                    <LoaderCircle
-                                                                        size={13}
-                                                                        className="animate-spin"
-                                                                    />
-                                                                )
-                                                                : (
-                                                                    <Trash2
-                                                                        size={13}
-                                                                    />
-                                                                )
-                                                        }
-
-                                                        {
-                                                            isDeleting
-                                                                ? 'Deleting'
-                                                                : 'Delete'
-                                                        }
+                                                        {isDeleting
+                                                            ? 'Deleting'
+                                                            : 'Delete'}
                                                     </button>
                                                 </div>
-                                            </article>
+                                            </motion.article>
                                         )
                                     },
+                                )}
+                            </div>
+                        )}
+
+                    {data &&
+                        data.totalPages > 1 &&
+                        !inventoryQuery.isError && (
+                            <div className="flex flex-col gap-3 border-t border-slate-800/80 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                                <PaginationButton
+                                    direction="previous"
+                                    disabled={
+                                        data.first ||
+                                        inventoryQuery.isFetching
+                                    }
+                                    onClick={
+                                        () =>
+                                            setPage(
+                                                current =>
+                                                    Math.max(
+                                                        0,
+                                                        current - 1,
+                                                    ),
+                                            )
+                                    }
+                                />
+
+                                <span className="text-center text-xs text-slate-500">
+                                    Page{' '}
+                                    <strong className="font-semibold text-slate-300">
+                                        {data.page + 1}
+                                    </strong>
+                                    {' '}of{' '}
+                                    <strong className="font-semibold text-slate-300">
+                                        {data.totalPages}
+                                    </strong>
+                                </span>
+
+                                <PaginationButton
+                                    direction="next"
+                                    disabled={
+                                        data.last ||
+                                        inventoryQuery.isFetching
+                                    }
+                                    onClick={
+                                        () =>
+                                            setPage(
+                                                current =>
+                                                    current + 1,
+                                            )
+                                    }
+                                />
+                            </div>
+                        )}
+                </section>
+            </div>
+
+            <AnimatePresence>
+                {deleteTarget && (
+                    <DeleteConfirmation
+                        item={deleteTarget}
+                        pending={
+                            deleteMutation.isPending
+                        }
+                        onCancel={
+                            () =>
+                                setDeleteTarget(
+                                    null,
                                 )
-                            }
-                        </div>
-                    )
-                }
+                        }
+                        onConfirm={
+                            () =>
+                                deleteMutation.mutate(
+                                    deleteTarget.id,
+                                )
+                        }
+                    />
+                )}
+            </AnimatePresence>
+        </>
+    )
+}
 
-                {
-                    data &&
-                    data.totalPages >
-                    1 &&
-                    !inventoryQuery.isError && (
-                        <div className="flex flex-col gap-3 border-t border-slate-800/80 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                            <button
-                                type="button"
-                                disabled={
-                                    data.first ||
-                                    inventoryQuery.isFetching
-                                }
-                                onClick={
-                                    () =>
-                                        setPage(
-                                            current =>
-                                                Math.max(
-                                                    0,
-                                                    current - 1,
-                                                ),
-                                        )
-                                }
-                                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900/40 px-4 text-xs font-semibold text-slate-400 transition hover:border-slate-600 hover:bg-slate-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
-                            >
-                                <ChevronLeft size={14}/>
-                                Previous
-                            </button>
+function validateInventoryForm(
+    form: InventoryFormState,
+    editing: boolean,
+): string | null {
+    if (
+        !editing &&
+        !form.productId
+    ) {
+        return 'Product is required.'
+    }
 
-                            <span className="text-center text-xs text-slate-500">
-                                Page{' '}
+    if (
+        form.price === '' ||
+        form.quantity === ''
+    ) {
+        return 'Price and quantity are required.'
+    }
 
-                                <strong className="font-semibold text-slate-300">
-                                    {
-                                        data.page +
-                                        1
-                                    }
-                                </strong>
+    const productId =
+        Number(
+            form.productId,
+        )
 
-                                {' '}of{' '}
+    const price =
+        Number(
+            form.price,
+        )
 
-                                <strong className="font-semibold text-slate-300">
-                                    {
-                                        data.totalPages
-                                    }
-                                </strong>
-                            </span>
+    const quantity =
+        Number(
+            form.quantity,
+        )
 
-                            <button
-                                type="button"
-                                disabled={
-                                    data.last ||
-                                    inventoryQuery.isFetching
-                                }
-                                onClick={
-                                    () =>
-                                        setPage(
-                                            current =>
-                                                current + 1,
-                                        )
-                                }
-                                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900/40 px-4 text-xs font-semibold text-slate-400 transition hover:border-slate-600 hover:bg-slate-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
-                            >
-                                Next
-                                <ChevronRight size={14}/>
-                            </button>
-                        </div>
-                    )
-                }
-            </section>
+    if (
+        !editing &&
+        (
+            !Number.isInteger(
+                productId,
+            ) ||
+            productId <= 0
+        )
+    ) {
+        return 'Select a valid product.'
+    }
+
+    if (
+        !Number.isFinite(
+            price,
+        ) ||
+        price < 0
+    ) {
+        return 'Price must be zero or greater.'
+    }
+
+    if (
+        !Number.isInteger(
+            quantity,
+        ) ||
+        quantity < 0
+    ) {
+        return 'Quantity must be a whole number of zero or greater.'
+    }
+
+    if (
+        quantity === 0 &&
+        form.status !==
+        'OUT_OF_STOCK'
+    ) {
+        return 'Quantity 0 must use Out of Stock status.'
+    }
+
+    if (
+        quantity > 0 &&
+        form.status ===
+        'OUT_OF_STOCK'
+    ) {
+        return 'A product with quantity above 0 cannot be Out of Stock.'
+    }
+
+    return null
+}
+
+function ProductArtwork({
+                            item,
+                        }: {
+    item: InventoryItem
+}) {
+    if (item.product.imageUrl) {
+        return (
+            <img
+                src={item.product.imageUrl}
+                alt={item.product.name}
+                loading="lazy"
+                decoding="async"
+                className="size-14 shrink-0 rounded-2xl border border-slate-700/60 bg-slate-950 object-cover"
+            />
+        )
+    }
+
+    return (
+        <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl border border-slate-700/60 bg-slate-950/70 text-slate-600">
+            <Package
+                className="size-5"
+                strokeWidth={1.6}
+                aria-hidden="true"
+            />
         </div>
     )
 }
 
 function FieldWrapper({
-    label,
-    htmlFor,
-    children,
-}: {
+                          label,
+                          htmlFor,
+                          children,
+                      }: {
     label: string
     htmlFor: string
     children: ReactNode
@@ -1315,17 +1224,191 @@ function FieldWrapper({
     return (
         <div>
             <label
-                htmlFor={
-                    htmlFor
-                }
+                htmlFor={htmlFor}
                 className="mb-2 block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500"
             >
                 {label}
             </label>
+
             {children}
         </div>
     )
 }
 
-const inputClassName =
-    'min-h-12 w-full rounded-xl border border-slate-700 bg-[#020817]/85 px-4 text-sm text-white outline-none transition duration-200 placeholder:text-slate-600 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 disabled:cursor-not-allowed disabled:opacity-50'
+function InlineAlert({
+                         children,
+                     }: {
+    children: ReactNode
+}) {
+    return (
+        <div
+            role="alert"
+            className="flex items-start gap-3 rounded-xl border border-rose-300/10 bg-rose-300/[0.05] px-4 py-3 text-xs leading-5 text-rose-200/80"
+        >
+            <TriangleAlert
+                className="mt-0.5 size-4 shrink-0 text-rose-300"
+                aria-hidden="true"
+            />
+
+            <span>
+                {children}
+            </span>
+        </div>
+    )
+}
+
+function PaginationButton({
+                              direction,
+                              disabled,
+                              onClick,
+                          }: {
+    direction: 'previous' | 'next'
+    disabled: boolean
+    onClick: () => void
+}) {
+    const previous =
+        direction ===
+        'previous'
+
+    return (
+        <button
+            type="button"
+            disabled={disabled}
+            onClick={onClick}
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/40 px-4 text-xs font-medium text-slate-400 transition duration-200 hover:border-slate-600 hover:bg-slate-800/70 hover:text-slate-100 disabled:cursor-not-allowed disabled:opacity-35"
+        >
+            {previous && (
+                <ChevronLeft
+                    className="size-3.5"
+                    aria-hidden="true"
+                />
+            )}
+
+            {previous
+                ? 'Previous'
+                : 'Next'}
+
+            {!previous && (
+                <ChevronRight
+                    className="size-3.5"
+                    aria-hidden="true"
+                />
+            )}
+        </button>
+    )
+}
+
+function DeleteConfirmation({
+                                item,
+                                pending,
+                                onCancel,
+                                onConfirm,
+                            }: {
+    item: InventoryItem
+    pending: boolean
+    onCancel: () => void
+    onConfirm: () => void
+}) {
+    return (
+        <motion.div
+            initial={{
+                opacity: 0,
+            }}
+            animate={{
+                opacity: 1,
+            }}
+            exit={{
+                opacity: 0,
+            }}
+            className="fixed inset-0 z-[1000] flex items-center justify-center p-4"
+        >
+            <button
+                type="button"
+                aria-label="Close delete confirmation"
+                onClick={onCancel}
+                disabled={pending}
+                className="absolute inset-0 cursor-default bg-slate-950/75 backdrop-blur-sm"
+            />
+
+            <motion.div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="delete-inventory-title"
+                initial={{
+                    opacity: 0,
+                    scale: 0.96,
+                    y: 12,
+                }}
+                animate={{
+                    opacity: 1,
+                    scale: 1,
+                    y: 0,
+                }}
+                exit={{
+                    opacity: 0,
+                    scale: 0.97,
+                    y: 8,
+                }}
+                transition={{
+                    duration: 0.2,
+                }}
+                className="premium-card relative z-10 w-full max-w-md rounded-2xl p-6 shadow-[0_30px_100px_rgba(0,0,0,0.5)]"
+            >
+                <div className="flex size-11 items-center justify-center rounded-xl border border-rose-300/15 bg-rose-300/[0.08] text-rose-300">
+                    <Trash2
+                        className="size-5"
+                        aria-hidden="true"
+                    />
+                </div>
+
+                <h2
+                    id="delete-inventory-title"
+                    className="mt-5 text-lg font-semibold tracking-tight text-slate-50"
+                >
+                    Remove inventory item?
+                </h2>
+
+                <p className="mt-2 text-sm leading-6 text-slate-400">
+                    <strong className="font-semibold text-slate-200">
+                        {item.product.name}
+                    </strong>{' '}
+                    will be removed from this store inventory.
+                </p>
+
+                <div className="mt-6 flex justify-end gap-2.5">
+                    <button
+                        type="button"
+                        onClick={onCancel}
+                        disabled={pending}
+                        className="min-h-10 rounded-xl border border-slate-700/80 bg-slate-900/50 px-4 text-sm font-medium text-slate-400 transition hover:bg-slate-800 hover:text-slate-100 disabled:opacity-50"
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={onConfirm}
+                        disabled={pending}
+                        className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-rose-500 px-4 text-sm font-semibold text-white transition hover:bg-rose-400 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        {pending ? (
+                            <LoaderCircle
+                                className="size-4 animate-spin"
+                                aria-hidden="true"
+                            />
+                        ) : (
+                            <Trash2
+                                className="size-4"
+                                aria-hidden="true"
+                            />
+                        )}
+
+                        {pending
+                            ? 'Removing...'
+                            : 'Remove'}
+                    </button>
+                </div>
+            </motion.div>
+        </motion.div>
+    )
+}

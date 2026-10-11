@@ -1,37 +1,86 @@
 @baseUrl = http://localhost:8080
 
 
-### Product detail
+### ========================================================
+### RESOLVE VALID PUBLIC PRODUCT AND STORE
+### Expected: 200
+### Used only to obtain stable IDs for the browse requests below
+### ========================================================
 
-GET {{baseUrl}}/api/public/products/1
+GET {{baseUrl}}/api/public/search?page=0&size=1&sort=priceAsc
+Accept: application/json
+
+> {%
+    const results =
+        response.body.content || [];
+
+    if (results.length === 0) {
+        throw new Error(
+            "No public search results are available."
+        );
+    }
+
+    client.global.set(
+        "public_browse_product_id",
+        results[0].product.id
+    );
+
+    client.global.set(
+        "public_browse_store_id",
+        results[0].store.id
+    );
+%}
+
+
+### ========================================================
+### PRODUCT DETAIL
+### Expected: 200
+### ========================================================
+
+GET {{baseUrl}}/api/public/products/{{public_browse_product_id}}
 Accept: application/json
 
 
-### Store detail
+### ========================================================
+### STORE DETAIL
+### Expected: 200
+### ========================================================
 
-GET {{baseUrl}}/api/public/stores/1
+GET {{baseUrl}}/api/public/stores/{{public_browse_store_id}}
 Accept: application/json
 
 
-### Missing product
+### ========================================================
+### MISSING PRODUCT
+### Expected: 404
+### ========================================================
 
-GET {{baseUrl}}/api/public/products/999999
+GET {{baseUrl}}/api/public/products/999999999
 Accept: application/json
 
 
-### Missing store
+### ========================================================
+### MISSING STORE
+### Expected: 404
+### ========================================================
 
-GET {{baseUrl}}/api/public/stores/999999
+GET {{baseUrl}}/api/public/stores/999999999
 Accept: application/json
 
 
-### Invalid product ID
+### ========================================================
+### INVALID PRODUCT ID
+### Expected: 400
+### ========================================================
 
 GET {{baseUrl}}/api/public/products/0
 Accept: application/json
 
 
-### Invalid store ID
+### ========================================================
+### INVALID STORE ID
+### Expected: 400
+### ========================================================
 
-GET {{baseUrl}}/api/public/stores/-1
+GET {{baseUrl}}/api/public/stores/0
 Accept: application/json

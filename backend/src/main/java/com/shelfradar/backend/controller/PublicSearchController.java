@@ -5,8 +5,11 @@ import com.shelfradar.backend.dto.publicsearch.PublicSearchFiltersResponse;
 import com.shelfradar.backend.dto.publicsearch.PublicSearchResultResponse;
 import com.shelfradar.backend.entity.enums.StockStatus;
 import com.shelfradar.backend.service.PublicSearchService;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,14 +31,15 @@ public class PublicSearchController {
 
     @GetMapping("/search")
     public PageResponse<PublicSearchResultResponse> search(
-
             @RequestParam(required = false)
             String q,
 
             @RequestParam(required = false)
+            @Positive
             Long brandId,
 
             @RequestParam(required = false)
+            @Positive
             Long categoryId,
 
             @RequestParam(required = false)
@@ -57,15 +61,19 @@ public class PublicSearchController {
             String sort,
 
             @RequestParam(required = false)
+            @DecimalMin("-90.0")
+            @DecimalMax("90.0")
             Double latitude,
 
             @RequestParam(required = false)
+            @DecimalMin("-180.0")
+            @DecimalMax("180.0")
             Double longitude,
 
             @RequestParam(required = false)
+            @Positive
             Double radiusKm
     ) {
-
         return publicSearchService.search(
                 q,
                 brandId,
@@ -83,7 +91,6 @@ public class PublicSearchController {
 
     @GetMapping("/filters")
     public PublicSearchFiltersResponse getFilters() {
-
         return publicSearchService.getFilters();
     }
 }

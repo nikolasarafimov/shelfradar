@@ -8,14 +8,24 @@ RUN mvn dependency:go-offline -B
 
 COPY src ./src
 
-RUN mvn clean package -DskipTests -B
+RUN mvn package -DskipTests -B
 
 
 FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
+RUN groupadd --system appgroup \
+    && useradd --system \
+        --gid appgroup \
+        --no-create-home \
+        appuser
+
 COPY --from=build /app/target/*.jar app.jar
+
+RUN chown appuser:appgroup app.jar
+
+USER appuser
 
 EXPOSE 8080
 

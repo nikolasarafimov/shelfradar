@@ -7,8 +7,12 @@ import {
 } from 'react-router-dom'
 
 import {
+    LoaderCircle,
+} from 'lucide-react'
+
+import {
     useAuth,
-} from './useAuth'
+} from './authContext'
 
 import type {
     UserRole,
@@ -20,9 +24,9 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({
-    allowedRole,
-    children,
-}: ProtectedRouteProps) {
+                                           allowedRole,
+                                           children,
+                                       }: ProtectedRouteProps) {
     const {
         user,
         initializing,
@@ -30,10 +34,25 @@ export default function ProtectedRoute({
 
     if (initializing) {
         return (
-            <main className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
-                <p className="text-slate-400">
-                    Loading ShelfRadar...
-                </p>
+            <main className="flex min-h-dvh items-center justify-center px-6">
+                <div className="premium-card flex items-center gap-4 px-6 py-5">
+                    <div className="flex size-10 items-center justify-center rounded-xl border border-sky-400/15 bg-sky-400/10 text-sky-300">
+                        <LoaderCircle
+                            className="size-5 animate-spin"
+                            aria-hidden="true"
+                        />
+                    </div>
+
+                    <div>
+                        <p className="text-sm font-semibold text-slate-100">
+                            Loading ShelfRadar
+                        </p>
+
+                        <p className="mt-1 text-xs text-slate-500">
+                            Restoring your session...
+                        </p>
+                    </div>
+                </div>
             </main>
         )
     }
@@ -55,5 +74,6 @@ export default function ProtectedRoute({
             />
         )
     }
+
     return children
 }

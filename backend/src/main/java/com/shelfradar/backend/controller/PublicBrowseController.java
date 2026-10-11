@@ -20,8 +20,7 @@ public class PublicBrowseController {
     public PublicBrowseController(
             PublicBrowseService publicBrowseService
     ) {
-        this.publicBrowseService =
-                publicBrowseService;
+        this.publicBrowseService = publicBrowseService;
     }
 
     @GetMapping("/products/{productId}")
@@ -30,11 +29,7 @@ public class PublicBrowseController {
             @Positive
             Long productId
     ) {
-
-        return publicBrowseService
-                .getProduct(
-                        productId
-                );
+        return publicBrowseService.getProduct(productId);
     }
 
     @GetMapping("/stores/{storeId}")
@@ -43,10 +38,6 @@ public class PublicBrowseController {
             @Positive
             Long storeId
     ) {
-
-        return publicBrowseService
-                .getStore(
-                        storeId
-                );
+        return publicBrowseService.getStore(storeId);
     }
 }

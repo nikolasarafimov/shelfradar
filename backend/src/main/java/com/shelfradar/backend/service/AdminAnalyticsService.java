@@ -1,10 +1,10 @@
 package com.shelfradar.backend.service;
 
 import com.shelfradar.backend.dto.audit.AdminAnalyticsResponse;
+import com.shelfradar.backend.dto.audit.AuditLogResponse;
 import com.shelfradar.backend.dto.audit.DailyActivityResponse;
 import com.shelfradar.backend.dto.audit.StoreActivitySummaryResponse;
 import com.shelfradar.backend.dto.catalog.PageResponse;
-import com.shelfradar.backend.dto.audit.AuditLogResponse;
 import com.shelfradar.backend.entity.AuditLog;
 import com.shelfradar.backend.entity.enums.AuditAction;
 import com.shelfradar.backend.entity.enums.AuditEntityType;
@@ -87,8 +87,7 @@ public class AdminAnalyticsService {
                                 last7Days
                         );
 
-        List<DailyActivityResponse>
-                dailyActivity =
+        List<DailyActivityResponse> dailyActivity =
                 auditLogRepository
                         .countDailyActivity(
                                 last7Days
@@ -106,8 +105,7 @@ public class AdminAnalyticsService {
                         )
                         .toList();
 
-        List<StoreActivitySummaryResponse>
-                mostActiveStores =
+        List<StoreActivitySummaryResponse> mostActiveStores =
                 auditLogRepository
                         .findMostActiveStores(
                                 last7Days
@@ -125,10 +123,9 @@ public class AdminAnalyticsService {
                         )
                         .toList();
 
-        List<AuditLogResponse>
-                recent =
+        List<AuditLogResponse> recent =
                 auditLogRepository
-                        .findTop10ByOrderByOccurredAtDesc()
+                        .findTop10ByOrderByOccurredAtDescIdDesc()
                         .stream()
                         .map(
                                 auditMapper

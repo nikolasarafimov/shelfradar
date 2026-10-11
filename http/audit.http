@@ -1,7 +1,10 @@
 @baseUrl = http://localhost:8080
 
 
-### Admin
+### ========================================================
+### ADMIN LOGIN
+### Expected: 200
+### ========================================================
 
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
@@ -13,43 +16,77 @@ Content-Type: application/json
 
 > {%
     client.global.set(
-        "admin_token",
+        "audit_admin_token",
         response.body.accessToken
     );
 %}
 
 
-### Analytics
+### ========================================================
+### ADMIN ANALYTICS
+### Expected: 200
+### ========================================================
 
 GET {{baseUrl}}/api/admin/analytics
-Authorization: Bearer {{admin_token}}
+Authorization: Bearer {{audit_admin_token}}
+Accept: application/json
 
 
-### Full audit
+### ========================================================
+### FULL AUDIT LOG
+### Expected: 200
+### ========================================================
 
-GET {{baseUrl}}/api/admin/audit
-Authorization: Bearer {{admin_token}}
-
-
-### Inventory actions
-
-GET {{baseUrl}}/api/admin/audit?entityType=INVENTORY
-Authorization: Bearer {{admin_token}}
+GET {{baseUrl}}/api/admin/audit?page=0&size=20
+Authorization: Bearer {{audit_admin_token}}
+Accept: application/json
 
 
-### Store actions
+### ========================================================
+### INVENTORY AUDIT EVENTS
+### Expected: 200
+### ========================================================
 
-GET {{baseUrl}}/api/admin/audit?entityType=STORE
-Authorization: Bearer {{admin_token}}
-
-
-### Status changes
-
-GET {{baseUrl}}/api/admin/audit?action=STORE_STATUS_CHANGED
-Authorization: Bearer {{admin_token}}
+GET {{baseUrl}}/api/admin/audit?entityType=INVENTORY&page=0&size=20
+Authorization: Bearer {{audit_admin_token}}
+Accept: application/json
 
 
-### Search
+### ========================================================
+### STORE AUDIT EVENTS
+### Expected: 200
+### ========================================================
 
-GET {{baseUrl}}/api/admin/audit?q=Market
-Authorization: Bearer {{admin_token}}
+GET {{baseUrl}}/api/admin/audit?entityType=STORE&page=0&size=20
+Authorization: Bearer {{audit_admin_token}}
+Accept: application/json
+
+
+### ========================================================
+### STORE STATUS CHANGES
+### Expected: 200
+### ========================================================
+
+GET {{baseUrl}}/api/admin/audit?action=STORE_STATUS_CHANGED&page=0&size=20
+Authorization: Bearer {{audit_admin_token}}
+Accept: application/json
+
+
+### ========================================================
+### SEARCH AUDIT LOG
+### Expected: 200
+### ========================================================
+
+GET {{baseUrl}}/api/admin/audit?q=Market&page=0&size=20
+Authorization: Bearer {{audit_admin_token}}
+Accept: application/json
+
+
+### ========================================================
+### COMBINED AUDIT FILTERS
+### Expected: 200
+### ========================================================
+
+GET {{baseUrl}}/api/admin/audit?q=Market&entityType=STORE&page=0&size=20
+Authorization: Bearer {{audit_admin_token}}
+Accept: application/json

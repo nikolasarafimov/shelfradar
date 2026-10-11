@@ -10,6 +10,7 @@ import com.shelfradar.backend.exception.ResourceNotFoundException;
 import com.shelfradar.backend.repository.AppUserRepository;
 import com.shelfradar.backend.repository.AuditLogRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuditService {
@@ -28,6 +29,7 @@ public class AuditService {
                 appUserRepository;
     }
 
+    @Transactional
     public void record(
             String actorEmail,
             AuditAction action,

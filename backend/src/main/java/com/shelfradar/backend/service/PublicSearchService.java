@@ -35,29 +35,14 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class PublicSearchService {
 
-    private final PublicSearchRepository
-            publicSearchRepository;
-
-    private final NearbySearchRepository
-            nearbySearchRepository;
-
-    private final InventoryRepository
-            inventoryRepository;
-
-    private final BrandRepository
-            brandRepository;
-
-    private final CategoryRepository
-            categoryRepository;
-
-    private final StoreRepository
-            storeRepository;
-
-    private final PublicSearchMapper
-            publicSearchMapper;
-
-    private final CatalogMapper
-            catalogMapper;
+    private final PublicSearchRepository publicSearchRepository;
+    private final NearbySearchRepository nearbySearchRepository;
+    private final InventoryRepository inventoryRepository;
+    private final BrandRepository brandRepository;
+    private final CategoryRepository categoryRepository;
+    private final StoreRepository storeRepository;
+    private final PublicSearchMapper publicSearchMapper;
+    private final CatalogMapper catalogMapper;
 
     public PublicSearchService(
             PublicSearchRepository publicSearchRepository,
@@ -69,7 +54,6 @@ public class PublicSearchService {
             PublicSearchMapper publicSearchMapper,
             CatalogMapper catalogMapper
     ) {
-
         this.publicSearchRepository =
                 publicSearchRepository;
 
@@ -95,8 +79,7 @@ public class PublicSearchService {
                 catalogMapper;
     }
 
-    public PageResponse<PublicSearchResultResponse>
-    search(
+    public PageResponse<PublicSearchResultResponse> search(
             String query,
             Long brandId,
             Long categoryId,
@@ -116,7 +99,6 @@ public class PublicSearchService {
                 radiusKm,
                 sort
         );
-
 
         if (
                 latitude == null &&
@@ -202,8 +184,7 @@ public class PublicSearchService {
                                 )
                         );
 
-        List<PublicSearchResultResponse>
-                content =
+        List<PublicSearchResultResponse> content =
                 nearbyPage
                         .content()
                         .stream()
@@ -247,8 +228,7 @@ public class PublicSearchService {
         );
     }
 
-    public PublicSearchFiltersResponse
-    getFilters() {
+    public PublicSearchFiltersResponse getFilters() {
 
         List<BrandResponse> brands =
                 brandRepository
@@ -332,7 +312,6 @@ public class PublicSearchService {
                 );
             }
 
-
             if (
                     !Double.isFinite(longitude) ||
                             longitude < -180.0 ||
@@ -354,7 +333,6 @@ public class PublicSearchService {
                 );
             }
 
-
             if (
                     !Double.isFinite(radiusKm) ||
                             radiusKm <= 0.0 ||
@@ -369,9 +347,11 @@ public class PublicSearchService {
 
         if (
                 sort != null &&
-                        sort.equalsIgnoreCase(
-                                "distanceAsc"
-                        ) &&
+                        sort
+                                .trim()
+                                .equalsIgnoreCase(
+                                        "distanceAsc"
+                                ) &&
                         !hasLatitude
         ) {
 

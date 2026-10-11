@@ -3,9 +3,9 @@ spring:
     name: ShelfRadar
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/shelfradar
-    username: shelfradar
-    password: shelfradar
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/shelfradar}
+    username: ${DB_USERNAME:shelfradar}
+    password: ${DB_PASSWORD:shelfradar}
 
   jpa:
     open-in-view: false
@@ -22,10 +22,10 @@ spring:
     enabled: true
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
 
 security:
   jwt:
-    issuer: shelfradar-api
-    expiration-minutes: 60
-    secret: ${JWT_SECRET:shelfradar-development-jwt-secret-key-change-before-production-2026}
+    issuer: ${JWT_ISSUER:shelfradar-api}
+    expiration-minutes: ${JWT_EXPIRATION_MINUTES:60}
+    secret: ${JWT_SECRET}

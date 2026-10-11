@@ -6,7 +6,11 @@ import com.shelfradar.backend.dto.auth.LoginRequest;
 import com.shelfradar.backend.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -17,8 +21,7 @@ public class AuthController {
     public AuthController(
             AuthService authService
     ) {
-        this.authService =
-                authService;
+        this.authService = authService;
     }
 
     @PostMapping("/login")
@@ -27,7 +30,6 @@ public class AuthController {
             @RequestBody
             LoginRequest request
     ) {
-
         return authService.login(request);
     }
 
@@ -35,7 +37,6 @@ public class AuthController {
     public AuthUserResponse currentUser(
             Authentication authentication
     ) {
-
         return authService.getCurrentUser(
                 authentication.getName()
         );

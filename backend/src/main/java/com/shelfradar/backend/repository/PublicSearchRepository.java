@@ -5,7 +5,6 @@ import com.shelfradar.backend.entity.enums.StockStatus;
 import com.shelfradar.backend.entity.enums.StoreStatus;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -33,11 +32,10 @@ public class PublicSearchRepository {
             int size,
             String sort
     ) {
-
         StringBuilder where =
                 new StringBuilder(
                         """
-                         WHERE s.status = :activeStatus
+                        WHERE s.status = :activeStatus
                         """
                 );
 
@@ -53,11 +51,10 @@ public class PublicSearchRepository {
                 searchText != null &&
                         !searchText.isBlank()
         ) {
-
             where.append(
                     """
-                     AND LOWER(p.name)
-                         LIKE :searchText
+                    AND LOWER(p.name)
+                        LIKE :searchText
                     """
             );
 
@@ -74,10 +71,9 @@ public class PublicSearchRepository {
         }
 
         if (brandId != null) {
-
             where.append(
                     """
-                     AND b.id = :brandId
+                    AND b.id = :brandId
                     """
             );
 
@@ -88,10 +84,9 @@ public class PublicSearchRepository {
         }
 
         if (categoryId != null) {
-
             where.append(
                     """
-                     AND c.id = :categoryId
+                    AND c.id = :categoryId
                     """
             );
 
@@ -102,10 +97,9 @@ public class PublicSearchRepository {
         }
 
         if (status != null) {
-
             where.append(
                     """
-                     AND i.status = :stockStatus
+                    AND i.status = :stockStatus
                     """
             );
 
@@ -119,10 +113,9 @@ public class PublicSearchRepository {
                 city != null &&
                         !city.isBlank()
         ) {
-
             where.append(
                     """
-                     AND LOWER(s.city) = :city
+                    AND LOWER(s.city) = :city
                     """
             );
 
@@ -148,7 +141,9 @@ public class PublicSearchRepository {
                         +
                         where
                         +
-                        resolveOrderBy(sort);
+                        resolveOrderBy(
+                                sort
+                        );
 
         String countQuery =
                 """
@@ -168,9 +163,10 @@ public class PublicSearchRepository {
                         Inventory.class
                 );
 
-        Query totalQuery =
+        TypedQuery<Long> totalQuery =
                 entityManager.createQuery(
-                        countQuery
+                        countQuery,
+                        Long.class
                 );
 
         parameters.forEach(
@@ -199,9 +195,7 @@ public class PublicSearchRepository {
                 query.getResultList();
 
         long total =
-                (Long)
-                        totalQuery
-                                .getSingleResult();
+                totalQuery.getSingleResult();
 
         return new PageImpl<>(
                 content,
@@ -216,9 +210,10 @@ public class PublicSearchRepository {
     private String resolveOrderBy(
             String sort
     ) {
-
-        if (sort == null) {
-
+        if (
+                sort == null ||
+                        sort.isBlank()
+        ) {
             return """
                     ORDER BY
                         i.price ASC,
@@ -235,6 +230,14 @@ public class PublicSearchRepository {
                                 Locale.ROOT
                         )
                 ) {
+            case "priceasc" ->
+                    """
+                    ORDER BY
+                        i.price ASC,
+                        p.name ASC,
+                        s.name ASC,
+                        i.id ASC
+                    """;
 
             case "pricedesc" ->
                     """

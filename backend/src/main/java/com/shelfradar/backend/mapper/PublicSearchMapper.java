@@ -20,7 +20,6 @@ public class PublicSearchMapper {
     public PublicSearchResultResponse toSearchResult(
             Inventory inventory
     ) {
-
         return toSearchResult(
                 inventory,
                 null
@@ -31,7 +30,6 @@ public class PublicSearchMapper {
             Inventory inventory,
             Double distanceKm
     ) {
-
         Double roundedDistance =
                 distanceKm == null
                         ? null
@@ -41,15 +39,12 @@ public class PublicSearchMapper {
 
         return new PublicSearchResultResponse(
                 inventory.getId(),
-
                 catalogMapper.toProductResponse(
                         inventory.getProduct()
                 ),
-
                 toStoreResponse(
                         inventory.getStore()
                 ),
-
                 inventory.getPrice(),
                 inventory.getQuantity(),
                 inventory.getStatus(),

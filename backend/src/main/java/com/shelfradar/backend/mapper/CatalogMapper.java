@@ -14,7 +14,6 @@ public class CatalogMapper {
     public BrandResponse toBrandResponse(
             Brand brand
     ) {
-
         return new BrandResponse(
                 brand.getId(),
                 brand.getName()
@@ -24,7 +23,6 @@ public class CatalogMapper {
     public CategoryResponse toCategoryResponse(
             Category category
     ) {
-
         return new CategoryResponse(
                 category.getId(),
                 category.getName()
@@ -34,7 +32,6 @@ public class CatalogMapper {
     public ProductResponse toProductResponse(
             Product product
     ) {
-
         return new ProductResponse(
                 product.getId(),
                 product.getName(),

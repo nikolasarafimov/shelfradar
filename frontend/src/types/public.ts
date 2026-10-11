@@ -9,6 +9,16 @@ import type {
     StockStatus,
 } from './store'
 
+export type HealthStatus =
+    | 'UP'
+    | 'DOWN'
+
+export interface HealthResponse {
+    status: HealthStatus
+    database: HealthStatus
+    postgis: HealthStatus
+}
+
 export interface PublicStore {
     id: number
     name: string

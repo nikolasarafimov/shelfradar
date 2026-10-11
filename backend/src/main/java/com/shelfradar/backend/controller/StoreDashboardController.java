@@ -36,6 +36,7 @@ public class StoreDashboardController {
     @GetMapping("/stores/{storeId}/dashboard")
     public StoreDashboardResponse getStoreDashboard(
             Authentication authentication,
+
             @PathVariable
             @Positive
             Long storeId

@@ -23,7 +23,7 @@ public interface AuditLogRepository
             Instant from
     );
 
-    List<AuditLog> findTop10ByOrderByOccurredAtDesc();
+    List<AuditLog> findTop10ByOrderByOccurredAtDescIdDesc();
 
     Page<AuditLog> findByStoreId(
             Long storeId,
@@ -58,7 +58,15 @@ public interface AuditLogRepository
             value = """
                     SELECT
                         store_id,
-                        MAX(store_name_snapshot),
+                        (
+                            ARRAY_AGG(
+                                store_name_snapshot
+                                ORDER BY occurred_at DESC, id DESC
+                            )
+                            FILTER (
+                                WHERE store_name_snapshot IS NOT NULL
+                            )
+                        )[1],
                         COUNT(*)
                     FROM audit_logs
                     WHERE occurred_at >= :from

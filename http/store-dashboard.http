@@ -1,7 +1,10 @@
 @baseUrl = http://localhost:8080
 
 
-### Marko login
+### ========================================================
+### STORE OWNER LOGIN
+### Expected: 200
+### ========================================================
 
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
@@ -13,16 +16,19 @@ Content-Type: application/json
 
 > {%
     client.global.set(
-        "store_token",
+        "dashboard_store_token",
         response.body.accessToken
     );
 %}
 
 
-### Owner dashboard
+### ========================================================
+### OWNER DASHBOARD
+### Expected: 200
+### ========================================================
 
 GET {{baseUrl}}/api/store/dashboard
-Authorization: Bearer {{store_token}}
+Authorization: Bearer {{dashboard_store_token}}
 Accept: application/json
 
 > {%
@@ -31,28 +37,27 @@ Accept: application/json
         response.body.stores.length > 0
     ) {
         client.global.set(
-            "store_id",
+            "dashboard_store_id",
             response.body.stores[0].store.id
         );
     }
 %}
 
 
-### Store dashboard
+### ========================================================
+### STORE DASHBOARD
+### Expected: 200
+### ========================================================
 
-GET {{baseUrl}}/api/store/stores/{{store_id}}/dashboard
-Authorization: Bearer {{store_token}}
+GET {{baseUrl}}/api/store/stores/{{dashboard_store_id}}/dashboard
+Authorization: Bearer {{dashboard_store_token}}
 Accept: application/json
 
 
-### Store inventory
-
-GET {{baseUrl}}/api/store/stores/{{store_id}}/inventory?page=0&size=20&sort=updatedDesc
-Authorization: Bearer {{store_token}}
-Accept: application/json
-
-
-### Admin login
+### ========================================================
+### ADMIN LOGIN
+### Expected: 200
+### ========================================================
 
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
@@ -64,20 +69,36 @@ Content-Type: application/json
 
 > {%
     client.global.set(
-        "admin_token",
+        "dashboard_admin_token",
         response.body.accessToken
     );
 %}
 
 
-### Admin cannot use owner dashboard - expected 403
+### ========================================================
+### ADMIN TRIES OWNER DASHBOARD
+### Expected: 403
+### ========================================================
 
 GET {{baseUrl}}/api/store/dashboard
-Authorization: Bearer {{admin_token}}
+Authorization: Bearer {{dashboard_admin_token}}
 Accept: application/json
 
 
-### No token - expected 401
+### ========================================================
+### OWNER DASHBOARD WITHOUT TOKEN
+### Expected: 401
+### ========================================================
 
 GET {{baseUrl}}/api/store/dashboard
+Accept: application/json
+
+
+### ========================================================
+### STORE DASHBOARD WITH INVALID STORE ID
+### Expected: 400
+### ========================================================
+
+GET {{baseUrl}}/api/store/stores/0/dashboard
+Authorization: Bearer {{dashboard_store_token}}
 Accept: application/json

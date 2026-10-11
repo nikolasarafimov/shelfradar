@@ -16,7 +16,14 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -30,21 +37,16 @@ public class AdminStoreController {
     public AdminStoreController(
             AdminStoreService adminStoreService
     ) {
-
-        this.adminStoreService =
-                adminStoreService;
+        this.adminStoreService = adminStoreService;
     }
 
     @GetMapping("/dashboard")
     public AdminDashboardResponse getDashboard() {
-
-        return adminStoreService
-                .getDashboard();
+        return adminStoreService.getDashboard();
     }
 
     @GetMapping("/stores")
     public PageResponse<AdminStoreResponse> searchStores(
-
             @RequestParam(required = false)
             String q,
 
@@ -66,40 +68,32 @@ public class AdminStoreController {
             @RequestParam(defaultValue = "newest")
             String sort
     ) {
-        return adminStoreService
-                .searchStores(
-                        q,
-                        status,
-                        city,
-                        page,
-                        size,
-                        sort
-                );
+        return adminStoreService.searchStores(
+                q,
+                status,
+                city,
+                page,
+                size,
+                sort
+        );
     }
 
     @GetMapping("/stores/filters")
     public AdminStoreFiltersResponse getFilters() {
-
-        return adminStoreService
-                .getFilters();
+        return adminStoreService.getFilters();
     }
 
     @GetMapping("/stores/{storeId}")
     public AdminStoreDetailResponse getStore(
-
             @PathVariable
             @Positive
             Long storeId
     ) {
-        return adminStoreService
-                .getStore(
-                        storeId
-                );
+        return adminStoreService.getStore(storeId);
     }
 
     @PutMapping("/stores/{storeId}")
     public AdminStoreDetailResponse updateStore(
-
             Authentication authentication,
 
             @PathVariable
@@ -110,18 +104,15 @@ public class AdminStoreController {
             @RequestBody
             AdminStoreUpdateRequest request
     ) {
-
-        return adminStoreService
-                .updateStore(
-                        authentication.getName(),
-                        storeId,
-                        request
-                );
+        return adminStoreService.updateStore(
+                authentication.getName(),
+                storeId,
+                request
+        );
     }
 
     @PatchMapping("/stores/{storeId}/status")
     public AdminStoreDetailResponse updateStatus(
-
             Authentication authentication,
 
             @PathVariable
@@ -132,18 +123,15 @@ public class AdminStoreController {
             @RequestBody
             AdminStoreStatusRequest request
     ) {
-        return adminStoreService
-                .changeStatus(
-                        authentication.getName(),
-                        storeId,
-                        request.status()
-                );
+        return adminStoreService.changeStatus(
+                authentication.getName(),
+                storeId,
+                request.status()
+        );
     }
 
     @GetMapping("/store-owners")
     public List<AdminOwnerResponse> getStoreOwners() {
-
-        return adminStoreService
-                .getStoreOwners();
+        return adminStoreService.getStoreOwners();
     }
 }

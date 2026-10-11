@@ -335,15 +335,17 @@ public class NearbySearchRepository {
     private String resolveOrderBy(
             String sort
     ) {
-
-        if (sort == null) {
-
+        if (
+                sort == null ||
+                        sort.isBlank()
+        ) {
             return """
-                    ORDER BY
-                        distance_km ASC,
-                        i.price ASC,
-                        i.id ASC
-                    """;
+                ORDER BY
+                    i.price ASC,
+                    distance_km ASC,
+                    p.name ASC,
+                    i.id ASC
+                """;
         }
 
         return switch (
@@ -353,6 +355,14 @@ public class NearbySearchRepository {
                                 Locale.ROOT
                         )
                 ) {
+            case "priceasc" ->
+                    """
+                    ORDER BY
+                        i.price ASC,
+                        distance_km ASC,
+                        p.name ASC,
+                        i.id ASC
+                    """;
 
             case "distanceasc" ->
                     """

@@ -1,2 +1,10 @@
-GET http://localhost:8080/api/health
+@baseUrl = http://localhost:8080
+
+### ========================================================
+### APPLICATION HEALTH
+### Expected: 200 when application, database and PostGIS are healthy
+### Expected: 503 when a required dependency is unavailable
+### ========================================================
+
+GET {{baseUrl}}/api/health
 Accept: application/json

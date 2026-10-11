@@ -1,5 +1,6 @@
 import type {
     FormEvent,
+    ReactNode,
 } from 'react'
 
 import {
@@ -26,28 +27,14 @@ import {
 import {
     getAdminAnalytics,
     getAdminAudit,
-} from '../api/auditApi'
+} from '../api/adminApi'
 
-import AdminLayout
-    from '../components/admin/AdminLayout'
-
-import AuditRow
-    from '../components/audit/AuditRow'
-
-import EmptyState
-    from '../components/ui/EmptyState'
-
-import ErrorState
-    from '../components/ui/ErrorState'
-
-import LoadingState
-    from '../components/ui/LoadingState'
-
-import MetricCard
-    from '../components/ui/MetricCard'
-
-import PageHeader
-    from '../components/ui/PageHeader'
+import AdminLayout from '../components/admin/AdminLayout'
+import AuditRow from '../components/audit/AuditRow'
+import ErrorState from '../components/ui/ErrorState'
+import LoadingState from '../components/ui/LoadingState'
+import MetricCard from '../components/ui/MetricCard'
+import PageHeader from '../components/ui/PageHeader'
 
 import {
     formatNumber,
@@ -58,22 +45,116 @@ import type {
     AuditEntityType,
 } from '../types/audit'
 
+interface AuditActionOption {
+    value: AuditAction
+    label: string
+}
+
+interface EntityTypeOption {
+    value: AuditEntityType
+    label: string
+}
+
+const AUDIT_ACTION_OPTIONS: AuditActionOption[] = [
+    {
+        value: 'INVENTORY_CREATED',
+        label: 'Inventory created',
+    },
+    {
+        value: 'INVENTORY_UPDATED',
+        label: 'Inventory updated',
+    },
+    {
+        value: 'INVENTORY_DELETED',
+        label: 'Inventory deleted',
+    },
+    {
+        value: 'STORE_PROFILE_UPDATED',
+        label: 'Store profile updated',
+    },
+    {
+        value: 'STORE_STATUS_CHANGED',
+        label: 'Store status changed',
+    },
+    {
+        value: 'STORE_OWNER_CHANGED',
+        label: 'Store owner changed',
+    },
+    {
+        value: 'PRODUCT_CREATED',
+        label: 'Product created',
+    },
+    {
+        value: 'PRODUCT_UPDATED',
+        label: 'Product updated',
+    },
+    {
+        value: 'PRODUCT_DELETED',
+        label: 'Product deleted',
+    },
+    {
+        value: 'BRAND_CREATED',
+        label: 'Brand created',
+    },
+    {
+        value: 'BRAND_UPDATED',
+        label: 'Brand updated',
+    },
+    {
+        value: 'BRAND_DELETED',
+        label: 'Brand deleted',
+    },
+    {
+        value: 'CATEGORY_CREATED',
+        label: 'Category created',
+    },
+    {
+        value: 'CATEGORY_UPDATED',
+        label: 'Category updated',
+    },
+    {
+        value: 'CATEGORY_DELETED',
+        label: 'Category deleted',
+    },
+]
+
+const ENTITY_TYPE_OPTIONS: EntityTypeOption[] = [
+    {
+        value: 'INVENTORY',
+        label: 'Inventory',
+    },
+    {
+        value: 'STORE',
+        label: 'Store',
+    },
+    {
+        value: 'PRODUCT',
+        label: 'Product',
+    },
+    {
+        value: 'BRAND',
+        label: 'Brand',
+    },
+    {
+        value: 'CATEGORY',
+        label: 'Category',
+    },
+]
+
+const inputClassName =
+    'field min-h-11 w-full px-4 text-sm disabled:cursor-not-allowed disabled:opacity-50'
 
 export default function AdminActivityPage() {
-
     const [
         searchParams,
         setSearchParams,
-    ] =
-        useSearchParams()
-
+    ] = useSearchParams()
 
     const query =
         searchParams.get(
             'q',
         ) ??
         ''
-
 
     const action =
         toAuditAction(
@@ -82,7 +163,6 @@ export default function AdminActivityPage() {
             ),
         )
 
-
     const entityType =
         toEntityType(
             searchParams.get(
@@ -90,14 +170,12 @@ export default function AdminActivityPage() {
             ),
         )
 
-
     const page =
         toPage(
             searchParams.get(
                 'page',
             ),
         )
-
 
     const analyticsQuery =
         useQuery({
@@ -108,7 +186,6 @@ export default function AdminActivityPage() {
             queryFn:
             getAdminAnalytics,
         })
-
 
     const auditQuery =
         useQuery({
@@ -123,33 +200,23 @@ export default function AdminActivityPage() {
             queryFn:
                 () =>
                     getAdminAudit({
-                        q:
-                        query,
-
+                        q: query,
                         action,
-
                         entityType,
-
                         page,
-
-                        size:
-                            20,
+                        size: 20,
                     }),
         })
-
 
     function handleSubmit(
         event: FormEvent<HTMLFormElement>,
     ) {
-
         event.preventDefault()
-
 
         const formData =
             new FormData(
                 event.currentTarget,
             )
-
 
         const nextQuery =
             String(
@@ -159,116 +226,98 @@ export default function AdminActivityPage() {
                 '',
             ).trim()
 
-
         const nextAction =
-            String(
-                formData.get(
-                    'action',
-                ) ??
-                '',
+            toAuditAction(
+                String(
+                    formData.get(
+                        'action',
+                    ) ??
+                    '',
+                ),
             )
-
 
         const nextEntityType =
-            String(
-                formData.get(
-                    'entityType',
-                ) ??
-                '',
+            toEntityType(
+                String(
+                    formData.get(
+                        'entityType',
+                    ) ??
+                    '',
+                ),
             )
-
 
         const next =
             new URLSearchParams()
 
-
-        if (
-            nextQuery
-        ) {
-
+        if (nextQuery) {
             next.set(
                 'q',
                 nextQuery,
             )
         }
 
-
-        if (
-            nextAction
-        ) {
-
+        if (nextAction) {
             next.set(
                 'action',
                 nextAction,
             )
         }
 
-
-        if (
-            nextEntityType
-        ) {
-
+        if (nextEntityType) {
             next.set(
                 'entityType',
                 nextEntityType,
             )
         }
 
-
-        next.set(
-            'page',
-            '0',
-        )
-
-
         setSearchParams(
             next,
         )
     }
 
-
     function clearFilters() {
-
         setSearchParams(
             new URLSearchParams(),
         )
     }
 
-
     function changePage(
         nextPage: number,
     ) {
-
         const next =
             new URLSearchParams(
                 searchParams,
             )
 
+        const normalizedPage =
+            Math.max(
+                0,
+                nextPage,
+            )
 
-        next.set(
-            'page',
-            String(
-                Math.max(
-                    0,
-                    nextPage,
+        if (normalizedPage === 0) {
+            next.delete(
+                'page',
+            )
+        } else {
+            next.set(
+                'page',
+                String(
+                    normalizedPage,
                 ),
-            ),
-        )
-
+            )
+        }
 
         setSearchParams(
             next,
         )
     }
 
-
     const analytics =
         analyticsQuery.data
 
-
     const audit =
         auditQuery.data
-
 
     const hasFilters =
         Boolean(
@@ -277,62 +326,45 @@ export default function AdminActivityPage() {
             entityType,
         )
 
-
     return (
         <AdminLayout>
-
             <div className="space-y-8">
-
                 <PageHeader
                     eyebrow="Analytics & Audit"
-                    title="Platform Activity"
+                    title="Platform activity"
                     description="Review operational activity and historical changes across ShelfRadar."
                 />
-
 
                 <section
                     aria-label="Platform activity metrics"
                 >
+                    {analyticsQuery.isLoading && (
+                        <LoadingState
+                            message="Loading platform analytics..."
+                        />
+                    )}
 
-                    {
-                        analyticsQuery.isLoading && (
-
-                            <LoadingState
-                                message="Loading platform analytics..."
-                            />
-                        )
-                    }
-
-
-                    {
-                        analyticsQuery.isError && (
-
-                            <ErrorState
-                                title="Analytics unavailable"
-                                message="ShelfRadar could not load the platform activity metrics."
-                                onRetry={
-                                    () => {
-                                        void analyticsQuery.refetch()
-                                    }
+                    {analyticsQuery.isError && (
+                        <ErrorState
+                            title="Analytics unavailable"
+                            message="ShelfRadar could not load the platform activity metrics."
+                            onRetry={
+                                () => {
+                                    void analyticsQuery.refetch()
                                 }
-                            />
-                        )
-                    }
+                            }
+                        />
+                    )}
 
-
-                    {
-                        analytics &&
+                    {analytics &&
                         !analyticsQuery.isLoading &&
                         !analyticsQuery.isError && (
-
                             <div className="space-y-5">
-
                                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-
                                     <MetricCard
                                         icon={
                                             <Clock3
-                                                size={20}
+                                                className="size-5"
                                             />
                                         }
                                         label="Last 24 hours"
@@ -343,11 +375,10 @@ export default function AdminActivityPage() {
                                         }
                                     />
 
-
                                     <MetricCard
                                         icon={
                                             <Activity
-                                                size={20}
+                                                className="size-5"
                                             />
                                         }
                                         label="Last 7 days"
@@ -358,11 +389,10 @@ export default function AdminActivityPage() {
                                         }
                                     />
 
-
                                     <MetricCard
                                         icon={
                                             <Boxes
-                                                size={20}
+                                                className="size-5"
                                             />
                                         }
                                         label="Inventory changes"
@@ -373,11 +403,10 @@ export default function AdminActivityPage() {
                                         }
                                     />
 
-
                                     <MetricCard
                                         icon={
                                             <Store
-                                                size={20}
+                                                className="size-5"
                                             />
                                         }
                                         label="Store changes"
@@ -387,267 +416,155 @@ export default function AdminActivityPage() {
                                             )
                                         }
                                     />
-
                                 </div>
-
 
                                 <div className="grid items-start gap-5 lg:grid-cols-2">
-
-                                    <section className="premium-card overflow-hidden rounded-3xl border border-slate-800/90 bg-slate-900/55 shadow-[0_24px_70px_-45px_rgba(0,0,0,0.8)] backdrop-blur-xl">
-
-                                        <div className="flex items-center gap-3 border-b border-slate-800/80 px-5 py-4 sm:px-6">
-
-                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-900/50 bg-sky-950/30 text-sky-400">
-
-                                                <Activity
-                                                    size={17}
-                                                />
-
-                                            </div>
-
-
-                                            <div>
-
-                                                <h2 className="text-sm font-bold text-white">
-                                                    Daily activity
-                                                </h2>
-
-
-                                                <p className="mt-0.5 text-xs text-slate-500">
-                                                    Recorded actions over recent days.
-                                                </p>
-
-                                            </div>
-
-                                        </div>
-
-
-                                        {
-                                            analytics.dailyActivity.length ===
-                                            0 ? (
-
-                                                <div className="p-5 sm:p-6">
-
-                                                    <EmptyState
-                                                        title="No daily activity"
-                                                        message="Platform activity will appear here once actions are recorded."
-                                                    />
-
-                                                </div>
-
-                                            ) : (
-
-                                                <div className="divide-y divide-slate-800/70">
-
-                                                    {
-                                                        analytics.dailyActivity.map(
-                                                            item => (
-
-                                                                <div
-                                                                    key={
-                                                                        item.date
-                                                                    }
-                                                                    className="flex items-center justify-between gap-4 px-5 py-4 transition hover:bg-slate-800/25 sm:px-6"
-                                                                >
-
-                                                                    <span className="text-sm text-slate-500">
-                                                                        {
-                                                                            formatDate(
-                                                                                item.date,
-                                                                            )
-                                                                        }
-                                                                    </span>
-
-
-                                                                    <span className="rounded-lg border border-slate-800 bg-[#020817]/55 px-3 py-1.5 text-sm font-bold text-slate-200">
-                                                                        {
-                                                                            formatNumber(
-                                                                                item.actions,
-                                                                            )
-                                                                        }
-                                                                    </span>
-
-                                                                </div>
-                                                            ),
-                                                        )
-                                                    }
-
-                                                </div>
-                                            )
+                                    <AnalyticsPanel
+                                        icon={
+                                            <Activity
+                                                className="size-[18px]"
+                                                aria-hidden="true"
+                                            />
                                         }
+                                        title="Daily activity"
+                                        description="Recorded actions over recent days."
+                                    >
+                                        {analytics.dailyActivity.length === 0 ? (
+                                            <InlineEmptyState
+                                                title="No daily activity"
+                                                message="Platform activity will appear here once actions are recorded."
+                                            />
+                                        ) : (
+                                            <div className="divide-y divide-slate-800/70">
+                                                {analytics.dailyActivity.map(
+                                                    item => (
+                                                        <div
+                                                            key={item.date}
+                                                            className="flex items-center justify-between gap-4 px-5 py-4 transition-colors duration-200 hover:bg-white/[0.018] sm:px-6"
+                                                        >
+                                                            <span className="text-sm text-slate-500">
+                                                                {
+                                                                    formatCalendarDate(
+                                                                        item.date,
+                                                                    )
+                                                                }
+                                                            </span>
 
-                                    </section>
-
-
-                                    <section className="premium-card overflow-hidden rounded-3xl border border-slate-800/90 bg-slate-900/55 shadow-[0_24px_70px_-45px_rgba(0,0,0,0.8)] backdrop-blur-xl">
-
-                                        <div className="flex items-center gap-3 border-b border-slate-800/80 px-5 py-4 sm:px-6">
-
-                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-900/50 bg-sky-950/30 text-sky-400">
-
-                                                <Store
-                                                    size={17}
-                                                />
-
+                                                            <span className="rounded-lg bg-slate-400/[0.05] px-3 py-1.5 text-sm font-semibold text-slate-200 ring-1 ring-inset ring-slate-300/10">
+                                                                {
+                                                                    formatNumber(
+                                                                        item.actions,
+                                                                    )
+                                                                }
+                                                            </span>
+                                                        </div>
+                                                    ),
+                                                )}
                                             </div>
+                                        )}
+                                    </AnalyticsPanel>
 
-
-                                            <div>
-
-                                                <h2 className="text-sm font-bold text-white">
-                                                    Most active stores
-                                                </h2>
-
-
-                                                <p className="mt-0.5 text-xs text-slate-500">
-                                                    Stores with the highest recorded activity.
-                                                </p>
-
-                                            </div>
-
-                                        </div>
-
-
-                                        {
-                                            analytics.mostActiveStores.length ===
-                                            0 ? (
-
-                                                <div className="p-5 sm:p-6">
-
-                                                    <EmptyState
-                                                        title="No store activity"
-                                                        message="Store activity will appear here after store-related actions are recorded."
-                                                    />
-
-                                                </div>
-
-                                            ) : (
-
-                                                <div className="divide-y divide-slate-800/70">
-
-                                                    {
-                                                        analytics.mostActiveStores.map(
-                                                            item => (
-
-                                                                <div
-                                                                    key={
-                                                                        item.storeId
-                                                                    }
-                                                                    className="flex items-center justify-between gap-4 px-5 py-4 transition hover:bg-slate-800/25 sm:px-6"
-                                                                >
-
-                                                                    <div className="min-w-0">
-
-                                                                        <p className="truncate text-sm font-semibold text-slate-200">
-                                                                            {
-                                                                                item.storeName ??
-                                                                                `Store ${item.storeId}`
-                                                                            }
-                                                                        </p>
-
-                                                                        <p className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-600">
-                                                                            Store activity
-                                                                        </p>
-
-                                                                    </div>
-
-
-                                                                    <span className="shrink-0 rounded-lg border border-slate-800 bg-[#020817]/55 px-3 py-1.5 text-xs font-semibold text-slate-300">
-
-                                                                        {
-                                                                            formatNumber(
-                                                                                item.actions,
-                                                                            )
-                                                                        }{' '}
-
-                                                                        {
-                                                                            item.actions ===
-                                                                            1
-                                                                                ? 'action'
-                                                                                : 'actions'
-                                                                        }
-
-                                                                    </span>
-
-                                                                </div>
-                                                            ),
-                                                        )
-                                                    }
-
-                                                </div>
-                                            )
+                                    <AnalyticsPanel
+                                        icon={
+                                            <Store
+                                                className="size-[18px]"
+                                                aria-hidden="true"
+                                            />
                                         }
+                                        title="Most active stores"
+                                        description="Stores with the highest recorded activity."
+                                    >
+                                        {analytics.mostActiveStores.length === 0 ? (
+                                            <InlineEmptyState
+                                                title="No store activity"
+                                                message="Store activity will appear here after store-related actions are recorded."
+                                            />
+                                        ) : (
+                                            <div className="divide-y divide-slate-800/70">
+                                                {analytics.mostActiveStores.map(
+                                                    item => (
+                                                        <div
+                                                            key={item.storeId}
+                                                            className="flex items-center justify-between gap-4 px-5 py-4 transition-colors duration-200 hover:bg-white/[0.018] sm:px-6"
+                                                        >
+                                                            <div className="min-w-0">
+                                                                <p className="truncate text-sm font-semibold text-slate-200">
+                                                                    {
+                                                                        item.storeName ??
+                                                                        `Store ${item.storeId}`
+                                                                    }
+                                                                </p>
 
-                                    </section>
+                                                                <p className="mt-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-slate-600">
+                                                                    Store activity
+                                                                </p>
+                                                            </div>
 
+                                                            <span className="shrink-0 rounded-lg bg-slate-400/[0.05] px-3 py-1.5 text-xs font-semibold text-slate-300 ring-1 ring-inset ring-slate-300/10">
+                                                                {
+                                                                    formatNumber(
+                                                                        item.actions,
+                                                                    )
+                                                                }{' '}
+                                                                {
+                                                                    item.actions === 1
+                                                                        ? 'action'
+                                                                        : 'actions'
+                                                                }
+                                                            </span>
+                                                        </div>
+                                                    ),
+                                                )}
+                                            </div>
+                                        )}
+                                    </AnalyticsPanel>
                                 </div>
-
                             </div>
-                        )
-                    }
-
+                        )}
                 </section>
-
 
                 <section
                     aria-labelledby="admin-audit-heading"
                     className="space-y-5"
                 >
-
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-
                         <div>
-
-                            <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-sky-400">
+                            <p className="eyebrow">
                                 Audit trail
                             </p>
 
-
                             <h2
                                 id="admin-audit-heading"
-                                className="mt-1 text-2xl font-bold tracking-tight text-white"
+                                className="mt-1.5 text-2xl font-semibold tracking-[-0.03em] text-slate-50"
                             >
-                                Audit Log
+                                Audit log
                             </h2>
 
-
-                            <p className="mt-1 text-sm text-slate-500">
+                            <p className="mt-1.5 text-sm leading-6 text-slate-500">
                                 Search and filter recorded administrative and store-owner actions.
                             </p>
-
                         </div>
 
-
-                        {
-                            auditQuery.isFetching &&
+                        {auditQuery.isFetching &&
                             !auditQuery.isLoading && (
-
-                                <span className="inline-flex items-center gap-2 self-start rounded-full border border-slate-800 bg-slate-900/50 px-3 py-1.5 text-[10px] font-semibold text-slate-500 sm:self-auto">
-
+                                <span className="inline-flex items-center gap-2 self-start rounded-full border border-sky-300/10 bg-sky-300/[0.05] px-3 py-1.5 text-[10px] font-semibold text-slate-400 sm:self-auto">
                                     <LoaderCircle
-                                        size={12}
-                                        className="animate-spin text-sky-400"
+                                        className="size-3 animate-spin text-sky-300"
+                                        aria-hidden="true"
                                     />
 
                                     Updating
-
                                 </span>
-                            )
-                        }
-
+                            )}
                     </div>
-
 
                     <form
                         key={
                             searchParams.toString()
                         }
-                        onSubmit={
-                            handleSubmit
-                        }
-                        className="premium-card grid gap-3 rounded-3xl border border-slate-800/90 bg-slate-900/55 p-5 backdrop-blur-xl lg:grid-cols-[minmax(0,1fr)_220px_190px_auto]"
+                        onSubmit={handleSubmit}
+                        className="premium-card grid gap-3 rounded-2xl p-5 lg:grid-cols-[minmax(0,1fr)_220px_190px_auto]"
                     >
-
                         <label
                             htmlFor="audit-search"
                             className="sr-only"
@@ -655,28 +572,21 @@ export default function AdminActivityPage() {
                             Search audit log
                         </label>
 
-
                         <div className="relative">
-
                             <Search
-                                size={15}
-                                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-600"
+                                className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-600"
+                                aria-hidden="true"
                             />
-
 
                             <input
                                 id="audit-search"
                                 name="q"
                                 type="search"
-                                defaultValue={
-                                    query
-                                }
+                                defaultValue={query}
                                 placeholder="Actor, store, product..."
                                 className={`${inputClassName} pl-11`}
                             />
-
                         </div>
-
 
                         <label
                             htmlFor="audit-action"
@@ -684,7 +594,6 @@ export default function AdminActivityPage() {
                         >
                             Filter by action
                         </label>
-
 
                         <select
                             id="audit-action"
@@ -695,37 +604,21 @@ export default function AdminActivityPage() {
                             }
                             className={inputClassName}
                         >
-
                             <option value="">
                                 All actions
                             </option>
 
-                            <option value="INVENTORY_CREATED">
-                                Inventory created
-                            </option>
-
-                            <option value="INVENTORY_UPDATED">
-                                Inventory updated
-                            </option>
-
-                            <option value="INVENTORY_DELETED">
-                                Inventory deleted
-                            </option>
-
-                            <option value="STORE_PROFILE_UPDATED">
-                                Store updated
-                            </option>
-
-                            <option value="STORE_STATUS_CHANGED">
-                                Store status changed
-                            </option>
-
-                            <option value="STORE_OWNER_CHANGED">
-                                Store owner changed
-                            </option>
-
+                            {AUDIT_ACTION_OPTIONS.map(
+                                option => (
+                                    <option
+                                        key={option.value}
+                                        value={option.value}
+                                    >
+                                        {option.label}
+                                    </option>
+                                ),
+                            )}
                         </select>
-
 
                         <label
                             htmlFor="audit-entity"
@@ -733,7 +626,6 @@ export default function AdminActivityPage() {
                         >
                             Filter by entity type
                         </label>
-
 
                         <select
                             id="audit-entity"
@@ -744,356 +636,334 @@ export default function AdminActivityPage() {
                             }
                             className={inputClassName}
                         >
-
                             <option value="">
                                 All entities
                             </option>
 
-                            <option value="INVENTORY">
-                                Inventory
-                            </option>
-
-                            <option value="STORE">
-                                Store
-                            </option>
-
-                            <option value="PRODUCT">
-                                Product
-                            </option>
-
-                            <option value="BRAND">
-                                Brand
-                            </option>
-
-                            <option value="CATEGORY">
-                                Category
-                            </option>
-
+                            {ENTITY_TYPE_OPTIONS.map(
+                                option => (
+                                    <option
+                                        key={option.value}
+                                        value={option.value}
+                                    >
+                                        {option.label}
+                                    </option>
+                                ),
+                            )}
                         </select>
 
-
                         <div className="flex gap-2">
-
                             <button
                                 type="submit"
-                                className="shine-button inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-400 px-4 text-sm font-bold text-slate-950 transition hover:brightness-110 lg:flex-none"
+                                className="shine-button inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-400 to-cyan-300 px-4 text-sm font-semibold text-slate-950 shadow-[0_12px_30px_rgba(14,165,233,0.15)] transition duration-200 hover:brightness-110 lg:flex-none"
                             >
-
                                 <Filter
-                                    size={14}
+                                    className="size-3.5"
+                                    aria-hidden="true"
                                 />
 
                                 Apply
-
                             </button>
 
+                            {hasFilters && (
+                                <button
+                                    type="button"
+                                    onClick={clearFilters}
+                                    aria-label="Clear audit filters"
+                                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/50 px-3.5 text-sm font-medium text-slate-400 transition duration-200 hover:border-slate-600 hover:bg-slate-800/70 hover:text-slate-100"
+                                >
+                                    <RotateCcw
+                                        className="size-3.5"
+                                        aria-hidden="true"
+                                    />
 
-                            {
-                                hasFilters && (
-
-                                    <button
-                                        type="button"
-                                        onClick={
-                                            clearFilters
-                                        }
-                                        aria-label="Clear audit filters"
-                                        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900/50 px-3.5 text-sm font-semibold text-slate-400 transition hover:border-slate-600 hover:bg-slate-800 hover:text-white"
-                                    >
-
-                                        <RotateCcw
-                                            size={14}
-                                        />
-
-                                        <span className="hidden xl:inline">
-                                            Clear
-                                        </span>
-
-                                    </button>
-                                )
-                            }
-
+                                    <span className="hidden xl:inline">
+                                        Clear
+                                    </span>
+                                </button>
+                            )}
                         </div>
-
                     </form>
 
+                    {auditQuery.isLoading && (
+                        <LoadingState
+                            message="Loading audit log..."
+                        />
+                    )}
 
-                    {
-                        auditQuery.isLoading && (
-
-                            <LoadingState
-                                message="Loading audit log..."
-                            />
-                        )
-                    }
-
-
-                    {
-                        auditQuery.isError && (
-
-                            <ErrorState
-                                title="Audit log unavailable"
-                                message="ShelfRadar could not load the platform audit history."
-                                onRetry={
-                                    () => {
-                                        void auditQuery.refetch()
-                                    }
+                    {auditQuery.isError && (
+                        <ErrorState
+                            title="Audit log unavailable"
+                            message="ShelfRadar could not load the platform audit history."
+                            onRetry={
+                                () => {
+                                    void auditQuery.refetch()
                                 }
-                            />
-                        )
-                    }
+                            }
+                        />
+                    )}
 
-
-                    {
-                        audit &&
+                    {audit &&
                         !auditQuery.isLoading &&
-                        !auditQuery.isError && (
-
-                            <div className="premium-card overflow-hidden rounded-3xl border border-slate-800/90 bg-slate-900/55 shadow-[0_24px_70px_-45px_rgba(0,0,0,0.8)] backdrop-blur-xl">
-
-                                {
-                                    audit.content.length ===
-                                    0 ? (
-
-                                        <div className="p-5 sm:p-6">
-
-                                            <EmptyState
-                                                title="No audit entries found"
-                                                message={
-                                                    hasFilters
-                                                        ? 'No recorded activity matches the current filters.'
-                                                        : 'Recorded platform activity will appear here.'
-                                                }
-                                                action={
-                                                    hasFilters
-                                                        ? (
-                                                            <button
-                                                                type="button"
-                                                                onClick={
-                                                                    clearFilters
-                                                                }
-                                                                className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/60 px-4 text-sm font-semibold text-slate-300 transition hover:border-sky-900 hover:bg-sky-950/20 hover:text-sky-300"
-                                                            >
-                                                                <RotateCcw
-                                                                    size={14}
-                                                                />
-
-                                                                Clear filters
-                                                            </button>
-                                                        )
-                                                        : undefined
-                                                }
-                                            />
-
-                                        </div>
-
-                                    ) : (
-
-                                        <div>
-                                            {
-                                                audit.content.map(
-                                                    entry => (
-
-                                                        <AuditRow
-                                                            key={
-                                                                entry.id
-                                                            }
-                                                            entry={
-                                                                entry
-                                                            }
-                                                        />
-                                                    ),
-                                                )
-                                            }
-                                        </div>
-                                    )
-                                }
-
-
-                                {
-                                    audit.totalPages >
-                                    1 && (
-
-                                        <div className="flex flex-col gap-3 border-t border-slate-800/80 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-
+                        !auditQuery.isError &&
+                        audit.content.length === 0 && (
+                            <div>
+                                <InlineEmptyState
+                                    title="No audit entries found"
+                                    message={
+                                        hasFilters
+                                            ? 'No recorded activity matches the current filters.'
+                                            : 'Recorded platform activity will appear here.'
+                                    }
+                                    action={
+                                        hasFilters ? (
                                             <button
                                                 type="button"
-                                                disabled={
-                                                    audit.first ||
-                                                    auditQuery.isFetching
-                                                }
-                                                onClick={
-                                                    () =>
-                                                        changePage(
-                                                            audit.page - 1,
-                                                        )
-                                                }
-                                                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900/40 px-4 text-xs font-semibold text-slate-400 transition hover:border-slate-600 hover:bg-slate-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
+                                                onClick={clearFilters}
+                                                className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/50 px-4 text-sm font-medium text-slate-300 transition duration-200 hover:border-sky-300/15 hover:bg-sky-300/[0.05] hover:text-sky-300"
                                             >
-
-                                                <ChevronLeft
-                                                    size={14}
+                                                <RotateCcw
+                                                    className="size-3.5"
+                                                    aria-hidden="true"
                                                 />
 
-                                                Previous
-
+                                                Clear filters
                                             </button>
-
-
-                                            <span className="text-center text-xs text-slate-500">
-
-                                                Page{' '}
-
-                                                <strong className="font-semibold text-slate-300">
-                                                    {
-                                                        audit.page +
-                                                        1
-                                                    }
-                                                </strong>
-
-                                                {' '}of{' '}
-
-                                                <strong className="font-semibold text-slate-300">
-                                                    {
-                                                        audit.totalPages
-                                                    }
-                                                </strong>
-
-                                            </span>
-
-
-                                            <button
-                                                type="button"
-                                                disabled={
-                                                    audit.last ||
-                                                    auditQuery.isFetching
-                                                }
-                                                onClick={
-                                                    () =>
-                                                        changePage(
-                                                            audit.page + 1,
-                                                        )
-                                                }
-                                                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900/40 px-4 text-xs font-semibold text-slate-400 transition hover:border-slate-600 hover:bg-slate-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
-                                            >
-
-                                                Next
-
-                                                <ChevronRight
-                                                    size={14}
-                                                />
-
-                                            </button>
-
-                                        </div>
-                                    )
-                                }
-
+                                        ) : undefined
+                                    }
+                                />
                             </div>
-                        )
-                    }
+                        )}
 
+                    {audit &&
+                        !auditQuery.isLoading &&
+                        !auditQuery.isError &&
+                        audit.content.length > 0 && (
+                            <div className="premium-card overflow-hidden rounded-2xl">
+                                <div className="divide-y divide-slate-800/70">
+                                    {audit.content.map(
+                                        entry => (
+                                            <AuditRow
+                                                key={entry.id}
+                                                entry={entry}
+                                            />
+                                        ),
+                                    )}
+                                </div>
+
+                                {audit.totalPages > 1 && (
+                                    <div className="flex flex-col gap-3 border-t border-slate-800/80 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                                        <PaginationButton
+                                            direction="previous"
+                                            disabled={
+                                                audit.first ||
+                                                auditQuery.isFetching
+                                            }
+                                            onClick={
+                                                () =>
+                                                    changePage(
+                                                        audit.page - 1,
+                                                    )
+                                            }
+                                        />
+
+                                        <span className="text-center text-xs text-slate-500">
+                                            Page{' '}
+                                            <strong className="font-semibold text-slate-300">
+                                                {audit.page + 1}
+                                            </strong>
+                                            {' '}of{' '}
+                                            <strong className="font-semibold text-slate-300">
+                                                {audit.totalPages}
+                                            </strong>
+                                        </span>
+
+                                        <PaginationButton
+                                            direction="next"
+                                            disabled={
+                                                audit.last ||
+                                                auditQuery.isFetching
+                                            }
+                                            onClick={
+                                                () =>
+                                                    changePage(
+                                                        audit.page + 1,
+                                                    )
+                                            }
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        )}
                 </section>
-
             </div>
-
         </AdminLayout>
     )
 }
 
+function AnalyticsPanel({
+                            icon,
+                            title,
+                            description,
+                            children,
+                        }: {
+    icon: ReactNode
+    title: string
+    description: string
+    children: ReactNode
+}) {
+    return (
+        <section className="premium-card overflow-hidden rounded-2xl">
+            <div className="flex items-center gap-3 border-b border-slate-800/80 px-5 py-4 sm:px-6">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-sky-300/15 bg-sky-300/[0.07] text-sky-300">
+                    {icon}
+                </div>
+
+                <div>
+                    <h2 className="text-sm font-semibold text-slate-50">
+                        {title}
+                    </h2>
+
+                    <p className="mt-0.5 text-xs leading-5 text-slate-500">
+                        {description}
+                    </p>
+                </div>
+            </div>
+
+            {children}
+        </section>
+    )
+}
+
+function InlineEmptyState({
+                              title,
+                              message,
+                              action,
+                          }: {
+    title: string
+    message: string
+    action?: ReactNode
+}) {
+    return (
+        <div className="premium-card flex min-h-48 items-center justify-center rounded-2xl px-5 py-8 text-center sm:px-6">
+            <div>
+                <div className="mx-auto flex size-11 items-center justify-center rounded-xl border border-slate-800/80 bg-slate-950/40 text-slate-600">
+                    <Activity
+                        className="size-[18px]"
+                        aria-hidden="true"
+                    />
+                </div>
+
+                <p className="mt-3 text-sm font-semibold text-slate-300">
+                    {title}
+                </p>
+
+                <p className="mx-auto mt-1.5 max-w-sm text-xs leading-5 text-slate-500">
+                    {message}
+                </p>
+
+                {action && (
+                    <div className="mt-4">
+                        {action}
+                    </div>
+                )}
+            </div>
+        </div>
+    )
+}
+
+function PaginationButton({
+                              direction,
+                              disabled,
+                              onClick,
+                          }: {
+    direction: 'previous' | 'next'
+    disabled: boolean
+    onClick: () => void
+}) {
+    const previous =
+        direction ===
+        'previous'
+
+    return (
+        <button
+            type="button"
+            disabled={disabled}
+            onClick={onClick}
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/40 px-4 text-xs font-medium text-slate-400 transition duration-200 hover:border-slate-600 hover:bg-slate-800/70 hover:text-slate-100 disabled:cursor-not-allowed disabled:opacity-35"
+        >
+            {previous && (
+                <ChevronLeft
+                    className="size-3.5"
+                    aria-hidden="true"
+                />
+            )}
+
+            {previous
+                ? 'Previous'
+                : 'Next'}
+
+            {!previous && (
+                <ChevronRight
+                    className="size-3.5"
+                    aria-hidden="true"
+                />
+            )}
+        </button>
+    )
+}
 
 function toAuditAction(
     value: string | null,
 ): AuditAction | undefined {
-
-    const actions:
-        AuditAction[] = [
-        'INVENTORY_CREATED',
-        'INVENTORY_UPDATED',
-        'INVENTORY_DELETED',
-        'STORE_PROFILE_UPDATED',
-        'STORE_STATUS_CHANGED',
-        'STORE_OWNER_CHANGED',
-        'PRODUCT_CREATED',
-        'PRODUCT_UPDATED',
-        'PRODUCT_DELETED',
-        'BRAND_CREATED',
-        'BRAND_UPDATED',
-        'BRAND_DELETED',
-        'CATEGORY_CREATED',
-        'CATEGORY_UPDATED',
-        'CATEGORY_DELETED',
-    ]
-
-
-    return actions.includes(
-        value as AuditAction,
+    return AUDIT_ACTION_OPTIONS.some(
+        option =>
+            option.value ===
+            value,
     )
         ? value as AuditAction
         : undefined
 }
 
-
 function toEntityType(
     value: string | null,
 ): AuditEntityType | undefined {
-
-    if (
-        value ===
-        'INVENTORY' ||
-        value ===
-        'STORE' ||
-        value ===
-        'PRODUCT' ||
-        value ===
-        'BRAND' ||
-        value ===
-        'CATEGORY'
-    ) {
-        return value
-    }
-
-
-    return undefined
+    return ENTITY_TYPE_OPTIONS.some(
+        option =>
+            option.value ===
+            value,
+    )
+        ? value as AuditEntityType
+        : undefined
 }
-
 
 function toPage(
     value: string | null,
 ): number {
-
     const parsed =
         Number(
             value,
         )
 
-
     return Number.isInteger(
         parsed,
     ) &&
-    parsed >=
-    0
+    parsed >= 0
         ? parsed
         : 0
 }
 
-
-function formatDate(
+function formatCalendarDate(
     value: string,
 ): string {
-
     const [
         year,
         month,
         day,
     ] =
         value
-            .split(
-                '-',
-            )
-            .map(
-                Number,
-            )
-
+            .split('-')
+            .map(Number)
 
     if (
         !year ||
@@ -1102,7 +972,6 @@ function formatDate(
     ) {
         return value
     }
-
 
     return new Intl.DateTimeFormat(
         'en-GB',
@@ -1118,6 +987,3 @@ function formatDate(
         ),
     )
 }
-
-const inputClassName =
-    'min-h-11 w-full rounded-xl border border-slate-700 bg-[#020817]/85 px-4 text-sm text-white outline-none transition duration-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 disabled:cursor-not-allowed disabled:opacity-50'

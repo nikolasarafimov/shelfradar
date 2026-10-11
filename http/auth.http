@@ -1,8 +1,11 @@
+@baseUrl = http://localhost:8080
+
 ### ========================================================
 ### ADMIN LOGIN
+### Expected: 200
 ### ========================================================
 
-POST http://localhost:8080/api/auth/login
+POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
@@ -20,34 +23,19 @@ Content-Type: application/json
 
 ### ========================================================
 ### CURRENT ADMIN
+### Expected: 200
 ### ========================================================
 
-GET http://localhost:8080/api/auth/me
-Authorization: Bearer {{admin_token}}
-
-
-### ========================================================
-### ADMIN ACCESS
-### ========================================================
-
-GET http://localhost:8080/api/admin/access
-Authorization: Bearer {{admin_token}}
-
-
-### ========================================================
-### ADMIN TRYING STORE OWNER RESOURCE
-### Expected: 403
-### ========================================================
-
-GET http://localhost:8080/api/store/access
+GET {{baseUrl}}/api/auth/me
 Authorization: Bearer {{admin_token}}
 
 
 ### ========================================================
 ### STORE OWNER LOGIN
+### Expected: 200
 ### ========================================================
 
-POST http://localhost:8080/api/auth/login
+POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
@@ -65,26 +53,10 @@ Content-Type: application/json
 
 ### ========================================================
 ### CURRENT STORE OWNER
+### Expected: 200
 ### ========================================================
 
-GET http://localhost:8080/api/auth/me
-Authorization: Bearer {{store_token}}
-
-
-### ========================================================
-### STORE OWNER ACCESS
-### ========================================================
-
-GET http://localhost:8080/api/store/access
-Authorization: Bearer {{store_token}}
-
-
-### ========================================================
-### STORE OWNER TRYING ADMIN RESOURCE
-### Expected: 403
-### ========================================================
-
-GET http://localhost:8080/api/admin/access
+GET {{baseUrl}}/api/auth/me
 Authorization: Bearer {{store_token}}
 
 
@@ -93,7 +65,7 @@ Authorization: Bearer {{store_token}}
 ### Expected: 401
 ### ========================================================
 
-POST http://localhost:8080/api/auth/login
+POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
@@ -103,8 +75,31 @@ Content-Type: application/json
 
 
 ### ========================================================
-### NO TOKEN
+### UNKNOWN USER
 ### Expected: 401
 ### ========================================================
 
-GET http://localhost:8080/api/auth/me
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "unknown@shelfradar.local",
+  "password": "Unknown123!"
+}
+
+
+### ========================================================
+### CURRENT USER WITHOUT TOKEN
+### Expected: 401
+### ========================================================
+
+GET {{baseUrl}}/api/auth/me
+
+
+### ========================================================
+### CURRENT USER WITH INVALID TOKEN
+### Expected: 401
+### ========================================================
+
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer invalid-token

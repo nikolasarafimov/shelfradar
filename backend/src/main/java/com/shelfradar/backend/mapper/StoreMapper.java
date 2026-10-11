@@ -14,14 +14,12 @@ public class StoreMapper {
     public StoreMapper(
             CatalogMapper catalogMapper
     ) {
-        this.catalogMapper =
-                catalogMapper;
+        this.catalogMapper = catalogMapper;
     }
 
     public StoreResponse toStoreResponse(
             Store store
     ) {
-
         return new StoreResponse(
                 store.getId(),
                 store.getName(),
@@ -39,7 +37,6 @@ public class StoreMapper {
     public InventoryResponse toInventoryResponse(
             Inventory inventory
     ) {
-
         return new InventoryResponse(
                 inventory.getId(),
                 inventory.getStore().getId(),

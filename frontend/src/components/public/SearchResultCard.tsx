@@ -11,35 +11,65 @@ import {
     Link,
 } from 'react-router-dom'
 
+import {
+    motion,
+} from 'motion/react'
+
 import type {
     PublicSearchResult,
-} from '../../types/publicSearch'
+} from '../../types/public'
 
-import StockBadge
-    from './StockBadge'
+import {
+    formatDistance,
+    formatMkd,
+} from '../../lib/format'
 
-export default function SearchResultCard({
-    result,
-    index = 0,
-}: {
+import StatusBadge from '../ui/StatusBadge'
+
+interface SearchResultCardProps {
     result: PublicSearchResult
     index?: number
-}) {
+}
 
-    const animationDelay =
-        `${Math.min(
-            index,
-            7,
-        ) * 70}ms`
+export default function SearchResultCard({
+                                             result,
+                                             index = 0,
+                                         }: SearchResultCardProps) {
+    const distance =
+        formatDistance(
+            result.distanceKm,
+        )
 
     return (
-        <article
-            className="animate-fade-up premium-card group flex min-h-[215px] flex-col rounded-3xl border border-slate-800/90 bg-slate-900/55 p-5 shadow-[0_22px_60px_-35px_rgba(0,0,0,0.9)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-sky-900/80 hover:bg-slate-900/80 hover:shadow-[0_28px_70px_-35px_rgba(14,165,233,0.24)] motion-reduce:transform-none"
-            style={{
-                animationDelay,
+        <motion.article
+            initial={{
+                opacity: 0,
+                y: 16,
             }}
+            animate={{
+                opacity: 1,
+                y: 0,
+            }}
+            transition={{
+                duration: 0.45,
+                delay:
+                    Math.min(
+                        index,
+                        7,
+                    ) * 0.055,
+                ease: [
+                    0.16,
+                    1,
+                    0.3,
+                    1,
+                ],
+            }}
+            whileHover={{
+                y: -3,
+            }}
+            className="premium-card group flex min-h-[220px] flex-col rounded-2xl p-5"
         >
-            <div className="flex min-w-0 items-start gap-4">
+            <div className="relative flex min-w-0 items-start gap-4">
                 <ProductImage
                     name={
                         result.product.name
@@ -52,7 +82,7 @@ export default function SearchResultCard({
                 <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                            <p className="truncate text-[10px] font-bold uppercase tracking-[0.12em] text-sky-400">
+                            <p className="truncate text-[10px] font-bold uppercase tracking-[0.14em] text-sky-300/80">
                                 {
                                     result.product.brand.name
                                 }
@@ -70,7 +100,7 @@ export default function SearchResultCard({
                                 to={
                                     `/products/${result.product.id}`
                                 }
-                                className="mt-1.5 block truncate text-lg font-bold tracking-tight text-white transition hover:text-sky-300"
+                                className="mt-1.5 block truncate text-lg font-semibold tracking-[-0.025em] text-slate-50 transition-colors duration-200 hover:text-sky-300"
                             >
                                 {
                                     result.product.name
@@ -78,29 +108,25 @@ export default function SearchResultCard({
                             </Link>
                         </div>
 
-                        <StockBadge
+                        <StatusBadge
                             status={
                                 result.status
                             }
                         />
                     </div>
 
-                    <div className="mt-5 flex items-end gap-7">
+                    <div className="mt-5 flex flex-wrap items-end gap-x-7 gap-y-4">
                         <div>
                             <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-600">
                                 Current price
                             </p>
 
-                            <p className="mt-1 whitespace-nowrap text-2xl font-bold tracking-tight text-white">
+                            <p className="mt-1 text-xl font-semibold tracking-[-0.03em] text-slate-50 sm:text-2xl">
                                 {
-                                    formatPrice(
+                                    formatMkd(
                                         result.price,
                                     )
                                 }
-
-                                <span className="ml-1.5 text-xs font-semibold text-slate-500">
-                                    MKD
-                                </span>
                             </p>
                         </div>
 
@@ -109,10 +135,10 @@ export default function SearchResultCard({
                                 Quantity
                             </p>
 
-                            <div className="mt-1.5 flex items-center gap-1.5 text-sm font-semibold text-slate-300">
+                            <div className="mt-1.5 flex items-center gap-1.5 text-sm font-medium text-slate-300">
                                 <Boxes
-                                    size={14}
-                                    className="text-slate-600"
+                                    className="size-3.5 text-slate-600"
+                                    aria-hidden="true"
                                 />
 
                                 {
@@ -124,12 +150,16 @@ export default function SearchResultCard({
                 </div>
             </div>
 
-            <div className="my-4 border-t border-slate-800/80" />
+            <div className="relative my-4 h-px bg-gradient-to-r from-transparent via-slate-700/70 to-transparent" />
 
-            <div className="mt-auto">
+            <div className="relative mt-auto">
                 <div className="flex min-w-0 items-center gap-2.5">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sky-500/10 text-sky-400">
-                        <Store size={14}/>
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-sky-300/10 bg-sky-300/[0.07] text-sky-300">
+                        <Store
+                            className="size-4"
+                            strokeWidth={1.8}
+                            aria-hidden="true"
+                        />
                     </div>
 
                     <div className="min-w-0">
@@ -137,7 +167,7 @@ export default function SearchResultCard({
                             to={
                                 `/stores/${result.store.id}`
                             }
-                            className="block truncate text-sm font-semibold text-slate-200 transition hover:text-sky-300"
+                            className="block truncate text-sm font-semibold text-slate-200 transition-colors duration-200 hover:text-sky-300"
                         >
                             {
                                 result.store.name
@@ -146,8 +176,8 @@ export default function SearchResultCard({
 
                         <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[11px] text-slate-500">
                             <MapPin
-                                size={11}
-                                className="shrink-0"
+                                className="size-3 shrink-0"
+                                aria-hidden="true"
                             />
 
                             <span className="truncate">
@@ -163,116 +193,71 @@ export default function SearchResultCard({
                     </div>
                 </div>
 
-                <div className="mt-4 flex items-center justify-between">
-                    {
-                        result.distanceKm !==
-                        null ? (
+                <div className="mt-4 flex items-center justify-between gap-4">
+                    {distance ? (
+                        <span className="inline-flex min-w-0 items-center gap-1.5 text-xs font-medium text-slate-400">
+                            <Navigation
+                                className="size-3.5 shrink-0 text-sky-300"
+                                aria-hidden="true"
+                            />
 
-                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400">
-                                <Navigation
-                                    size={13}
-                                    className="text-sky-400"
-                                />
-
-                                {
-                                    formatDistance(
-                                        result.distanceKm,
-                                    )
-                                } away
+                            <span className="truncate">
+                                {distance} away
                             </span>
-                        ) : (
-                            <span className="text-xs text-slate-600">
-                                ShelfRadar store
-                            </span>
-                        )
-                    }
+                        </span>
+                    ) : (
+                        <span className="text-xs text-slate-600">
+                            ShelfRadar store
+                        </span>
+                    )}
 
                     <Link
                         to={
                             `/products/${result.product.id}`
                         }
-                        className="group/link inline-flex items-center gap-1.5 rounded-xl bg-sky-500/10 px-3 py-2 text-xs font-bold text-sky-300 transition hover:bg-sky-500/15"
+                        className="group/link inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-sky-300/10 bg-sky-300/[0.07] px-3 py-2 text-xs font-semibold text-sky-300 transition duration-200 hover:border-sky-300/20 hover:bg-sky-300/10"
                     >
                         View product
 
                         <ArrowUpRight
-                            size={12}
-                            className="transition-transform group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5"
+                            className="size-3.5 transition-transform duration-200 group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5"
+                            aria-hidden="true"
                         />
                     </Link>
                 </div>
             </div>
-        </article>
+        </motion.article>
     )
 }
 
-function ProductImage({
-    name,
-    imageUrl,
-}: {
+interface ProductImageProps {
     name: string
     imageUrl: string | null
-}) {
+}
 
-    if (
-        imageUrl
-    ) {
-
+function ProductImage({
+                          name,
+                          imageUrl,
+                      }: ProductImageProps) {
+    if (imageUrl) {
         return (
             <img
-                src={
-                    imageUrl
-                }
-                alt={
-                    name
-                }
-                className="h-16 w-16 shrink-0 rounded-2xl border border-slate-800 bg-[#020817] object-cover shadow-lg shadow-black/20"
+                src={imageUrl}
+                alt={name}
+                loading="lazy"
+                decoding="async"
+                className="size-16 shrink-0 rounded-2xl border border-slate-700/60 bg-slate-950 object-cover shadow-lg shadow-black/20"
             />
         )
     }
 
     return (
-        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-slate-800 bg-[#020817] text-slate-600">
+        <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl border border-slate-700/60 bg-slate-950/80 text-slate-600">
             <Package
-                size={24}
+                className="size-6"
                 strokeWidth={1.6}
+                aria-hidden="true"
             />
         </div>
     )
-}
-
-function formatPrice(
-    value: number,
-): string {
-    return new Intl.NumberFormat(
-        'en-US',
-        {
-            minimumFractionDigits:
-                0,
-
-            maximumFractionDigits:
-                2,
-        },
-    ).format(
-        value,
-    )
-}
-
-function formatDistance(
-    distanceKm: number,
-): string {
-
-    if (
-        distanceKm <
-        1
-    ) {
-        return `${Math.round(
-            distanceKm *
-            1000,
-        )} m`
-    }
-
-    return `${distanceKm.toFixed(
-        1,
-    )} km`
 }

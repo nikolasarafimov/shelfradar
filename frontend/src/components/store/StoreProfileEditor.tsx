@@ -4,6 +4,7 @@ import {
 
 import type {
     FormEvent,
+    ReactNode,
 } from 'react'
 
 import {
@@ -23,6 +24,10 @@ import {
 } from 'lucide-react'
 
 import {
+    motion,
+} from 'motion/react'
+
+import {
     updateStore,
 } from '../../api/storeApi'
 
@@ -31,116 +36,74 @@ import type {
     StoreUpdateRequest,
 } from '../../types/store'
 
-import StatusBadge
-    from '../ui/StatusBadge'
+import StatusBadge from '../ui/StatusBadge'
+
+interface StoreProfileEditorProps {
+    store: Store
+}
+
+interface StoreProfileFormState {
+    name: string
+    address: string
+    city: string
+    latitude: string
+    longitude: string
+    phone: string
+    workingHours: string
+}
+
+type StoreProfileValidationResult =
+    | {
+    success: true
+    request: StoreUpdateRequest
+}
+    | {
+    success: false
+    error: string
+}
 
 export default function StoreProfileEditor({
-    store,
-}: {
-    store: Store
-}) {
+                                               store,
+                                           }: StoreProfileEditorProps) {
     return (
         <StoreProfileEditorForm
-            key={
-                store.id
-            }
-            store={
-                store
-            }
+            key={store.id}
+            store={store}
         />
     )
 }
 
 function StoreProfileEditorForm({
-    store,
-}: {
-    store: Store
-}) {
-
+                                    store,
+                                }: StoreProfileEditorProps) {
     const queryClient =
         useQueryClient()
 
     const [
-        name,
-        setName,
-    ] =
-        useState(
-            store.name,
-        )
-
-    const [
-        address,
-        setAddress,
-    ] =
-        useState(
-            store.address,
-        )
-
-    const [
-        city,
-        setCity,
-    ] =
-        useState(
-            store.city,
-        )
-
-    const [
-        latitude,
-        setLatitude,
-    ] =
-        useState(
-            String(
-                store.latitude,
-            ),
-        )
-
-    const [
-        longitude,
-        setLongitude,
-    ] =
-        useState(
-            String(
-                store.longitude,
-            ),
-        )
-
-    const [
-        phone,
-        setPhone,
-    ] =
-        useState(
-            store.phone ??
-            '',
-        )
-
-    const [
-        workingHours,
-        setWorkingHours,
-    ] =
-        useState(
-            store.workingHours ??
-            '',
-        )
+        form,
+        setForm,
+    ] = useState<StoreProfileFormState>(
+        createFormState(
+            store,
+        ),
+    )
 
     const [
         successMessage,
         setSuccessMessage,
-    ] =
-        useState<string | null>(
-            null,
-        )
+    ] = useState<string | null>(
+        null,
+    )
 
     const [
         errorMessage,
         setErrorMessage,
-    ] =
-        useState<string | null>(
-            null,
-        )
+    ] = useState<string | null>(
+        null,
+    )
 
     const mutation =
         useMutation({
-
             mutationFn:
                 (
                     request: StoreUpdateRequest,
@@ -152,39 +115,10 @@ function StoreProfileEditorForm({
 
             onSuccess:
                 async updatedStore => {
-
-                    setName(
-                        updatedStore.name,
-                    )
-
-                    setAddress(
-                        updatedStore.address,
-                    )
-
-                    setCity(
-                        updatedStore.city,
-                    )
-
-                    setLatitude(
-                        String(
-                            updatedStore.latitude,
+                    setForm(
+                        createFormState(
+                            updatedStore,
                         ),
-                    )
-
-                    setLongitude(
-                        String(
-                            updatedStore.longitude,
-                        ),
-                    )
-
-                    setPhone(
-                        updatedStore.phone ??
-                        '',
-                    )
-
-                    setWorkingHours(
-                        updatedStore.workingHours ??
-                        '',
                     )
 
                     setErrorMessage(
@@ -233,7 +167,6 @@ function StoreProfileEditorForm({
 
             onError:
                 () => {
-
                     setSuccessMessage(
                         null,
                     )
@@ -244,61 +177,38 @@ function StoreProfileEditorForm({
                 },
         })
 
-    function clearMessages() {
-        if (
-            successMessage
-        ) {
+    function updateField(
+        field: keyof StoreProfileFormState,
+        value: string,
+    ) {
+        setForm(
+            current => ({
+                ...current,
+                [field]: value,
+            }),
+        )
 
+        clearMessages()
+    }
+
+    function clearMessages() {
+        if (successMessage) {
             setSuccessMessage(
                 null,
             )
         }
 
-        if (
-            errorMessage
-        ) {
-
+        if (errorMessage) {
             setErrorMessage(
                 null,
             )
         }
     }
 
-
     function handleSubmit(
         event: FormEvent<HTMLFormElement>,
     ) {
-
         event.preventDefault()
-
-
-        const trimmedName =
-            name.trim()
-
-
-        const trimmedAddress =
-            address.trim()
-
-
-        const trimmedCity =
-            city.trim()
-
-
-        const trimmedLatitude =
-            latitude.trim()
-
-
-        const trimmedLongitude =
-            longitude.trim()
-
-
-        const trimmedPhone =
-            phone.trim()
-
-
-        const trimmedWorkingHours =
-            workingHours.trim()
-
 
         setSuccessMessage(
             null,
@@ -308,498 +218,474 @@ function StoreProfileEditorForm({
             null,
         )
 
+        const result =
+            validateStoreProfile(
+                form,
+            )
 
-        if (
-            !trimmedName
-        ) {
-
+        if (!result.success) {
             setErrorMessage(
-                'Store name is required.',
+                result.error,
             )
 
             return
         }
 
-
-        if (
-            !trimmedAddress
-        ) {
-
-            setErrorMessage(
-                'Address is required.',
-            )
-
-            return
-        }
-
-
-        if (
-            !trimmedCity
-        ) {
-
-            setErrorMessage(
-                'City is required.',
-            )
-
-            return
-        }
-
-
-        if (
-            !trimmedLatitude
-        ) {
-
-            setErrorMessage(
-                'Latitude is required.',
-            )
-
-            return
-        }
-
-
-        if (
-            !trimmedLongitude
-        ) {
-
-            setErrorMessage(
-                'Longitude is required.',
-            )
-
-            return
-        }
-
-
-        const numericLatitude =
-            Number(
-                trimmedLatitude,
-            )
-
-
-        const numericLongitude =
-            Number(
-                trimmedLongitude,
-            )
-
-
-        if (
-            !Number.isFinite(
-                numericLatitude,
-            ) ||
-            numericLatitude <
-            -90 ||
-            numericLatitude >
-            90
-        ) {
-
-            setErrorMessage(
-                'Latitude must be between -90 and 90.',
-            )
-
-            return
-        }
-
-
-        if (
-            !Number.isFinite(
-                numericLongitude,
-            ) ||
-            numericLongitude <
-            -180 ||
-            numericLongitude >
-            180
-        ) {
-
-            setErrorMessage(
-                'Longitude must be between -180 and 180.',
-            )
-
-            return
-        }
-
-
-        mutation.mutate({
-            name:
-            trimmedName,
-
-            address:
-            trimmedAddress,
-
-            city:
-            trimmedCity,
-
-            latitude:
-            numericLatitude,
-
-            longitude:
-            numericLongitude,
-
-            phone:
-                trimmedPhone ||
-                null,
-
-            workingHours:
-                trimmedWorkingHours ||
-                null,
-        })
+        mutation.mutate(
+            result.request,
+        )
     }
 
-
     return (
-        <section className="premium-card overflow-hidden rounded-3xl border border-slate-800/90 bg-slate-900/55 shadow-[0_24px_70px_-45px_rgba(14,165,233,0.2)] backdrop-blur-xl">
+        <motion.section
+            initial={{
+                opacity: 0,
+                y: 12,
+            }}
+            animate={{
+                opacity: 1,
+                y: 0,
+            }}
+            transition={{
+                duration: 0.4,
+                ease: [
+                    0.16,
+                    1,
+                    0.3,
+                    1,
+                ],
+            }}
+            className="premium-card overflow-hidden rounded-2xl"
+        >
+            <div className="relative flex flex-col gap-4 border-b border-slate-800/80 px-5 py-5 sm:flex-row sm:items-start sm:justify-between sm:px-6">
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -left-20 -top-24 size-48 rounded-full bg-sky-400/[0.055] blur-3xl"
+                />
 
-            <div className="flex flex-col gap-4 border-b border-slate-800/80 px-5 py-5 sm:flex-row sm:items-start sm:justify-between sm:px-6">
-
-                <div className="flex min-w-0 items-start gap-3">
-
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-900/50 bg-sky-950/30 text-sky-400">
-
+                <div className="relative flex min-w-0 items-start gap-3">
+                    <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-sky-300/15 bg-sky-300/[0.08] text-sky-300 shadow-[0_10px_30px_rgba(14,165,233,0.08)]">
                         <Building2
-                            size={17}
+                            className="size-[18px]"
+                            strokeWidth={1.8}
+                            aria-hidden="true"
                         />
-
                     </div>
 
-
                     <div className="min-w-0">
-
-                        <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-sky-400">
+                        <p className="eyebrow">
                             Public information
                         </p>
 
-
-                        <h2 className="mt-0.5 text-xl font-bold tracking-tight text-white">
-                            Store Profile
+                        <h2 className="mt-1.5 text-xl font-semibold tracking-[-0.03em] text-slate-50">
+                            Store profile
                         </h2>
 
-
                         <p className="mt-1 max-w-xl text-xs leading-5 text-slate-500">
-                            Update the information customers see for this store, including its address and map location.
+                            Update the information customers see for this store, including its contact details and map location.
                         </p>
-
                     </div>
-
                 </div>
 
-
-                <StatusBadge
-                    status={
-                        store.status
-                    }
-                />
-
+                <div className="relative shrink-0">
+                    <StatusBadge
+                        status={store.status}
+                    />
+                </div>
             </div>
 
-
             <form
-                onSubmit={
-                    handleSubmit
-                }
-                className="grid gap-5 p-5 md:grid-cols-2 sm:p-6"
+                onSubmit={handleSubmit}
+                className="grid gap-5 p-5 sm:p-6 md:grid-cols-2"
             >
-
                 <Field
                     id="store-profile-name"
-                    label="Store Name"
-                    value={
-                        name
-                    }
+                    label="Store name"
+                    value={form.name}
                     onChange={
-                        value => {
-
-                            setName(
+                        value =>
+                            updateField(
+                                'name',
                                 value,
                             )
-
-                            clearMessages()
-                        }
                     }
-                    disabled={
-                        mutation.isPending
-                    }
+                    disabled={mutation.isPending}
                     required
                     icon={
                         <Building2
-                            size={15}
+                            className="size-4"
+                            aria-hidden="true"
                         />
                     }
                 />
-
 
                 <Field
                     id="store-profile-city"
                     label="City"
-                    value={
-                        city
-                    }
+                    value={form.city}
                     onChange={
-                        value => {
-
-                            setCity(
+                        value =>
+                            updateField(
+                                'city',
                                 value,
                             )
-
-                            clearMessages()
-                        }
                     }
-                    disabled={
-                        mutation.isPending
-                    }
+                    disabled={mutation.isPending}
                     required
                     icon={
                         <MapPin
-                            size={15}
+                            className="size-4"
+                            aria-hidden="true"
                         />
                     }
                 />
 
-
                 <div className="md:col-span-2">
-
                     <Field
                         id="store-profile-address"
                         label="Address"
-                        value={
-                            address
-                        }
+                        value={form.address}
                         onChange={
-                            value => {
-
-                                setAddress(
+                            value =>
+                                updateField(
+                                    'address',
                                     value,
                                 )
-
-                                clearMessages()
-                            }
                         }
-                        disabled={
-                            mutation.isPending
-                        }
+                        disabled={mutation.isPending}
                         required
                         icon={
                             <MapPin
-                                size={15}
+                                className="size-4"
+                                aria-hidden="true"
                             />
                         }
                     />
-
                 </div>
-
 
                 <Field
                     id="store-profile-latitude"
                     label="Latitude"
-                    value={
-                        latitude
-                    }
+                    value={form.latitude}
                     onChange={
-                        value => {
-
-                            setLatitude(
+                        value =>
+                            updateField(
+                                'latitude',
                                 value,
                             )
-
-                            clearMessages()
-                        }
                     }
                     type="number"
-                    min={
-                        -90
-                    }
-                    max={
-                        90
-                    }
+                    min={-90}
+                    max={90}
                     step="any"
-                    disabled={
-                        mutation.isPending
-                    }
+                    disabled={mutation.isPending}
                     required
                     icon={
                         <MapPin
-                            size={15}
+                            className="size-4"
+                            aria-hidden="true"
                         />
                     }
                 />
-
 
                 <Field
                     id="store-profile-longitude"
                     label="Longitude"
-                    value={
-                        longitude
-                    }
+                    value={form.longitude}
                     onChange={
-                        value => {
-
-                            setLongitude(
+                        value =>
+                            updateField(
+                                'longitude',
                                 value,
                             )
-
-                            clearMessages()
-                        }
                     }
                     type="number"
-                    min={
-                        -180
-                    }
-                    max={
-                        180
-                    }
+                    min={-180}
+                    max={180}
                     step="any"
-                    disabled={
-                        mutation.isPending
-                    }
+                    disabled={mutation.isPending}
                     required
                     icon={
                         <MapPin
-                            size={15}
+                            className="size-4"
+                            aria-hidden="true"
                         />
                     }
                 />
-
 
                 <Field
                     id="store-profile-phone"
                     label="Phone"
-                    value={
-                        phone
-                    }
+                    value={form.phone}
                     onChange={
-                        value => {
-
-                            setPhone(
+                        value =>
+                            updateField(
+                                'phone',
                                 value,
                             )
-
-                            clearMessages()
-                        }
                     }
                     type="tel"
                     autoComplete="tel"
                     placeholder="+389..."
-                    disabled={
-                        mutation.isPending
-                    }
+                    disabled={mutation.isPending}
                     icon={
                         <Phone
-                            size={15}
+                            className="size-4"
+                            aria-hidden="true"
                         />
                     }
                 />
-
 
                 <Field
                     id="store-profile-hours"
-                    label="Working Hours"
-                    value={
-                        workingHours
-                    }
+                    label="Working hours"
+                    value={form.workingHours}
                     onChange={
-                        value => {
-
-                            setWorkingHours(
+                        value =>
+                            updateField(
+                                'workingHours',
                                 value,
                             )
-
-                            clearMessages()
-                        }
                     }
                     placeholder="Mon-Sun 08:00-22:00"
-                    disabled={
-                        mutation.isPending
-                    }
+                    disabled={mutation.isPending}
                     icon={
                         <Clock3
-                            size={15}
+                            className="size-4"
+                            aria-hidden="true"
                         />
                     }
                 />
 
-
-                {
-                    successMessage && (
-
-                        <div
-                            role="status"
-                            className="flex items-start gap-2.5 rounded-xl border border-emerald-900/50 bg-emerald-950/20 px-4 py-3 text-xs leading-5 text-emerald-300 md:col-span-2"
-                        >
-
+                {successMessage && (
+                    <FeedbackMessage
+                        tone="success"
+                        icon={
                             <CheckCircle2
-                                size={15}
-                                className="mt-0.5 shrink-0"
+                                className="size-4"
+                                aria-hidden="true"
                             />
+                        }
+                    >
+                        {successMessage}
+                    </FeedbackMessage>
+                )}
 
-                            <span>
-                                {successMessage}
-                            </span>
-
-                        </div>
-                    )
-                }
-
-
-                {
-                    errorMessage && (
-
-                        <div
-                            role="alert"
-                            className="flex items-start gap-2.5 rounded-xl border border-red-900/50 bg-red-950/20 px-4 py-3 text-xs leading-5 text-red-300 md:col-span-2"
-                        >
-
+                {errorMessage && (
+                    <FeedbackMessage
+                        tone="error"
+                        icon={
                             <AlertCircle
-                                size={15}
-                                className="mt-0.5 shrink-0"
+                                className="size-4"
+                                aria-hidden="true"
                             />
-
-                            <span>
-                                {errorMessage}
-                            </span>
-
-                        </div>
-                    )
-                }
-
+                        }
+                    >
+                        {errorMessage}
+                    </FeedbackMessage>
+                )}
 
                 <div className="md:col-span-2">
-
                     <button
                         type="submit"
-                        disabled={
-                            mutation.isPending
-                        }
-                        className="shine-button inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-400 px-5 text-sm font-bold text-slate-950 transition duration-200 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 disabled:cursor-not-allowed disabled:opacity-45"
+                        disabled={mutation.isPending}
+                        className="shine-button inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-400 to-cyan-300 px-5 text-sm font-semibold text-slate-950 shadow-[0_12px_32px_rgba(14,165,233,0.18)] transition duration-200 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45"
                     >
+                        {mutation.isPending ? (
+                            <>
+                                <LoaderCircle
+                                    className="size-4 animate-spin"
+                                    aria-hidden="true"
+                                />
 
-                        {
-                            mutation.isPending
-                                ? (
-                                    <>
-                                        <LoaderCircle
-                                            size={15}
-                                            className="animate-spin"
-                                        />
+                                Saving...
+                            </>
+                        ) : (
+                            <>
+                                <Save
+                                    className="size-4"
+                                    aria-hidden="true"
+                                />
 
-                                        Saving...
-                                    </>
-                                )
-                                : (
-                                    <>
-                                        <Save
-                                            size={15}
-                                        />
-
-                                        Save Changes
-                                    </>
-                                )
-                        }
-
+                                Save changes
+                            </>
+                        )}
                     </button>
-
                 </div>
-
             </form>
-
-        </section>
+        </motion.section>
     )
+}
+
+function createFormState(
+    store: Store,
+): StoreProfileFormState {
+    return {
+        name:
+        store.name,
+
+        address:
+        store.address,
+
+        city:
+        store.city,
+
+        latitude:
+            String(
+                store.latitude,
+            ),
+
+        longitude:
+            String(
+                store.longitude,
+            ),
+
+        phone:
+            store.phone ??
+            '',
+
+        workingHours:
+            store.workingHours ??
+            '',
+    }
+}
+
+function validateStoreProfile(
+    form: StoreProfileFormState,
+): StoreProfileValidationResult {
+    const name =
+        form.name.trim()
+
+    const address =
+        form.address.trim()
+
+    const city =
+        form.city.trim()
+
+    const latitudeText =
+        form.latitude.trim()
+
+    const longitudeText =
+        form.longitude.trim()
+
+    const phone =
+        form.phone.trim()
+
+    const workingHours =
+        form.workingHours.trim()
+
+    if (!name) {
+        return {
+            success: false,
+            error:
+                'Store name is required.',
+        }
+    }
+
+    if (!address) {
+        return {
+            success: false,
+            error:
+                'Address is required.',
+        }
+    }
+
+    if (!city) {
+        return {
+            success: false,
+            error:
+                'City is required.',
+        }
+    }
+
+    if (!latitudeText) {
+        return {
+            success: false,
+            error:
+                'Latitude is required.',
+        }
+    }
+
+    if (!longitudeText) {
+        return {
+            success: false,
+            error:
+                'Longitude is required.',
+        }
+    }
+
+    const latitude =
+        Number(
+            latitudeText,
+        )
+
+    const longitude =
+        Number(
+            longitudeText,
+        )
+
+    if (
+        !Number.isFinite(
+            latitude,
+        ) ||
+        latitude < -90 ||
+        latitude > 90
+    ) {
+        return {
+            success: false,
+            error:
+                'Latitude must be between -90 and 90.',
+        }
+    }
+
+    if (
+        !Number.isFinite(
+            longitude,
+        ) ||
+        longitude < -180 ||
+        longitude > 180
+    ) {
+        return {
+            success: false,
+            error:
+                'Longitude must be between -180 and 180.',
+        }
+    }
+
+    return {
+        success: true,
+        request: {
+            name,
+            address,
+            city,
+            latitude,
+            longitude,
+
+            phone:
+                phone ||
+                null,
+
+            workingHours:
+                workingHours ||
+                null,
+        },
+    }
+}
+
+interface FieldProps {
+    id: string
+    label: string
+    value: string
+    onChange: (value: string) => void
+    type?: 'text' | 'number' | 'tel'
+    placeholder?: string
+    required?: boolean
+    disabled?: boolean
+    min?: number
+    max?: number
+    step?: string
+    autoComplete?: string
+    icon?: ReactNode
 }
 
 function Field({
@@ -816,87 +702,90 @@ function Field({
                    step,
                    autoComplete,
                    icon,
-               }: {
-    id: string
-    label: string
-    value: string
-    onChange: (value: string) => void
-    type?: string
-    placeholder?: string
-    required?: boolean
-    disabled?: boolean
-    min?: number
-    max?: number
-    step?: string
-    autoComplete?: string
-    icon?: React.ReactNode
-}) {
-
+               }: FieldProps) {
     return (
         <div>
             <label
-                htmlFor={
-                    id
-                }
+                htmlFor={id}
                 className="mb-2 block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500"
             >
                 {label}
             </label>
 
             <div className="relative">
-                {
-                    icon && (
-
-                        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-600">
-                            {icon}
-                        </span>
-                    )
-                }
+                {icon && (
+                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-600">
+                        {icon}
+                    </span>
+                )}
 
                 <input
-                    id={
-                        id
-                    }
-                    type={
-                        type
-                    }
-                    value={
-                        value
-                    }
-                    placeholder={
-                        placeholder
-                    }
-                    required={
-                        required
-                    }
-                    disabled={
-                        disabled
-                    }
-                    min={
-                        min
-                    }
-                    max={
-                        max
-                    }
-                    step={
-                        step
-                    }
-                    autoComplete={
-                        autoComplete
-                    }
+                    id={id}
+                    type={type}
+                    value={value}
+                    placeholder={placeholder}
+                    required={required}
+                    disabled={disabled}
+                    min={min}
+                    max={max}
+                    step={step}
+                    autoComplete={autoComplete}
                     onChange={
                         event =>
                             onChange(
                                 event.target.value,
                             )
                     }
-                    className={`min-h-12 w-full rounded-xl border border-slate-700 bg-[#020817]/85 px-4 text-sm text-white outline-none transition duration-200 placeholder:text-slate-600 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 disabled:cursor-not-allowed disabled:opacity-50 ${
+                    className={`field min-h-12 w-full px-4 text-sm disabled:cursor-not-allowed disabled:opacity-50 ${
                         icon
                             ? 'pl-11'
                             : ''
                     }`}
                 />
             </div>
+        </div>
+    )
+}
+
+function FeedbackMessage({
+                             tone,
+                             icon,
+                             children,
+                         }: {
+    tone: 'success' | 'error'
+    icon: ReactNode
+    children: ReactNode
+}) {
+    const success =
+        tone ===
+        'success'
+
+    return (
+        <div
+            role={
+                success
+                    ? 'status'
+                    : 'alert'
+            }
+            className={
+                success
+                    ? 'flex items-start gap-2.5 rounded-xl border border-emerald-300/10 bg-emerald-300/[0.05] px-4 py-3 text-xs leading-5 text-emerald-200/80 md:col-span-2'
+                    : 'flex items-start gap-2.5 rounded-xl border border-rose-300/10 bg-rose-300/[0.05] px-4 py-3 text-xs leading-5 text-rose-200/80 md:col-span-2'
+            }
+        >
+            <span
+                className={
+                    success
+                        ? 'mt-0.5 shrink-0 text-emerald-300'
+                        : 'mt-0.5 shrink-0 text-rose-300'
+                }
+            >
+                {icon}
+            </span>
+
+            <span>
+                {children}
+            </span>
         </div>
     )
 }

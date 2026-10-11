@@ -1,7 +1,6 @@
 package com.shelfradar.backend.entity.enums;
 
 public enum AuditAction {
-
     INVENTORY_CREATED,
     INVENTORY_UPDATED,
     INVENTORY_DELETED,

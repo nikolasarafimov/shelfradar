@@ -19,6 +19,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Locale;
+
 @Service
 @Transactional(readOnly = true)
 public class ProductService {
@@ -58,7 +60,9 @@ public class ProductService {
                 PageRequest.of(
                         page,
                         size,
-                        resolveSort(sort)
+                        resolveSort(
+                                sort
+                        )
                 );
 
         Page<Product> products;
@@ -86,7 +90,8 @@ public class ProductService {
 
         return PageResponse.from(
                 products.map(
-                        catalogMapper::toProductResponse
+                        catalogMapper
+                                ::toProductResponse
                 )
         );
     }
@@ -96,7 +101,9 @@ public class ProductService {
     ) {
 
         return catalogMapper.toProductResponse(
-                findEntity(id)
+                findEntity(
+                        id
+                )
         );
     }
 
@@ -137,7 +144,9 @@ public class ProductService {
         Product product =
                 new Product();
 
-        product.setName(name);
+        product.setName(
+                name
+        );
 
         product.setDescription(
                 normalizeOptional(
@@ -176,7 +185,9 @@ public class ProductService {
     ) {
 
         Product product =
-                findEntity(id);
+                findEntity(
+                        id
+                );
 
         String name =
                 normalizeName(
@@ -208,7 +219,9 @@ public class ProductService {
             );
         }
 
-        product.setName(name);
+        product.setName(
+                name
+        );
 
         product.setDescription(
                 normalizeOptional(
@@ -241,7 +254,9 @@ public class ProductService {
     ) {
 
         Product product =
-                findEntity(id);
+                findEntity(
+                        id
+                );
 
         productRepository.delete(
                 product
@@ -253,7 +268,9 @@ public class ProductService {
     ) {
 
         return productRepository
-                .findById(id)
+                .findById(
+                        id
+                )
                 .orElseThrow(
                         () ->
                                 new ResourceNotFoundException(
@@ -267,7 +284,9 @@ public class ProductService {
     ) {
 
         return brandRepository
-                .findById(id)
+                .findById(
+                        id
+                )
                 .orElseThrow(
                         () ->
                                 new ResourceNotFoundException(
@@ -281,7 +300,9 @@ public class ProductService {
     ) {
 
         return categoryRepository
-                .findById(id)
+                .findById(
+                        id
+                )
                 .orElseThrow(
                         () ->
                                 new ResourceNotFoundException(
@@ -294,42 +315,75 @@ public class ProductService {
             String value
     ) {
 
-        if (value == null) {
-
+        if (
+                value == null ||
+                        value.isBlank()
+        ) {
             return Sort.by(
-                    Sort.Direction.ASC,
-                    "name"
+                    Sort.Order.asc(
+                            "name"
+                    ),
+                    Sort.Order.asc(
+                            "id"
+                    )
             );
         }
 
         return switch (
                 value
                         .trim()
-                        .toLowerCase()
+                        .toLowerCase(
+                                Locale.ROOT
+                        )
                 ) {
+            case "nameasc" ->
+                    Sort.by(
+                            Sort.Order.asc(
+                                    "name"
+                            ),
+                            Sort.Order.asc(
+                                    "id"
+                            )
+                    );
 
             case "namedesc" ->
                     Sort.by(
-                            Sort.Direction.DESC,
-                            "name"
+                            Sort.Order.desc(
+                                    "name"
+                            ),
+                            Sort.Order.asc(
+                                    "id"
+                            )
                     );
 
             case "newest" ->
                     Sort.by(
-                            Sort.Direction.DESC,
-                            "createdAt"
+                            Sort.Order.desc(
+                                    "createdAt"
+                            ),
+                            Sort.Order.desc(
+                                    "id"
+                            )
                     );
 
             case "oldest" ->
                     Sort.by(
-                            Sort.Direction.ASC,
-                            "createdAt"
+                            Sort.Order.asc(
+                                    "createdAt"
+                            ),
+                            Sort.Order.asc(
+                                    "id"
+                            )
                     );
 
             default ->
                     Sort.by(
-                            Sort.Direction.ASC,
-                            "name"
+                            Sort.Order.asc(
+                                    "name"
+                            ),
+                            Sort.Order.asc(
+                                    "id"
+                            )
                     );
         };
     }

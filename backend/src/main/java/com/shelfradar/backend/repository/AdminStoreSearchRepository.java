@@ -20,7 +20,6 @@ public class AdminStoreSearchRepository {
     @PersistenceContext
     private EntityManager entityManager;
 
-
     public Page<Store> search(
             String query,
             StoreStatus status,
@@ -29,22 +28,18 @@ public class AdminStoreSearchRepository {
             int size,
             String sort
     ) {
-
         StringBuilder where =
                 new StringBuilder(
                         " WHERE 1 = 1 "
                 );
 
-
         Map<String, Object> parameters =
                 new HashMap<>();
-
 
         if (
                 query != null &&
                         !query.isBlank()
         ) {
-
             where.append(
                     """
                     AND (
@@ -69,9 +64,7 @@ public class AdminStoreSearchRepository {
             );
         }
 
-
         if (status != null) {
-
             where.append(
                     """
                     AND s.status = :status
@@ -88,7 +81,6 @@ public class AdminStoreSearchRepository {
                 city != null &&
                         !city.isBlank()
         ) {
-
             where.append(
                     """
                     AND LOWER(s.city) = :city
@@ -141,7 +133,6 @@ public class AdminStoreSearchRepository {
 
         parameters.forEach(
                 (name, value) -> {
-
                     dataQuery.setParameter(
                             name,
                             value
@@ -175,10 +166,14 @@ public class AdminStoreSearchRepository {
     private String resolveOrderBy(
             String sort
     ) {
-        if (sort == null) {
-
+        if (
+                sort == null ||
+                        sort.isBlank()
+        ) {
             return """
-                    ORDER BY s.createdAt DESC
+                    ORDER BY
+                        s.createdAt DESC,
+                        s.id DESC
                     """;
         }
 
@@ -189,6 +184,12 @@ public class AdminStoreSearchRepository {
                                 Locale.ROOT
                         )
                 ) {
+            case "newest" ->
+                    """
+                    ORDER BY
+                        s.createdAt DESC,
+                        s.id DESC
+                    """;
 
             case "nameasc" ->
                     """

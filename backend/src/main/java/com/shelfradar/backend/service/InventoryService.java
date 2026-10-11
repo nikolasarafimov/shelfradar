@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Locale;
+import java.util.Objects;
 
 @Service
 @Transactional(readOnly = true)
@@ -43,7 +44,6 @@ public class InventoryService {
             StoreMapper storeMapper,
             AuditService auditService
     ) {
-
         this.inventoryRepository =
                 inventoryRepository;
 
@@ -250,6 +250,26 @@ public class InventoryService {
         StockStatus oldStatus =
                 inventory.getStatus();
 
+        boolean changed =
+                !sameDecimal(
+                        oldPrice,
+                        request.price()
+                )
+                        ||
+                        !Objects.equals(
+                                oldQuantity,
+                                request.quantity()
+                        )
+                        ||
+                        oldStatus != request.status();
+
+        if (!changed) {
+            return storeMapper
+                    .toInventoryResponse(
+                            inventory
+                    );
+        }
+
         inventory.setPrice(
                 request.price()
         );
@@ -386,15 +406,45 @@ public class InventoryService {
         }
     }
 
+    private boolean sameDecimal(
+            BigDecimal first,
+            BigDecimal second
+    ) {
+
+        if (
+                first == null &&
+                        second == null
+        ) {
+            return true;
+        }
+
+        if (
+                first == null ||
+                        second == null
+        ) {
+            return false;
+        }
+
+        return first.compareTo(
+                second
+        ) == 0;
+    }
+
     private Sort resolveSort(
             String value
     ) {
 
-        if (value == null) {
-
+        if (
+                value == null ||
+                        value.isBlank()
+        ) {
             return Sort.by(
-                    Sort.Direction.ASC,
-                    "product.name"
+                    Sort.Order.asc(
+                            "product.name"
+                    ),
+                    Sort.Order.asc(
+                            "id"
+                    )
             );
         }
 
@@ -405,35 +455,64 @@ public class InventoryService {
                                 Locale.ROOT
                         )
                 ) {
-
-            case "pricedesc" ->
+            case "nameasc" ->
                     Sort.by(
-                            Sort.Direction.DESC,
-                            "price"
+                            Sort.Order.asc(
+                                    "product.name"
+                            ),
+                            Sort.Order.asc(
+                                    "id"
+                            )
+                    );
+
+            case "nameza", "namedesc" ->
+                    Sort.by(
+                            Sort.Order.desc(
+                                    "product.name"
+                            ),
+                            Sort.Order.asc(
+                                    "id"
+                            )
                     );
 
             case "priceasc" ->
                     Sort.by(
-                            Sort.Direction.ASC,
-                            "price"
+                            Sort.Order.asc(
+                                    "price"
+                            ),
+                            Sort.Order.asc(
+                                    "id"
+                            )
+                    );
+
+            case "pricedesc" ->
+                    Sort.by(
+                            Sort.Order.desc(
+                                    "price"
+                            ),
+                            Sort.Order.asc(
+                                    "id"
+                            )
                     );
 
             case "updateddesc" ->
                     Sort.by(
-                            Sort.Direction.DESC,
-                            "updatedAt"
-                    );
-
-            case "nameza" ->
-                    Sort.by(
-                            Sort.Direction.DESC,
-                            "product.name"
+                            Sort.Order.desc(
+                                    "updatedAt"
+                            ),
+                            Sort.Order.desc(
+                                    "id"
+                            )
                     );
 
             default ->
                     Sort.by(
-                            Sort.Direction.ASC,
-                            "product.name"
+                            Sort.Order.asc(
+                                    "product.name"
+                            ),
+                            Sort.Order.asc(
+                                    "id"
+                            )
                     );
         };
     }

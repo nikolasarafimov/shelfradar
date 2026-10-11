@@ -1,23 +1,36 @@
-export function formatNumber(
-    value: number,
-): string {
-
-    return new Intl.NumberFormat(
+const numberFormatter =
+    new Intl.NumberFormat(
         'en-US',
-    ).format(value)
-}
+    )
 
-export function formatMkd(
-    value: number,
-): string {
-
-    return `${new Intl.NumberFormat(
+const mkdFormatter =
+    new Intl.NumberFormat(
         'en-US',
         {
             minimumFractionDigits: 0,
             maximumFractionDigits: 2,
         },
-    ).format(value)} MKD`
+    )
+
+const dateTimeFormatter =
+    new Intl.DateTimeFormat(
+        'en-GB',
+        {
+            dateStyle: 'medium',
+            timeStyle: 'short',
+        },
+    )
+
+export function formatNumber(
+    value: number,
+): string {
+    return numberFormatter.format(value)
+}
+
+export function formatMkd(
+    value: number,
+): string {
+    return `${mkdFormatter.format(value)} MKD`
 }
 
 export function formatDateTime(
@@ -27,13 +40,7 @@ export function formatDateTime(
         return 'Never'
     }
 
-    return new Intl.DateTimeFormat(
-        'en-GB',
-        {
-            dateStyle: 'medium',
-            timeStyle: 'short',
-        },
-    ).format(
+    return dateTimeFormatter.format(
         new Date(value),
     )
 }
@@ -41,16 +48,18 @@ export function formatDateTime(
 export function formatDistance(
     distanceKm: number | null,
 ): string | null {
-
     if (distanceKm === null) {
         return null
     }
 
-    if (distanceKm < 1) {
-
-        return `${Math.round(
+    const distanceMeters =
+        Math.round(
             distanceKm * 1000,
-        )} m`
+        )
+
+    if (distanceMeters < 1000) {
+        return `${distanceMeters} m`
     }
+
     return `${distanceKm.toFixed(1)} km`
 }

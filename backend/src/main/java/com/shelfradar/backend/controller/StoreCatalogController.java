@@ -6,12 +6,13 @@ import com.shelfradar.backend.service.ProductService;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(
-        "/api/store/catalog/products"
-)
+@RequestMapping("/api/store/catalog/products")
 @Validated
 public class StoreCatalogController {
 
@@ -20,32 +21,23 @@ public class StoreCatalogController {
     public StoreCatalogController(
             ProductService productService
     ) {
-        this.productService =
-                productService;
+        this.productService = productService;
     }
 
     @GetMapping
     public PageResponse<ProductResponse> getProducts(
-
-            @RequestParam(
-                    required = false
-            )
+            @RequestParam(required = false)
             String q,
 
-            @RequestParam(
-                    defaultValue = "0"
-            )
+            @RequestParam(defaultValue = "0")
             @Min(0)
             int page,
 
-            @RequestParam(
-                    defaultValue = "50"
-            )
+            @RequestParam(defaultValue = "50")
             @Min(1)
             @Max(100)
             int size
     ) {
-
         return productService.getAll(
                 q,
                 page,

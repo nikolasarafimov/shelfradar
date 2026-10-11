@@ -3,7 +3,15 @@ package com.shelfradar.backend.entity;
 import com.shelfradar.backend.entity.enums.AuditAction;
 import com.shelfradar.backend.entity.enums.AuditEntityType;
 import com.shelfradar.backend.entity.enums.UserRole;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
 
 import java.time.Instant;
 
@@ -57,7 +65,7 @@ public class AuditLog {
 
     @Column(
             name = "store_name_snapshot",
-            length = 150
+            length = 200
     )
     private String storeNameSnapshot;
 
@@ -78,23 +86,20 @@ public class AuditLog {
 
     @Column(
             name = "occurred_at",
-            nullable = false
+            nullable = false,
+            updatable = false
     )
     private Instant occurredAt;
-
 
     public AuditLog() {
     }
 
-
     @PrePersist
     public void prePersist() {
-
         if (occurredAt == null) {
             occurredAt = Instant.now();
         }
     }
-
 
     public Long getId() {
         return id;
@@ -183,8 +188,7 @@ public class AuditLog {
     public void setStoreNameSnapshot(
             String storeNameSnapshot
     ) {
-        this.storeNameSnapshot =
-                storeNameSnapshot;
+        this.storeNameSnapshot = storeNameSnapshot;
     }
 
     public Long getProductId() {
@@ -204,8 +208,7 @@ public class AuditLog {
     public void setProductNameSnapshot(
             String productNameSnapshot
     ) {
-        this.productNameSnapshot =
-                productNameSnapshot;
+        this.productNameSnapshot = productNameSnapshot;
     }
 
     public String getDetails() {

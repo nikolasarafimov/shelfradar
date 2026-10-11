@@ -21,8 +21,9 @@ public class ShelfRadarUserDetailsService
     }
 
     @Override
-    public UserDetails loadUserByUsername(String email)
-            throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(
+            String email
+    ) throws UsernameNotFoundException {
 
         AppUser user =
                 appUserRepository

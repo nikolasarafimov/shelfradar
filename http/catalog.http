@@ -1,8 +1,11 @@
+@baseUrl = http://localhost:8080
+
 ### ========================================================
 ### ADMIN LOGIN
+### Expected: 200
 ### ========================================================
 
-POST http://localhost:8080/api/auth/login
+POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
@@ -20,75 +23,206 @@ Content-Type: application/json
 
 ### ========================================================
 ### GET BRANDS
+### Expected: 200
 ### ========================================================
 
-GET http://localhost:8080/api/admin/catalog/brands
+GET {{baseUrl}}/api/admin/catalog/brands
 Authorization: Bearer {{admin_token}}
+Accept: application/json
 
 
 ### ========================================================
-### CREATE BRAND
+### CREATE TEST BRAND
+### Expected: 201
 ### ========================================================
 
-POST http://localhost:8080/api/admin/catalog/brands
+POST {{baseUrl}}/api/admin/catalog/brands
 Authorization: Bearer {{admin_token}}
 Content-Type: application/json
 
 {
-  "name": "Red Bull"
+  "name": "HTTP Test Brand {{$timestamp}}"
+}
+
+> {%
+    if (
+        response.body &&
+        response.body.id
+    ) {
+        client.global.set(
+            "test_brand_id",
+            response.body.id
+        );
+    }
+%}
+
+
+### ========================================================
+### UPDATE TEST BRAND
+### Expected: 200
+### ========================================================
+
+PUT {{baseUrl}}/api/admin/catalog/brands/{{test_brand_id}}
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "name": "HTTP Test Brand Updated {{$timestamp}}"
 }
 
 
 ### ========================================================
 ### GET CATEGORIES
+### Expected: 200
 ### ========================================================
 
-GET http://localhost:8080/api/admin/catalog/categories
+GET {{baseUrl}}/api/admin/catalog/categories
 Authorization: Bearer {{admin_token}}
+Accept: application/json
 
 
 ### ========================================================
-### CREATE CATEGORY
+### CREATE TEST CATEGORY
+### Expected: 201
 ### ========================================================
 
-POST http://localhost:8080/api/admin/catalog/categories
+POST {{baseUrl}}/api/admin/catalog/categories
 Authorization: Bearer {{admin_token}}
 Content-Type: application/json
 
 {
-  "name": "Energy Drinks"
+  "name": "HTTP Test Category {{$timestamp}}"
+}
+
+> {%
+    if (
+        response.body &&
+        response.body.id
+    ) {
+        client.global.set(
+            "test_category_id",
+            response.body.id
+        );
+    }
+%}
+
+
+### ========================================================
+### UPDATE TEST CATEGORY
+### Expected: 200
+### ========================================================
+
+PUT {{baseUrl}}/api/admin/catalog/categories/{{test_category_id}}
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "name": "HTTP Test Category Updated {{$timestamp}}"
 }
 
 
 ### ========================================================
 ### GET PRODUCTS
+### Expected: 200
 ### ========================================================
 
-GET http://localhost:8080/api/admin/catalog/products?page=0&size=20&sort=nameAsc
+GET {{baseUrl}}/api/admin/catalog/products?page=0&size=20&sort=nameAsc
 Authorization: Bearer {{admin_token}}
+Accept: application/json
 
 
 ### ========================================================
 ### SEARCH PRODUCTS
+### Expected: 200
 ### ========================================================
 
-GET http://localhost:8080/api/admin/catalog/products?q=coca&page=0&size=20
+GET {{baseUrl}}/api/admin/catalog/products?q=coca&page=0&size=20&sort=nameAsc
 Authorization: Bearer {{admin_token}}
+Accept: application/json
 
 
 ### ========================================================
-### CREATE PRODUCT
-### Replace brandId/categoryId if necessary
+### CREATE TEST PRODUCT
+### Expected: 201
 ### ========================================================
 
-POST http://localhost:8080/api/admin/catalog/products
+POST {{baseUrl}}/api/admin/catalog/products
 Authorization: Bearer {{admin_token}}
 Content-Type: application/json
 
 {
-  "name": "Red Bull Energy Drink 250ml",
-  "description": "Energy drink, 250ml can.",
+  "name": "HTTP Test Product {{$timestamp}}",
+  "description": "Temporary product created by catalog.http.",
   "imageUrl": null,
-  "brandId": 6,
-  "categoryId": 5
+  "brandId": {{test_brand_id}},
+  "categoryId": {{test_category_id}}
 }
+
+> {%
+    if (
+        response.body &&
+        response.body.id
+    ) {
+        client.global.set(
+            "test_product_id",
+            response.body.id
+        );
+    }
+%}
+
+
+### ========================================================
+### UPDATE TEST PRODUCT
+### Expected: 200
+### ========================================================
+
+PUT {{baseUrl}}/api/admin/catalog/products/{{test_product_id}}
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "name": "HTTP Test Product Updated {{$timestamp}}",
+  "description": "Updated temporary product created by catalog.http.",
+  "imageUrl": null,
+  "brandId": {{test_brand_id}},
+  "categoryId": {{test_category_id}}
+}
+
+
+### ========================================================
+### SEARCH TEST PRODUCT
+### Expected: 200
+### ========================================================
+
+GET {{baseUrl}}/api/admin/catalog/products?q=HTTP%20Test%20Product&page=0&size=20&sort=nameAsc
+Authorization: Bearer {{admin_token}}
+Accept: application/json
+
+
+### ========================================================
+### DELETE TEST PRODUCT
+### Expected: 204
+### ========================================================
+
+DELETE {{baseUrl}}/api/admin/catalog/products/{{test_product_id}}
+Authorization: Bearer {{admin_token}}
+
+
+### ========================================================
+### DELETE TEST BRAND
+### Expected: 204
+### Must run after deleting the test product
+### ========================================================
+
+DELETE {{baseUrl}}/api/admin/catalog/brands/{{test_brand_id}}
+Authorization: Bearer {{admin_token}}
+
+
+### ========================================================
+### DELETE TEST CATEGORY
+### Expected: 204
+### Must run after deleting the test product
+### ========================================================
+
+DELETE {{baseUrl}}/api/admin/catalog/categories/{{test_category_id}}
+Authorization: Bearer {{admin_token}}

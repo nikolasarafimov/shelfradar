@@ -4,6 +4,7 @@ import {
 
 import type {
     FormEvent,
+    ReactNode,
 } from 'react'
 
 import {
@@ -13,10 +14,15 @@ import {
 } from '@tanstack/react-query'
 
 import {
+    AnimatePresence,
+    motion,
+} from 'motion/react'
+
+import {
     AlertCircle,
     ChevronLeft,
     ChevronRight,
-    Image,
+    Image as ImageIcon,
     LoaderCircle,
     Package,
     Pencil,
@@ -33,81 +39,92 @@ import {
     getCategories,
     getProducts,
     updateProduct,
-} from '../../api/catalogApi'
+} from '../../api/adminApi'
 
 import type {
     Product,
     ProductRequest,
 } from '../../types/catalog'
 
-export default function ProductManager() {
+import EmptyState from '../ui/EmptyState'
+import ErrorState from '../ui/ErrorState'
+import LoadingState from '../ui/LoadingState'
 
+interface ProductFormState {
+    name: string
+    description: string
+    imageUrl: string
+    brandId: string
+    categoryId: string
+}
+
+type ProductRequestBuildResult =
+    | {
+    success: true
+    request: ProductRequest
+}
+    | {
+    success: false
+    error: string
+}
+
+const EMPTY_FORM: ProductFormState = {
+    name: '',
+    description: '',
+    imageUrl: '',
+    brandId: '',
+    categoryId: '',
+}
+
+const inputClassName =
+    'field min-h-12 w-full px-4 text-sm disabled:cursor-not-allowed disabled:opacity-50'
+
+export default function ProductManager() {
     const queryClient =
         useQueryClient()
 
     const [
         page,
         setPage,
-    ] =
-        useState(0)
+    ] = useState(0)
 
     const [
         searchInput,
         setSearchInput,
-    ] =
-        useState('')
+    ] = useState('')
 
     const [
         search,
         setSearch,
-    ] =
-        useState('')
+    ] = useState('')
 
     const [
         editingProduct,
         setEditingProduct,
-    ] =
-        useState<Product | null>(
-            null,
-        )
+    ] = useState<Product | null>(
+        null,
+    )
 
     const [
-        name,
-        setName,
-    ] =
-        useState('')
-
-    const [
-        description,
-        setDescription,
-    ] =
-        useState('')
-
-    const [
-        imageUrl,
-        setImageUrl,
-    ] =
-        useState('')
-
-    const [
-        brandId,
-        setBrandId,
-    ] =
-        useState('')
-
-    const [
-        categoryId,
-        setCategoryId,
-    ] =
-        useState('')
+        form,
+        setForm,
+    ] = useState<ProductFormState>({
+        ...EMPTY_FORM,
+    })
 
     const [
         error,
         setError,
-    ] =
-        useState<string | null>(
-            null,
-        )
+    ] = useState<string | null>(
+        null,
+    )
+
+    const [
+        deleteTarget,
+        setDeleteTarget,
+    ] = useState<Product | null>(
+        null,
+    )
 
     const productsQuery =
         useQuery({
@@ -120,16 +137,10 @@ export default function ProductManager() {
             queryFn:
                 () =>
                     getProducts({
-                        q:
-                        search,
-
+                        q: search,
                         page,
-
-                        size:
-                            10,
-
-                        sort:
-                            'nameAsc',
+                        size: 10,
+                        sort: 'nameAsc',
                     }),
         })
 
@@ -153,19 +164,29 @@ export default function ProductManager() {
             getCategories,
         })
 
+    async function refreshProductData() {
+        await Promise.all([
+            queryClient.invalidateQueries({
+                queryKey: [
+                    'admin-products',
+                ],
+            }),
+
+            queryClient.invalidateQueries({
+                queryKey: [
+                    'store-product-catalog',
+                ],
+            }),
+        ])
+    }
+
     const saveMutation =
         useMutation({
-
             mutationFn:
-                async (
+                (
                     request: ProductRequest,
                 ) => {
-
-                    if (
-                        editingProduct !==
-                        null
-                    ) {
-
+                    if (editingProduct) {
                         return updateProduct(
                             editingProduct.id,
                             request,
@@ -179,21 +200,13 @@ export default function ProductManager() {
 
             onSuccess:
                 async () => {
-
                     resetForm()
 
-
-                    await queryClient
-                        .invalidateQueries({
-                            queryKey: [
-                                'admin-products',
-                            ],
-                        })
+                    await refreshProductData()
                 },
 
             onError:
                 () => {
-
                     setError(
                         'Unable to save product. Check for duplicate or invalid data.',
                     )
@@ -202,7 +215,6 @@ export default function ProductManager() {
 
     const deleteMutation =
         useMutation({
-
             mutationFn:
             deleteProduct,
 
@@ -211,19 +223,15 @@ export default function ProductManager() {
                     _data,
                     deletedProductId,
                 ) => {
-
                     if (
                         editingProduct?.id ===
                         deletedProductId
                     ) {
-
                         resetForm()
                     }
 
-
                     const currentData =
                         productsQuery.data
-
 
                     if (
                         currentData &&
@@ -232,7 +240,6 @@ export default function ProductManager() {
                         page >
                         0
                     ) {
-
                         setPage(
                             current =>
                                 Math.max(
@@ -242,31 +249,45 @@ export default function ProductManager() {
                         )
                     }
 
+                    setDeleteTarget(
+                        null,
+                    )
+
                     setError(
                         null,
                     )
 
-                    await queryClient
-                        .invalidateQueries({
-                            queryKey: [
-                                'admin-products',
-                            ],
-                        })
+                    await refreshProductData()
                 },
 
             onError:
                 () => {
+                    setDeleteTarget(
+                        null,
+                    )
 
                     setError(
-                        'Unable to delete product. It may still be referenced by store inventory.',
+                        'Unable to delete product.',
                     )
                 },
         })
 
+    function updateForm(
+        values: Partial<ProductFormState>,
+    ) {
+        setForm(
+            current => ({
+                ...current,
+                ...values,
+            }),
+        )
+
+        clearFormError()
+    }
+
     function handleSearch(
         event: FormEvent<HTMLFormElement>,
     ) {
-
         event.preventDefault()
 
         setPage(
@@ -279,7 +300,6 @@ export default function ProductManager() {
     }
 
     function clearSearch() {
-
         setSearchInput(
             '',
         )
@@ -296,56 +316,18 @@ export default function ProductManager() {
     function handleSubmit(
         event: FormEvent<HTMLFormElement>,
     ) {
-
         event.preventDefault()
 
-        const normalizedName =
-            name.trim()
+        const result =
+            buildProductRequest(
+                form,
+            )
 
-        const normalizedDescription =
-            description.trim()
-
-        const normalizedImageUrl =
-            imageUrl.trim()
-
-        if (
-            !normalizedName ||
-            !brandId ||
-            !categoryId
-        ) {
-
+        if (!result.success) {
             setError(
-                'Name, brand and category are required.',
-            )
-            return
-        }
-
-        const parsedBrandId =
-            Number(
-                brandId,
+                result.error,
             )
 
-        const parsedCategoryId =
-            Number(
-                categoryId,
-            )
-
-        if (
-            !Number.isInteger(
-                parsedBrandId,
-            ) ||
-            parsedBrandId <=
-            0 ||
-            !Number.isInteger(
-                parsedCategoryId,
-            ) ||
-            parsedCategoryId <=
-            0
-        ) {
-
-            setError(
-                'Please select a valid brand and category.',
-            )
             return
         }
 
@@ -353,134 +335,67 @@ export default function ProductManager() {
             null,
         )
 
-        saveMutation.mutate({
-            name:
-            normalizedName,
-
-            description:
-                normalizedDescription ||
-                null,
-
-            imageUrl:
-                normalizedImageUrl ||
-                null,
-
-            brandId:
-            parsedBrandId,
-
-            categoryId:
-            parsedCategoryId,
-        })
+        saveMutation.mutate(
+            result.request,
+        )
     }
 
     function beginEdit(
         product: Product,
     ) {
-
         setEditingProduct(
             product,
         )
 
-        setName(
+        setForm({
+            name:
             product.name,
-        )
 
-        setDescription(
-            product.description ??
-            '',
-        )
+            description:
+                product.description ??
+                '',
 
-        setImageUrl(
-            product.imageUrl ??
-            '',
-        )
+            imageUrl:
+                product.imageUrl ??
+                '',
 
-        setBrandId(
-            String(
-                product.brand.id,
-            ),
-        )
+            brandId:
+                String(
+                    product.brand.id,
+                ),
 
-        setCategoryId(
-            String(
-                product.category.id,
-            ),
-        )
+            categoryId:
+                String(
+                    product.category.id,
+                ),
+        })
 
         setError(
             null,
         )
 
         window.scrollTo({
-            top:
-                0,
-
-            behavior:
-                'smooth',
+            top: 0,
+            behavior: 'smooth',
         })
     }
 
     function resetForm() {
-
         setEditingProduct(
             null,
         )
 
-        setName(
-            '',
-        )
-
-        setDescription(
-            '',
-        )
-
-        setImageUrl(
-            '',
-        )
-
-        setBrandId(
-            '',
-        )
-
-        setCategoryId(
-            '',
-        )
+        setForm({
+            ...EMPTY_FORM,
+        })
 
         setError(
             null,
-        )
-    }
-
-    function handleDelete(
-        product: Product,
-    ) {
-
-        const confirmed =
-            window.confirm(
-                `Delete ${product.name}?`,
-            )
-
-        if (
-            !confirmed
-        ) {
-            return
-        }
-
-        setError(
-            null,
-        )
-
-        deleteMutation.mutate(
-            product.id,
         )
     }
 
     function clearFormError() {
-
-        if (
-            error
-        ) {
-
+        if (error) {
             setError(
                 null,
             )
@@ -503,192 +418,146 @@ export default function ProductManager() {
         deleteMutation.isPending
 
     return (
-        <section className="space-y-6">
-            <div className="premium-card overflow-hidden rounded-3xl border border-slate-800/90 bg-slate-900/55 shadow-[0_24px_70px_-45px_rgba(14,165,233,0.2)] backdrop-blur-xl">
-                <div className="flex items-center gap-3 border-b border-slate-800/80 px-5 py-5 sm:px-6">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-900/50 bg-sky-950/30 text-sky-400">
-                        {
-                            editingProduct
-                                ? (
-                                    <Pencil
-                                        size={16}
-                                    />
-                                )
-                                : (
-                                    <Plus
-                                        size={17}
-                                    />
-                                )
-                        }
-                    </div>
-
-                    <div>
-                        <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-sky-400">
-                            {
-                                editingProduct
-                                    ? 'Edit catalog entry'
-                                    : 'New catalog entry'
-                            }
-                        </p>
-
-                        <h2 className="mt-0.5 text-lg font-bold tracking-tight text-white">
-                            {
-                                editingProduct
-                                    ? 'Edit Product'
-                                    : 'Add Product'
-                            }
-                        </h2>
-                    </div>
-                </div>
-
-                <form
-                    onSubmit={
-                        handleSubmit
-                    }
-                    className="grid gap-5 p-5 md:grid-cols-2 sm:p-6"
-                >
-                    <label
-                        htmlFor="product-name"
-                        className="block"
-                    >
-
-                        <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
-                            Product name
-                        </span>
-
-                        <input
-                            id="product-name"
-                            value={
-                                name
-                            }
-                            onChange={
-                                event => {
-
-                                    setName(
-                                        event.target.value,
-                                    )
-
-                                    clearFormError()
-                                }
-                            }
-                            disabled={
-                                isMutating
-                            }
-                            autoComplete="off"
-                            placeholder="Enter product name"
-                            className={inputClassName}
+        <>
+            <section className="space-y-6">
+                <div className="premium-card overflow-hidden rounded-2xl">
+                    <div className="relative flex items-center gap-3 border-b border-slate-800/80 px-5 py-5 sm:px-6">
+                        <div
+                            aria-hidden="true"
+                            className="pointer-events-none absolute -left-20 -top-20 size-44 rounded-full bg-sky-400/[0.06] blur-3xl"
                         />
-                    </label>
 
-                    <label
-                        htmlFor="product-brand"
-                        className="block"
+                        <div className="relative flex size-11 shrink-0 items-center justify-center rounded-xl border border-sky-300/15 bg-sky-300/[0.08] text-sky-300">
+                            {editingProduct ? (
+                                <Pencil
+                                    className="size-4"
+                                    strokeWidth={1.8}
+                                    aria-hidden="true"
+                                />
+                            ) : (
+                                <Plus
+                                    className="size-[18px]"
+                                    strokeWidth={1.8}
+                                    aria-hidden="true"
+                                />
+                            )}
+                        </div>
+
+                        <div className="relative">
+                            <p className="eyebrow">
+                                {editingProduct
+                                    ? 'Edit catalog entry'
+                                    : 'New catalog entry'}
+                            </p>
+
+                            <h2 className="mt-1.5 text-lg font-semibold tracking-[-0.025em] text-slate-50">
+                                {editingProduct
+                                    ? 'Edit product'
+                                    : 'Add product'}
+                            </h2>
+                        </div>
+                    </div>
+
+                    <form
+                        onSubmit={handleSubmit}
+                        className="grid gap-5 p-5 sm:p-6 md:grid-cols-2"
                     >
-                        <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
-                            Brand
-                        </span>
-
-                        <select
-                            id="product-brand"
-                            value={
-                                brandId
-                            }
-                            onChange={
-                                event => {
-
-                                    setBrandId(
-                                        event.target.value,
-                                    )
-
-                                    clearFormError()
-                                }
-                            }
-                            disabled={
-                                isMutating ||
-                                referenceDataLoading ||
-                                referenceDataError
-                            }
-                            className={inputClassName}
+                        <FieldLabel
+                            htmlFor="product-name"
+                            label="Product name"
                         >
-
-                            <option value="">
-                                {
-                                    brandsQuery.isLoading
-                                        ? 'Loading brands...'
-                                        : 'Select brand'
+                            <input
+                                id="product-name"
+                                value={form.name}
+                                onChange={
+                                    event =>
+                                        updateForm({
+                                            name:
+                                            event.target.value,
+                                        })
                                 }
-                            </option>
+                                disabled={isMutating}
+                                autoComplete="off"
+                                placeholder="Enter product name"
+                                className={inputClassName}
+                            />
+                        </FieldLabel>
 
-                            {
-                                brandsQuery.data?.map(
+                        <FieldLabel
+                            htmlFor="product-brand"
+                            label="Brand"
+                        >
+                            <select
+                                id="product-brand"
+                                value={form.brandId}
+                                onChange={
+                                    event =>
+                                        updateForm({
+                                            brandId:
+                                            event.target.value,
+                                        })
+                                }
+                                disabled={
+                                    isMutating ||
+                                    referenceDataLoading ||
+                                    referenceDataError
+                                }
+                                className={inputClassName}
+                            >
+                                <option value="">
+                                    {brandsQuery.isLoading
+                                        ? 'Loading brands...'
+                                        : brandsQuery.isError
+                                            ? 'Brands unavailable'
+                                            : 'Select brand'}
+                                </option>
+
+                                {brandsQuery.data?.map(
                                     brand => (
-
                                         <option
-                                            key={
-                                                brand.id
-                                            }
-                                            value={
-                                                brand.id
-                                            }
+                                            key={brand.id}
+                                            value={brand.id}
                                         >
-                                            {
-                                                brand.name
-                                            }
+                                            {brand.name}
                                         </option>
                                     ),
-                                )
-                            }
-                        </select>
-                    </label>
+                                )}
+                            </select>
+                        </FieldLabel>
 
-                    <label
-                        htmlFor="product-category"
-                        className="block"
-                    >
-
-                        <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
-                            Category
-                        </span>
-
-                        <select
-                            id="product-category"
-                            value={
-                                categoryId
-                            }
-                            onChange={
-                                event => {
-
-                                    setCategoryId(
-                                        event.target.value,
-                                    )
-
-                                    clearFormError()
-                                }
-                            }
-                            disabled={
-                                isMutating ||
-                                referenceDataLoading ||
-                                referenceDataError
-                            }
-                            className={inputClassName}
+                        <FieldLabel
+                            htmlFor="product-category"
+                            label="Category"
                         >
-
-                            <option value="">
-                                {
-                                    categoriesQuery.isLoading
-                                        ? 'Loading categories...'
-                                        : 'Select category'
+                            <select
+                                id="product-category"
+                                value={form.categoryId}
+                                onChange={
+                                    event =>
+                                        updateForm({
+                                            categoryId:
+                                            event.target.value,
+                                        })
                                 }
-                            </option>
+                                disabled={
+                                    isMutating ||
+                                    referenceDataLoading ||
+                                    referenceDataError
+                                }
+                                className={inputClassName}
+                            >
+                                <option value="">
+                                    {categoriesQuery.isLoading
+                                        ? 'Loading categories...'
+                                        : categoriesQuery.isError
+                                            ? 'Categories unavailable'
+                                            : 'Select category'}
+                                </option>
 
-                            {
-                                categoriesQuery.data?.map(
+                                {categoriesQuery.data?.map(
                                     category => (
-
                                         <option
-                                            key={
-                                                category.id
-                                            }
+                                            key={category.id}
                                             value={
                                                 category.id
                                             }
@@ -698,575 +567,643 @@ export default function ProductManager() {
                                             }
                                         </option>
                                     ),
-                                )
-                            }
-                        </select>
-                    </label>
+                                )}
+                            </select>
+                        </FieldLabel>
 
-                    <label
-                        htmlFor="product-image-url"
-                        className="block"
-                    >
-
-                        <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
-                            Image URL
-                        </span>
-
-                        <div className="relative">
-                            <Image
-                                size={15}
-                                className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600"
-                            />
-
-                            <input
-                                id="product-image-url"
-                                type="url"
-                                value={
-                                    imageUrl
-                                }
-                                onChange={
-                                    event => {
-
-                                        setImageUrl(
-                                            event.target.value,
-                                        )
-
-                                        clearFormError()
-                                    }
-                                }
-                                disabled={
-                                    isMutating
-                                }
-                                autoComplete="off"
-                                placeholder="https://..."
-                                className={`${inputClassName} pl-11`}
-                            />
-                        </div>
-                    </label>
-
-                    <label
-                        htmlFor="product-description"
-                        className="block md:col-span-2"
-                    >
-                        <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
-                            Description
-                        </span>
-
-                        <textarea
-                            id="product-description"
-                            rows={
-                                4
-                            }
-                            value={
-                                description
-                            }
-                            onChange={
-                                event => {
-
-                                    setDescription(
-                                        event.target.value,
-                                    )
-
-                                    clearFormError()
-                                }
-                            }
-                            disabled={
-                                isMutating
-                            }
-                            placeholder="Optional product description"
-                            className={`${inputClassName} resize-y py-3`}
-                        />
-                    </label>
-                    {
-                        referenceDataError && (
-
-                            <div
-                                role="alert"
-                                className="flex items-start gap-2.5 rounded-xl border border-red-900/40 bg-red-950/20 p-3 text-xs leading-5 text-red-300 md:col-span-2"
-                            >
-
-                                <AlertCircle
-                                    size={15}
-                                    className="mt-0.5 shrink-0"
-                                />
-
-                                <span>
-                                    Unable to load brands or categories. Product editing is temporarily unavailable.
-                                </span>
-
-                            </div>
-                        )
-                    }
-
-                    {
-                        error && (
-                            <div role="alert" className="flex items-start gap-2.5 rounded-xl border border-red-900/40 bg-red-950/20 p-3 text-xs leading-5 text-red-300 md:col-span-2">
-                                <AlertCircle size={15} className="mt-0.5 shrink-0"/>
-
-                                <span>
-                                    {error}
-                                </span>
-                            </div>
-                        )
-                    }
-
-                    <div className="flex flex-wrap gap-2 md:col-span-2">
-                        <button
-                            type="submit"
-                            disabled={
-                                isMutating ||
-                                referenceDataLoading ||
-                                referenceDataError ||
-                                !name.trim() ||
-                                !brandId ||
-                                !categoryId
-                            }
-                            className="shine-button inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-400 px-5 text-sm font-bold text-slate-950 transition duration-200 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45"
+                        <FieldLabel
+                            htmlFor="product-image-url"
+                            label="Image URL"
                         >
-
-                            {
-                                saveMutation.isPending
-                                    ? (
-                                        <>
-                                            <LoaderCircle
-                                                size={15}
-                                                className="animate-spin"
-                                            />
-
-                                            Saving...
-                                        </>
-                                    )
-                                    : editingProduct
-                                        ? (
-                                            <>
-                                                <Pencil
-                                                    size={14}
-                                                />
-
-                                                Save changes
-                                            </>
-                                        )
-                                        : (
-                                            <>
-                                                <Plus
-                                                    size={15}
-                                                />
-
-                                                Add product
-                                            </>
-                                        )
-                            }
-                        </button>
-                        {
-                            editingProduct && (
-
-                                <button
-                                    type="button"
-                                    onClick={
-                                        resetForm
-                                    }
-                                    disabled={
-                                        isMutating
-                                    }
-                                    className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/50 px-4 text-sm font-semibold text-slate-400 transition hover:border-slate-600 hover:bg-slate-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-
-                                    <X size={14}/>
-                                    Cancel
-                                </button>
-                            )
-                        }
-                    </div>
-                </form>
-            </div>
-
-            <div className="premium-card overflow-hidden rounded-3xl border border-slate-800/90 bg-slate-900/55 shadow-[0_24px_70px_-45px_rgba(0,0,0,0.8)] backdrop-blur-xl">
-                <div className="border-b border-slate-800/80 px-5 py-5 sm:px-6">
-                    <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-                        <div>
-                            <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-sky-400">
-                                Catalog
-                            </p>
-
-                            <h2 className="mt-1 text-xl font-bold tracking-tight text-white">
-                                Products
-                            </h2>
-
-                            <p className="mt-1 text-xs text-slate-500">
-                                {
-                                    productsQuery.isLoading
-                                        ? 'Loading catalog...'
-                                        : `${data?.totalElements ?? 0} products`
-                                }
-                            </p>
-                        </div>
-
-                        <form
-                            onSubmit={
-                                handleSearch
-                            }
-                            className="flex w-full gap-2 lg:w-auto"
-                        >
-                            <div className="relative min-w-0 flex-1 lg:w-72">
-
-                                <Search
-                                    size={15}
-                                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600"
+                            <div className="relative">
+                                <ImageIcon
+                                    className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-600"
+                                    aria-hidden="true"
                                 />
 
                                 <input
+                                    id="product-image-url"
+                                    type="url"
                                     value={
-                                        searchInput
+                                        form.imageUrl
                                     }
                                     onChange={
                                         event =>
-                                            setSearchInput(
+                                            updateForm({
+                                                imageUrl:
                                                 event.target.value,
-                                            )
+                                            })
                                     }
+                                    disabled={isMutating}
                                     autoComplete="off"
-                                    placeholder="Search products..."
-                                    className="min-h-11 w-full rounded-xl border border-slate-700 bg-[#020817]/80 pl-10 pr-10 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10"
+                                    placeholder="https://..."
+                                    className={`${inputClassName} pl-11`}
                                 />
-                                {
-                                    searchInput && (
+                            </div>
+                        </FieldLabel>
 
-                                        <button
-                                            type="button"
-                                            onClick={
-                                                clearSearch
-                                            }
-                                            aria-label="Clear product search"
-                                            className="absolute right-2.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-800 hover:text-slate-300"
-                                        >
-                                            <X size={13}/>
-
-                                        </button>
-                                    )
+                        <FieldLabel
+                            htmlFor="product-description"
+                            label="Description"
+                            className="md:col-span-2"
+                        >
+                            <textarea
+                                id="product-description"
+                                rows={4}
+                                value={
+                                    form.description
                                 }
+                                onChange={
+                                    event =>
+                                        updateForm({
+                                            description:
+                                            event.target.value,
+                                        })
+                                }
+                                disabled={isMutating}
+                                placeholder="Optional product description"
+                                className="field min-h-28 w-full resize-y px-4 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                            />
+                        </FieldLabel>
+
+                        {referenceDataError && (
+                            <div className="md:col-span-2">
+                                <InlineAlert>
+                                    Unable to load brands or categories. Product editing is temporarily unavailable.
+                                </InlineAlert>
                             </div>
+                        )}
 
-                            <button type="submit" className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/60 px-4 text-sm font-semibold text-slate-300 transition hover:border-sky-900 hover:bg-sky-950/20 hover:text-sky-300">
-                                <Search size={14}/>
+                        {error && (
+                            <div className="md:col-span-2">
+                                <InlineAlert>
+                                    {error}
+                                </InlineAlert>
+                            </div>
+                        )}
 
-                                <span className="hidden sm:inline">
-                                    Search
-                                </span>
+                        <div className="flex flex-wrap gap-2.5 md:col-span-2">
+                            <button
+                                type="submit"
+                                disabled={
+                                    isMutating ||
+                                    referenceDataLoading ||
+                                    referenceDataError ||
+                                    !form.name.trim() ||
+                                    !form.brandId ||
+                                    !form.categoryId
+                                }
+                                className="shine-button inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-400 to-cyan-300 px-5 text-sm font-semibold text-slate-950 shadow-[0_12px_32px_rgba(14,165,233,0.17)] transition duration-200 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45"
+                            >
+                                {saveMutation.isPending ? (
+                                    <>
+                                        <LoaderCircle
+                                            className="size-4 animate-spin"
+                                            aria-hidden="true"
+                                        />
+
+                                        Saving...
+                                    </>
+                                ) : editingProduct ? (
+                                    <>
+                                        <Pencil
+                                            className="size-3.5"
+                                            aria-hidden="true"
+                                        />
+
+                                        Save changes
+                                    </>
+                                ) : (
+                                    <>
+                                        <Plus
+                                            className="size-4"
+                                            aria-hidden="true"
+                                        />
+
+                                        Add product
+                                    </>
+                                )}
                             </button>
-                        </form>
-                    </div>
+
+                            {editingProduct && (
+                                <button
+                                    type="button"
+                                    onClick={resetForm}
+                                    disabled={isMutating}
+                                    className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/50 px-4 text-sm font-medium text-slate-400 transition duration-200 hover:border-slate-600 hover:bg-slate-800/70 hover:text-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    <X
+                                        className="size-4"
+                                        aria-hidden="true"
+                                    />
+
+                                    Cancel
+                                </button>
+                            )}
+                        </div>
+                    </form>
                 </div>
-                {
-                    productsQuery.isLoading && (
-                        <div className="flex min-h-60 items-center justify-center p-6">
-                            <div className="text-center">
-                                <LoaderCircle
-                                    size={22}
-                                    className="mx-auto animate-spin text-sky-400"
-                                />
 
-                                <p className="mt-3 text-sm text-slate-500">
-                                    Loading products...
-                                </p>
-                            </div>
-                        </div>
-                    )
-                }
+                {productsQuery.isLoading ? (
+                    <LoadingState
+                        message="Loading products..."
+                    />
+                ) : productsQuery.isError ? (
+                    <ErrorState
+                        title="Unable to load products"
+                        message="ShelfRadar could not load the product catalog."
+                        onRetry={
+                            () => {
+                                void productsQuery.refetch()
+                            }
+                        }
+                    />
+                ) : (
+                    <div className="premium-card overflow-hidden rounded-2xl">
+                        <div className="relative border-b border-slate-800/80 px-5 py-5 sm:px-6">
+                            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                                <div>
+                                    <p className="eyebrow">
+                                        Catalog
+                                    </p>
 
-                {
-                    productsQuery.isError && (
-                        <div className="flex min-h-60 items-center justify-center p-6 text-center">
-                            <div>
-                                <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl border border-red-900/40 bg-red-950/20 text-red-400">
-                                    <AlertCircle size={18}/>
+                                    <h2 className="mt-1.5 text-xl font-semibold tracking-[-0.03em] text-slate-50">
+                                        Products
+                                    </h2>
+
+                                    <p className="mt-1 text-xs text-slate-500">
+                                        {
+                                            `${data?.totalElements ?? 0} products`
+                                        }
+                                    </p>
                                 </div>
 
-                                <p className="mt-3 text-sm font-semibold text-red-300">
-                                    Unable to load products
-                                </p>
+                                <form
+                                    onSubmit={handleSearch}
+                                    className="flex w-full gap-2 lg:w-auto"
+                                >
+                                    <label
+                                        htmlFor="product-search"
+                                        className="sr-only"
+                                    >
+                                        Search products
+                                    </label>
 
-                                <p className="mt-1 text-xs text-slate-600">
-                                    Please try again later.
-                                </p>
+                                    <div className="relative min-w-0 flex-1 lg:w-72">
+                                        <Search
+                                            className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-600"
+                                            aria-hidden="true"
+                                        />
+
+                                        <input
+                                            id="product-search"
+                                            type="search"
+                                            value={
+                                                searchInput
+                                            }
+                                            onChange={
+                                                event =>
+                                                    setSearchInput(
+                                                        event.target.value,
+                                                    )
+                                            }
+                                            autoComplete="off"
+                                            placeholder="Search products..."
+                                            className="field min-h-11 w-full pl-10 pr-10 text-sm"
+                                        />
+
+                                        {searchInput && (
+                                            <button
+                                                type="button"
+                                                onClick={
+                                                    clearSearch
+                                                }
+                                                aria-label="Clear product search"
+                                                className="absolute right-2.5 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-600 transition duration-200 hover:bg-slate-800 hover:text-slate-300"
+                                            >
+                                                <X
+                                                    className="size-3.5"
+                                                    aria-hidden="true"
+                                                />
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/50 px-4 text-sm font-medium text-slate-300 transition duration-200 hover:border-sky-300/20 hover:bg-sky-300/[0.06] hover:text-sky-300"
+                                    >
+                                        <Search
+                                            className="size-4"
+                                            aria-hidden="true"
+                                        />
+
+                                        <span className="hidden sm:inline">
+                                            Search
+                                        </span>
+                                    </button>
+                                </form>
                             </div>
                         </div>
-                    )
-                }
 
-                {
-                    !productsQuery.isLoading &&
-                    !productsQuery.isError &&
-                    data &&
-                    data.content.length ===
-                    0 && (
-                        <div className="flex min-h-60 items-center justify-center p-6 text-center">
-                            <div className="max-w-sm">
-                                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-slate-800 bg-[#020817]/60 text-slate-600">
-                                    <Package size={20}/>
-                                </div>
-
-                                <p className="mt-4 text-sm font-semibold text-slate-300">
-                                    {
+                        {data &&
+                        data.content.length === 0 ? (
+                            <div className="p-5 sm:p-6">
+                                <EmptyState
+                                    title={
                                         search
                                             ? 'No matching products'
                                             : 'No products yet'
                                     }
-                                </p>
-
-                                <p className="mt-1 text-xs leading-5 text-slate-600">
-                                    {
+                                    message={
                                         search
-                                            ? 'Try a different search term.'
+                                            ? 'No catalog products match the current search.'
                                             : 'Add the first product using the form above.'
                                     }
-                                </p>
-                                {
-                                    search && (
-                                        <button
-                                            type="button"
-                                            onClick={
-                                                clearSearch
-                                            }
-                                            className="mt-4 text-xs font-semibold text-sky-400 transition hover:text-sky-300"
-                                        >
-                                            Clear search
-                                        </button>
-                                    )
-                                }
-                            </div>
-                        </div>
-                    )
-                }
-
-                {
-                    !productsQuery.isLoading &&
-                    !productsQuery.isError &&
-                    data &&
-                    data.content.length >
-                    0 && (
-                        <div className="divide-y divide-slate-800/70">
-                            {
-                                data.content.map(
-                                    product => {
-
-                                        const isEditing =
-                                            editingProduct?.id ===
-                                            product.id
-
-                                        const isDeleting =
-                                            deleteMutation.isPending &&
-                                            deleteMutation.variables ===
-                                            product.id
-
-                                        return (
-                                            <article
-                                                key={
-                                                    product.id
+                                    action={
+                                        search ? (
+                                            <button
+                                                type="button"
+                                                onClick={
+                                                    clearSearch
                                                 }
-                                                className={
-                                                    isEditing
-                                                        ? 'flex flex-col gap-4 bg-sky-950/15 px-5 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between'
-                                                        : 'flex flex-col gap-4 px-5 py-4 transition duration-200 hover:bg-slate-800/25 sm:px-6 lg:flex-row lg:items-center lg:justify-between'
-                                                }
+                                                className="rounded-xl border border-sky-300/15 bg-sky-300/[0.07] px-4 py-2 text-xs font-semibold text-sky-300 transition hover:bg-sky-300/10"
                                             >
+                                                Clear search
+                                            </button>
+                                        ) : undefined
+                                    }
+                                />
+                            </div>
+                        ) : (
+                            <div className="divide-y divide-slate-800/70">
+                                <AnimatePresence initial={false}>
+                                    {data?.content.map(
+                                        (
+                                            product,
+                                            index,
+                                        ) => {
+                                            const isEditing =
+                                                editingProduct?.id ===
+                                                product.id
 
-                                                <div className="flex min-w-0 items-start gap-4">
+                                            const isDeleting =
+                                                deleteMutation.isPending &&
+                                                deleteMutation.variables ===
+                                                product.id
 
-                                                    <ProductThumbnail
-                                                        product={
-                                                            product
-                                                        }
-                                                    />
+                                            return (
+                                                <motion.article
+                                                    key={
+                                                        product.id
+                                                    }
+                                                    layout
+                                                    initial={{
+                                                        opacity: 0,
+                                                        y: 7,
+                                                    }}
+                                                    animate={{
+                                                        opacity: 1,
+                                                        y: 0,
+                                                    }}
+                                                    exit={{
+                                                        opacity: 0,
+                                                        x: 12,
+                                                    }}
+                                                    transition={{
+                                                        duration: 0.26,
+                                                        delay:
+                                                            Math.min(
+                                                                index,
+                                                                7,
+                                                            ) * 0.025,
+                                                    }}
+                                                    className={
+                                                        isEditing
+                                                            ? 'flex flex-col gap-4 bg-sky-300/[0.045] px-5 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between'
+                                                            : 'flex flex-col gap-4 px-5 py-4 transition-colors duration-200 hover:bg-white/[0.018] sm:px-6 lg:flex-row lg:items-center lg:justify-between'
+                                                    }
+                                                >
+                                                    <div className="flex min-w-0 items-start gap-4">
+                                                        <ProductThumbnail
+                                                            product={
+                                                                product
+                                                            }
+                                                        />
 
-                                                    <div className="min-w-0">
-                                                        <div className="flex flex-wrap items-center gap-2">
-                                                            <span className="rounded-full border border-sky-900/50 bg-sky-950/25 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.1em] text-sky-400">
-                                                                {
-                                                                    product.brand.name
-                                                                }
-                                                            </span>
+                                                        <div className="min-w-0">
+                                                            <div className="flex flex-wrap items-center gap-2">
+                                                                <span className="rounded-full bg-sky-300/[0.07] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.1em] text-sky-300 ring-1 ring-inset ring-sky-300/15">
+                                                                    {
+                                                                        product.brand.name
+                                                                    }
+                                                                </span>
 
-                                                            <span className="rounded-full border border-slate-800 bg-[#020817]/50 px-2.5 py-1 text-[9px] font-semibold text-slate-500">
-                                                                {
-                                                                    product.category.name
-                                                                }
-                                                            </span>
-                                                            {
-                                                                isEditing && (
+                                                                <span className="rounded-full bg-slate-400/[0.05] px-2.5 py-1 text-[9px] font-semibold text-slate-500 ring-1 ring-inset ring-slate-300/10">
+                                                                    {
+                                                                        product.category.name
+                                                                    }
+                                                                </span>
 
-                                                                    <span className="rounded-full border border-amber-900/50 bg-amber-950/20 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.1em] text-amber-400">
+                                                                {isEditing && (
+                                                                    <span className="rounded-full bg-amber-300/[0.07] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.1em] text-amber-300 ring-1 ring-inset ring-amber-300/15">
                                                                         Editing
                                                                     </span>
-                                                                )
-                                                            }
-                                                        </div>
+                                                                )}
+                                                            </div>
 
-                                                        <h3 className="mt-2 text-sm font-bold text-slate-100">
-                                                            {
-                                                                product.name
-                                                            }
-                                                        </h3>
-                                                        {
-                                                            product.description && (
+                                                            <h3 className="mt-2 text-sm font-semibold text-slate-100">
+                                                                {
+                                                                    product.name
+                                                                }
+                                                            </h3>
+
+                                                            {product.description && (
                                                                 <p className="mt-1.5 max-w-3xl text-xs leading-5 text-slate-500">
                                                                     {
                                                                         product.description
                                                                     }
                                                                 </p>
-                                                            )
-                                                        }
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                </div>
 
-                                                <div className="flex shrink-0 items-center gap-2">
-                                                    <button
-                                                        type="button"
-                                                        onClick={
-                                                            () =>
-                                                                beginEdit(
-                                                                    product,
-                                                                )
-                                                        }
-                                                        disabled={
-                                                            isMutating
-                                                        }
-                                                        aria-label={
-                                                            `Edit ${product.name}`
-                                                        }
-                                                        className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900/50 px-3 text-xs font-semibold text-slate-400 transition hover:border-sky-900 hover:bg-sky-950/20 hover:text-sky-300 disabled:cursor-not-allowed disabled:opacity-40"
-                                                    >
-                                                        <Pencil size={13}/>
-                                                        Edit
-                                                    </button>
+                                                    <div className="flex shrink-0 items-center gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={
+                                                                () =>
+                                                                    beginEdit(
+                                                                        product,
+                                                                    )
+                                                            }
+                                                            disabled={
+                                                                isMutating
+                                                            }
+                                                            aria-label={
+                                                                `Edit ${product.name}`
+                                                            }
+                                                            className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-slate-700/80 bg-slate-900/50 px-3 text-xs font-medium text-slate-400 transition duration-200 hover:border-sky-300/15 hover:bg-sky-300/[0.05] hover:text-sky-300 disabled:cursor-not-allowed disabled:opacity-40"
+                                                        >
+                                                            <Pencil
+                                                                className="size-3.5"
+                                                                aria-hidden="true"
+                                                            />
 
-                                                    <button
-                                                        type="button"
-                                                        onClick={
-                                                            () =>
-                                                                handleDelete(
-                                                                    product,
-                                                                )
-                                                        }
-                                                        disabled={
-                                                            isMutating
-                                                        }
-                                                        aria-label={
-                                                            `Delete ${product.name}`
-                                                        }
-                                                        className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-red-950 bg-red-950/10 px-3 text-xs font-semibold text-red-400 transition hover:border-red-900 hover:bg-red-950/30 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-40"
-                                                    >
-                                                        {
-                                                            isDeleting
-                                                                ? (
-                                                                    <LoaderCircle
-                                                                        size={13}
-                                                                        className="animate-spin"
-                                                                    />
-                                                                )
-                                                                : (
-                                                                    <Trash2
-                                                                        size={13}
-                                                                    />
-                                                                )
-                                                        }
+                                                            Edit
+                                                        </button>
 
-                                                        {
-                                                            isDeleting
+                                                        <button
+                                                            type="button"
+                                                            onClick={
+                                                                () =>
+                                                                    setDeleteTarget(
+                                                                        product,
+                                                                    )
+                                                            }
+                                                            disabled={
+                                                                isMutating
+                                                            }
+                                                            aria-label={
+                                                                `Delete ${product.name}`
+                                                            }
+                                                            className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-rose-300/10 bg-rose-300/[0.045] px-3 text-xs font-medium text-rose-300/80 transition duration-200 hover:border-rose-300/20 hover:bg-rose-300/[0.08] hover:text-rose-200 disabled:cursor-not-allowed disabled:opacity-40"
+                                                        >
+                                                            {isDeleting ? (
+                                                                <LoaderCircle
+                                                                    className="size-3.5 animate-spin"
+                                                                    aria-hidden="true"
+                                                                />
+                                                            ) : (
+                                                                <Trash2
+                                                                    className="size-3.5"
+                                                                    aria-hidden="true"
+                                                                />
+                                                            )}
+
+                                                            {isDeleting
                                                                 ? 'Deleting'
-                                                                : 'Delete'
-                                                        }
-                                                    </button>
-                                                </div>
-                                            </article>
-                                        )
-                                    },
+                                                                : 'Delete'}
+                                                        </button>
+                                                    </div>
+                                                </motion.article>
+                                            )
+                                        },
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        )}
+
+                        {data &&
+                            data.totalPages > 1 && (
+                                <div className="flex flex-col gap-3 border-t border-slate-800/80 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                                    <PaginationButton
+                                        direction="previous"
+                                        disabled={
+                                            data.first ||
+                                            productsQuery.isFetching
+                                        }
+                                        onClick={
+                                            () =>
+                                                setPage(
+                                                    current =>
+                                                        Math.max(
+                                                            0,
+                                                            current -
+                                                            1,
+                                                        ),
+                                                )
+                                        }
+                                    />
+
+                                    <span className="text-center text-xs text-slate-500">
+                                        Page{' '}
+
+                                        <strong className="font-semibold text-slate-300">
+                                            {data.page + 1}
+                                        </strong>
+
+                                        {' '}of{' '}
+
+                                        <strong className="font-semibold text-slate-300">
+                                            {data.totalPages}
+                                        </strong>
+                                    </span>
+
+                                    <PaginationButton
+                                        direction="next"
+                                        disabled={
+                                            data.last ||
+                                            productsQuery.isFetching
+                                        }
+                                        onClick={
+                                            () =>
+                                                setPage(
+                                                    current =>
+                                                        current +
+                                                        1,
+                                                )
+                                        }
+                                    />
+                                </div>
+                            )}
+                    </div>
+                )}
+            </section>
+
+            <AnimatePresence>
+                {deleteTarget && (
+                    <DeleteConfirmation
+                        product={
+                            deleteTarget
+                        }
+                        pending={
+                            deleteMutation.isPending
+                        }
+                        onCancel={
+                            () =>
+                                setDeleteTarget(
+                                    null,
                                 )
-                            }
-                        </div>
-                    )
-                }
+                        }
+                        onConfirm={
+                            () =>
+                                deleteMutation.mutate(
+                                    deleteTarget.id,
+                                )
+                        }
+                    />
+                )}
+            </AnimatePresence>
+        </>
+    )
+}
 
-                {
-                    data &&
-                    data.totalPages >
-                    1 && (
-                        <div className="flex flex-col gap-3 border-t border-slate-800/80 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                            <button
-                                type="button"
-                                disabled={
-                                    data.first ||
-                                    productsQuery.isFetching
-                                }
-                                onClick={
-                                    () =>
-                                        setPage(
-                                            current =>
-                                                Math.max(
-                                                    0,
-                                                    current - 1,
-                                                ),
-                                        )
-                                }
-                                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900/40 px-4 text-xs font-semibold text-slate-400 transition hover:border-slate-600 hover:bg-slate-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
-                            >
-                                <ChevronLeft size={14}/>
-                                Previous
-                            </button>
+function buildProductRequest(
+    form: ProductFormState,
+): ProductRequestBuildResult {
+    const name =
+        form.name.trim()
 
-                            <span className="text-center text-xs text-slate-500">
-                                Page{' '}
-                                <strong className="font-semibold text-slate-300">
-                                    {
-                                        data.page +
-                                        1
-                                    }
-                                </strong>
-                                {' '}of{' '}
-                                <strong className="font-semibold text-slate-300">
-                                    {
-                                        data.totalPages
-                                    }
-                                </strong>
-                            </span>
+    const description =
+        form.description.trim()
 
-                            <button
-                                type="button"
-                                disabled={
-                                    data.last ||
-                                    productsQuery.isFetching
-                                }
-                                onClick={
-                                    () =>
-                                        setPage(
-                                            current =>
-                                                current + 1,
-                                        )
-                                }
-                                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900/40 px-4 text-xs font-semibold text-slate-400 transition hover:border-slate-600 hover:bg-slate-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
-                            >
-                                Next
-                                <ChevronRight
-                                    size={14}
-                                />
-                            </button>
-                        </div>
-                    )
-                }
-            </div>
-        </section>
+    const imageUrl =
+        form.imageUrl.trim()
+
+    if (
+        !name ||
+        !form.brandId ||
+        !form.categoryId
+    ) {
+        return {
+            success: false,
+            error:
+                'Name, brand and category are required.',
+        }
+    }
+
+    const brandId =
+        Number(
+            form.brandId,
+        )
+
+    const categoryId =
+        Number(
+            form.categoryId,
+        )
+
+    if (
+        !Number.isInteger(
+            brandId,
+        ) ||
+        brandId <=
+        0 ||
+        !Number.isInteger(
+            categoryId,
+        ) ||
+        categoryId <=
+        0
+    ) {
+        return {
+            success: false,
+            error:
+                'Please select a valid brand and category.',
+        }
+    }
+
+    return {
+        success: true,
+        request: {
+            name,
+
+            description:
+                description ||
+                null,
+
+            imageUrl:
+                imageUrl ||
+                null,
+
+            brandId,
+            categoryId,
+        },
+    }
+}
+
+function FieldLabel({
+                        htmlFor,
+                        label,
+                        className = '',
+                        children,
+                    }: {
+    htmlFor: string
+    label: string
+    className?: string
+    children: ReactNode
+}) {
+    return (
+        <label
+            htmlFor={htmlFor}
+            className={`block ${className}`}
+        >
+            <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                {label}
+            </span>
+
+            {children}
+        </label>
+    )
+}
+
+function InlineAlert({
+                         children,
+                     }: {
+    children: ReactNode
+}) {
+    return (
+        <div
+            role="alert"
+            className="flex items-start gap-2.5 rounded-xl border border-rose-300/10 bg-rose-300/[0.05] p-3 text-xs leading-5 text-rose-200/80"
+        >
+            <AlertCircle
+                className="mt-0.5 size-4 shrink-0 text-rose-300"
+                aria-hidden="true"
+            />
+
+            <span>
+                {children}
+            </span>
+        </div>
     )
 }
 
 function ProductThumbnail({
-    product,
-}: {
+                              product,
+                          }: {
     product: Product
 }) {
-
-    if (
-        product.imageUrl
-    ) {
-
+    if (product.imageUrl) {
         return (
             <img
                 src={
@@ -1275,20 +1212,192 @@ function ProductThumbnail({
                 alt={
                     product.name
                 }
-                className="h-16 w-16 shrink-0 rounded-2xl border border-slate-800 bg-[#020817] object-cover shadow-lg shadow-black/20"
+                loading="lazy"
+                decoding="async"
+                className="size-16 shrink-0 rounded-2xl border border-slate-700/60 bg-slate-950 object-cover shadow-lg shadow-black/20"
             />
         )
     }
 
     return (
-        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-slate-800 bg-[#020817]/70 text-slate-600">
+        <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl border border-slate-700/60 bg-slate-950/70 text-slate-600">
             <Package
-                size={23}
+                className="size-6"
                 strokeWidth={1.5}
+                aria-hidden="true"
             />
         </div>
     )
 }
 
-const inputClassName =
-    'min-h-12 w-full rounded-xl border border-slate-700 bg-[#020817]/85 px-4 text-sm text-white outline-none transition duration-200 placeholder:text-slate-600 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 disabled:cursor-not-allowed disabled:opacity-50'
+function PaginationButton({
+                              direction,
+                              disabled,
+                              onClick,
+                          }: {
+    direction: 'previous' | 'next'
+    disabled: boolean
+    onClick: () => void
+}) {
+    const previous =
+        direction ===
+        'previous'
+
+    return (
+        <button
+            type="button"
+            disabled={
+                disabled
+            }
+            onClick={
+                onClick
+            }
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/40 px-4 text-xs font-medium text-slate-400 transition duration-200 hover:border-slate-600 hover:bg-slate-800/70 hover:text-slate-100 disabled:cursor-not-allowed disabled:opacity-35"
+        >
+            {previous && (
+                <ChevronLeft
+                    className="size-3.5"
+                    aria-hidden="true"
+                />
+            )}
+
+            {previous
+                ? 'Previous'
+                : 'Next'}
+
+            {!previous && (
+                <ChevronRight
+                    className="size-3.5"
+                    aria-hidden="true"
+                />
+            )}
+        </button>
+    )
+}
+
+function DeleteConfirmation({
+                                product,
+                                pending,
+                                onCancel,
+                                onConfirm,
+                            }: {
+    product: Product
+    pending: boolean
+    onCancel: () => void
+    onConfirm: () => void
+}) {
+    return (
+        <motion.div
+            initial={{
+                opacity: 0,
+            }}
+            animate={{
+                opacity: 1,
+            }}
+            exit={{
+                opacity: 0,
+            }}
+            className="fixed inset-0 z-[1000] flex items-center justify-center p-4"
+        >
+            <button
+                type="button"
+                aria-label="Close delete confirmation"
+                onClick={
+                    onCancel
+                }
+                disabled={
+                    pending
+                }
+                className="absolute inset-0 cursor-default bg-slate-950/75 backdrop-blur-sm"
+            />
+
+            <motion.div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="product-delete-title"
+                initial={{
+                    opacity: 0,
+                    scale: 0.96,
+                    y: 12,
+                }}
+                animate={{
+                    opacity: 1,
+                    scale: 1,
+                    y: 0,
+                }}
+                exit={{
+                    opacity: 0,
+                    scale: 0.97,
+                    y: 8,
+                }}
+                transition={{
+                    duration: 0.2,
+                }}
+                className="premium-card relative z-10 w-full max-w-md rounded-2xl p-6 shadow-[0_30px_100px_rgba(0,0,0,0.5)]"
+            >
+                <div className="flex size-11 items-center justify-center rounded-xl border border-rose-300/15 bg-rose-300/[0.08] text-rose-300">
+                    <Trash2
+                        className="size-5"
+                        aria-hidden="true"
+                    />
+                </div>
+
+                <h2
+                    id="product-delete-title"
+                    className="mt-5 text-lg font-semibold tracking-tight text-slate-50"
+                >
+                    Delete product?
+                </h2>
+
+                <p className="mt-2 text-sm leading-6 text-slate-400">
+                    <strong className="font-semibold text-slate-200">
+                        {product.name}
+                    </strong>{' '}
+                    will be removed from the catalog. This action cannot be undone and may affect store inventory that references this product.
+                </p>
+
+                <div className="mt-6 flex justify-end gap-2.5">
+                    <button
+                        type="button"
+                        onClick={
+                            onCancel
+                        }
+                        disabled={
+                            pending
+                        }
+                        className="min-h-10 rounded-xl border border-slate-700/80 bg-slate-900/50 px-4 text-sm font-medium text-slate-400 transition hover:bg-slate-800 hover:text-slate-100 disabled:opacity-50"
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={
+                            onConfirm
+                        }
+                        disabled={
+                            pending
+                        }
+                        className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-rose-500 px-4 text-sm font-semibold text-white transition hover:bg-rose-400 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        {pending ? (
+                            <LoaderCircle
+                                className="size-4 animate-spin"
+                                aria-hidden="true"
+                            />
+                        ) : (
+                            <Trash2
+                                className="size-4"
+                                aria-hidden="true"
+                            />
+                        )}
+
+                        {pending
+                            ? 'Deleting...'
+                            : 'Delete'}
+                    </button>
+                </div>
+            </motion.div>
+        </motion.div>
+    )
+}

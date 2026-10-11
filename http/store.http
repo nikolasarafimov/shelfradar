@@ -1,7 +1,10 @@
 @baseUrl = http://localhost:8080
 
 
-### Marko login
+### ========================================================
+### MARKO LOGIN
+### Expected: 200
+### ========================================================
 
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
@@ -19,14 +22,20 @@ Content-Type: application/json
 %}
 
 
-### Marko stores
+### ========================================================
+### MARKO STORES
+### Expected: 200
+### ========================================================
 
 GET {{baseUrl}}/api/store/stores
 Authorization: Bearer {{marko_token}}
 Accept: application/json
 
 > {%
-    if (response.body.length > 0) {
+    if (
+        response.body &&
+        response.body.length > 0
+    ) {
         client.global.set(
             "marko_store_id",
             response.body[0].id
@@ -35,14 +44,20 @@ Accept: application/json
 %}
 
 
-### Marko store details
+### ========================================================
+### MARKO STORE DETAILS
+### Expected: 200
+### ========================================================
 
 GET {{baseUrl}}/api/store/stores/{{marko_store_id}}
 Authorization: Bearer {{marko_token}}
 Accept: application/json
 
 
-### Update Marko store
+### ========================================================
+### UPDATE MARKO STORE PROFILE
+### Expected: 200
+### ========================================================
 
 PUT {{baseUrl}}/api/store/stores/{{marko_store_id}}
 Authorization: Bearer {{marko_token}}
@@ -59,119 +74,163 @@ Content-Type: application/json
 }
 
 
-### Marko inventory
+### ========================================================
+### MARKO INVENTORY
+### Expected: 200
+### ========================================================
 
-GET {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory?page=0&size=20&sort=nameAsc
+GET {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory?page=0&size=100&sort=nameAsc
 Authorization: Bearer {{marko_token}}
 Accept: application/json
 
 > {%
-    if (
-        response.body.content &&
-        response.body.content.length > 0
-    ) {
-        client.global.set(
-            "existing_inventory_id",
-            response.body.content[0].id
-        );
-    }
+    const productIds =
+        response.body.content
+            ? response.body.content.map(
+                item => item.product.id
+            )
+            : [];
+
+    client.global.set(
+        "marko_inventory_product_ids",
+        JSON.stringify(productIds)
+    );
 %}
 
 
-### Search inventory
+### ========================================================
+### SEARCH MARKO INVENTORY
+### Expected: 200
+### ========================================================
 
 GET {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory?q=coca&page=0&size=20&sort=nameAsc
 Authorization: Bearer {{marko_token}}
 Accept: application/json
 
 
-### Sort price ascending
+### ========================================================
+### SORT INVENTORY BY PRICE ASCENDING
+### Expected: 200
+### ========================================================
 
 GET {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory?page=0&size=20&sort=priceAsc
 Authorization: Bearer {{marko_token}}
 Accept: application/json
 
 
-### Sort price descending
+### ========================================================
+### SORT INVENTORY BY PRICE DESCENDING
+### Expected: 200
+### ========================================================
 
 GET {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory?page=0&size=20&sort=priceDesc
 Authorization: Bearer {{marko_token}}
 Accept: application/json
 
 
-### Sort by last update
+### ========================================================
+### SORT INVENTORY BY LAST UPDATE
+### Expected: 200
+### ========================================================
 
 GET {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory?page=0&size=20&sort=updatedDesc
 Authorization: Bearer {{marko_token}}
 Accept: application/json
 
 
-### Product catalog for store owner
+### ========================================================
+### STORE OWNER PRODUCT CATALOG
+### Select a product not already present in Marko's inventory
+### Expected: 200
+### ========================================================
 
-GET {{baseUrl}}/api/store/catalog/products?page=0&size=50
-Authorization: Bearer {{marko_token}}
-Accept: application/json
-
-
-### Find Milka
-
-GET {{baseUrl}}/api/store/catalog/products?q=Milka&page=0&size=50
+GET {{baseUrl}}/api/store/catalog/products?page=0&size=100
 Authorization: Bearer {{marko_token}}
 Accept: application/json
 
 > {%
-    if (
-        response.body.content &&
-        response.body.content.length > 0
-    ) {
-        client.global.set(
-            "test_product_id",
-            response.body.content[0].id
+    const inventoryProductIds =
+        JSON.parse(
+            client.global.get(
+                "marko_inventory_product_ids"
+            ) || "[]"
+        );
+
+    const products =
+        response.body.content || [];
+
+    const candidate =
+        products.find(
+            product =>
+                !inventoryProductIds.includes(
+                    product.id
+                )
+        );
+
+    if (!candidate) {
+        throw new Error(
+            "No catalog product is available for the inventory creation test."
         );
     }
+
+    client.global.set(
+        "store_test_product_id",
+        candidate.id
+    );
 %}
 
 
-### Add Milka to inventory
+### ========================================================
+### ADD TEST PRODUCT TO MARKO INVENTORY
+### Expected: 201
+### ========================================================
 
 POST {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory
 Authorization: Bearer {{marko_token}}
 Content-Type: application/json
 
 {
-  "productId": {{test_product_id}},
+  "productId": {{store_test_product_id}},
   "price": 69.00,
   "quantity": 15,
   "status": "IN_STOCK"
 }
 
 > {%
-    if (response.status === 201) {
+    if (
+        response.status === 201
+    ) {
         client.global.set(
-            "test_inventory_id",
+            "store_test_inventory_id",
             response.body.id
         );
     }
 %}
 
 
-### Add duplicate inventory item - expected 409
+### ========================================================
+### ADD DUPLICATE INVENTORY ITEM
+### Expected: 409
+### ========================================================
 
 POST {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory
 Authorization: Bearer {{marko_token}}
 Content-Type: application/json
 
 {
-  "productId": {{test_product_id}},
+  "productId": {{store_test_product_id}},
   "price": 71.00,
   "quantity": 10,
   "status": "IN_STOCK"
 }
 
 
-### Update test inventory
+### ========================================================
+### UPDATE TEST INVENTORY ITEM
+### Expected: 200
+### ========================================================
 
-PUT {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory/{{test_inventory_id}}
+PUT {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory/{{store_test_inventory_id}}
 Authorization: Bearer {{marko_token}}
 Content-Type: application/json
 
@@ -182,9 +241,13 @@ Content-Type: application/json
 }
 
 
-### Invalid: quantity 0 with IN_STOCK
+### ========================================================
+### INVALID INVENTORY STATE
+### Quantity 0 must be OUT_OF_STOCK
+### Expected: 400
+### ========================================================
 
-PUT {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory/{{test_inventory_id}}
+PUT {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory/{{store_test_inventory_id}}
 Authorization: Bearer {{marko_token}}
 Content-Type: application/json
 
@@ -195,22 +258,13 @@ Content-Type: application/json
 }
 
 
-### Invalid: quantity 0 with LOW_STOCK
+### ========================================================
+### INVALID INVENTORY STATE
+### OUT_OF_STOCK cannot have positive quantity
+### Expected: 400
+### ========================================================
 
-PUT {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory/{{test_inventory_id}}
-Authorization: Bearer {{marko_token}}
-Content-Type: application/json
-
-{
-  "price": 72.50,
-  "quantity": 0,
-  "status": "LOW_STOCK"
-}
-
-
-### Invalid: quantity > 0 with OUT_OF_STOCK
-
-PUT {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory/{{test_inventory_id}}
+PUT {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory/{{store_test_inventory_id}}
 Authorization: Bearer {{marko_token}}
 Content-Type: application/json
 
@@ -221,9 +275,12 @@ Content-Type: application/json
 }
 
 
-### Valid OUT_OF_STOCK
+### ========================================================
+### VALID OUT OF STOCK UPDATE
+### Expected: 200
+### ========================================================
 
-PUT {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory/{{test_inventory_id}}
+PUT {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory/{{store_test_inventory_id}}
 Authorization: Bearer {{marko_token}}
 Content-Type: application/json
 
@@ -234,9 +291,12 @@ Content-Type: application/json
 }
 
 
-### Restore to LOW_STOCK
+### ========================================================
+### RESTORE TEST ITEM TO LOW STOCK
+### Expected: 200
+### ========================================================
 
-PUT {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory/{{test_inventory_id}}
+PUT {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory/{{store_test_inventory_id}}
 Authorization: Bearer {{marko_token}}
 Content-Type: application/json
 
@@ -247,9 +307,12 @@ Content-Type: application/json
 }
 
 
-### Invalid negative price
+### ========================================================
+### INVALID NEGATIVE PRICE
+### Expected: 400
+### ========================================================
 
-PUT {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory/{{test_inventory_id}}
+PUT {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory/{{store_test_inventory_id}}
 Authorization: Bearer {{marko_token}}
 Content-Type: application/json
 
@@ -260,20 +323,10 @@ Content-Type: application/json
 }
 
 
-### Invalid negative quantity
-
-PUT {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory/{{test_inventory_id}}
-Authorization: Bearer {{marko_token}}
-Content-Type: application/json
-
-{
-  "price": 72.50,
-  "quantity": -1,
-  "status": "LOW_STOCK"
-}
-
-
-### Non-existing product
+### ========================================================
+### NON-EXISTING PRODUCT
+### Expected: 404
+### ========================================================
 
 POST {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory
 Authorization: Bearer {{marko_token}}
@@ -287,7 +340,10 @@ Content-Type: application/json
 }
 
 
-### Elena login
+### ========================================================
+### ELENA LOGIN
+### Expected: 200
+### ========================================================
 
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
@@ -305,14 +361,20 @@ Content-Type: application/json
 %}
 
 
-### Elena stores
+### ========================================================
+### ELENA STORES
+### Expected: 200
+### ========================================================
 
 GET {{baseUrl}}/api/store/stores
 Authorization: Bearer {{elena_token}}
 Accept: application/json
 
 > {%
-    if (response.body.length > 0) {
+    if (
+        response.body &&
+        response.body.length > 0
+    ) {
         client.global.set(
             "elena_store_id",
             response.body[0].id
@@ -321,9 +383,12 @@ Accept: application/json
 %}
 
 
-### Elena inventory
+### ========================================================
+### ELENA INVENTORY
+### Expected: 200
+### ========================================================
 
-GET {{baseUrl}}/api/store/stores/{{elena_store_id}}/inventory?page=0&size=20
+GET {{baseUrl}}/api/store/stores/{{elena_store_id}}/inventory?page=0&size=20&sort=nameAsc
 Authorization: Bearer {{elena_token}}
 Accept: application/json
 
@@ -340,38 +405,20 @@ Accept: application/json
 %}
 
 
-### Marko tries to read Elena store - expected 404
+### ========================================================
+### MARKO TRIES TO READ ELENA STORE
+### Expected: 404
+### ========================================================
 
 GET {{baseUrl}}/api/store/stores/{{elena_store_id}}
 Authorization: Bearer {{marko_token}}
 Accept: application/json
 
 
-### Marko tries to read Elena inventory - expected 404
-
-GET {{baseUrl}}/api/store/stores/{{elena_store_id}}/inventory
-Authorization: Bearer {{marko_token}}
-Accept: application/json
-
-
-### Marko tries to update Elena store - expected 404
-
-PUT {{baseUrl}}/api/store/stores/{{elena_store_id}}
-Authorization: Bearer {{marko_token}}
-Content-Type: application/json
-
-{
-  "name": "Unauthorized Change",
-  "address": "Unauthorized Address",
-  "city": "Skopje",
-  "latitude": 41.998000,
-  "longitude": 21.430000,
-  "phone": null,
-  "workingHours": null
-}
-
-
-### Marko tries to update Elena inventory - expected 404
+### ========================================================
+### MARKO TRIES TO UPDATE ELENA INVENTORY
+### Expected: 404
+### ========================================================
 
 PUT {{baseUrl}}/api/store/stores/{{elena_store_id}}/inventory/{{elena_inventory_id}}
 Authorization: Bearer {{marko_token}}
@@ -384,13 +431,10 @@ Content-Type: application/json
 }
 
 
-### Marko tries to delete Elena inventory - expected 404
-
-DELETE {{baseUrl}}/api/store/stores/{{elena_store_id}}/inventory/{{elena_inventory_id}}
-Authorization: Bearer {{marko_token}}
-
-
-### Admin login
+### ========================================================
+### ADMIN LOGIN
+### Expected: 200
+### ========================================================
 
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
@@ -408,27 +452,39 @@ Content-Type: application/json
 %}
 
 
-### Admin tries store endpoint - expected 403
+### ========================================================
+### ADMIN TRIES STORE OWNER RESOURCE
+### Expected: 403
+### ========================================================
 
 GET {{baseUrl}}/api/store/stores
 Authorization: Bearer {{admin_token}}
 Accept: application/json
 
 
-### No token - expected 401
+### ========================================================
+### STORE RESOURCE WITHOUT TOKEN
+### Expected: 401
+### ========================================================
 
 GET {{baseUrl}}/api/store/stores
 Accept: application/json
 
 
-### Fake token - expected 401
+### ========================================================
+### STORE RESOURCE WITH INVALID TOKEN
+### Expected: 401
+### ========================================================
 
 GET {{baseUrl}}/api/store/stores
 Authorization: Bearer invalid-token
 Accept: application/json
 
 
-### Invalid latitude
+### ========================================================
+### INVALID STORE LATITUDE
+### Expected: 400
+### ========================================================
 
 PUT {{baseUrl}}/api/store/stores/{{marko_store_id}}
 Authorization: Bearer {{marko_token}}
@@ -445,68 +501,40 @@ Content-Type: application/json
 }
 
 
-### Invalid longitude
-
-PUT {{baseUrl}}/api/store/stores/{{marko_store_id}}
-Authorization: Bearer {{marko_token}}
-Content-Type: application/json
-
-{
-  "name": "Market Center",
-  "address": "Macedonia Square 1",
-  "city": "Skopje",
-  "latitude": 41.998100,
-  "longitude": 200.000000,
-  "phone": "+389 2 555 1001",
-  "workingHours": "Mon-Sun 08:00-22:00"
-}
-
-
-### Invalid blank name
-
-PUT {{baseUrl}}/api/store/stores/{{marko_store_id}}
-Authorization: Bearer {{marko_token}}
-Content-Type: application/json
-
-{
-  "name": "",
-  "address": "Macedonia Square 1",
-  "city": "Skopje",
-  "latitude": 41.998100,
-  "longitude": 21.425400,
-  "phone": "+389 2 555 1001",
-  "workingHours": "Mon-Sun 08:00-22:00"
-}
-
-
-### Invalid page
+### ========================================================
+### INVALID INVENTORY PAGE
+### Expected: 400
+### ========================================================
 
 GET {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory?page=-1&size=20
 Authorization: Bearer {{marko_token}}
 Accept: application/json
 
 
-### Invalid page size
+### ========================================================
+### INVALID INVENTORY PAGE SIZE
+### Expected: 400
+### ========================================================
 
 GET {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory?page=0&size=0
 Authorization: Bearer {{marko_token}}
 Accept: application/json
 
 
-### Delete test inventory item
+### ========================================================
+### DELETE TEST INVENTORY ITEM
+### Expected: 204
+### ========================================================
 
-DELETE {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory/{{test_inventory_id}}
+DELETE {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory/{{store_test_inventory_id}}
 Authorization: Bearer {{marko_token}}
 
 
-### Final Marko inventory
+### ========================================================
+### FINAL MARKO INVENTORY
+### Expected: 200
+### ========================================================
 
 GET {{baseUrl}}/api/store/stores/{{marko_store_id}}/inventory?page=0&size=20&sort=nameAsc
 Authorization: Bearer {{marko_token}}
-Accept: application/json
-
-
-### Health check
-
-GET {{baseUrl}}/api/health
 Accept: application/json

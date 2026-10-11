@@ -8,6 +8,7 @@ import com.shelfradar.backend.entity.enums.AuditEntityType;
 import com.shelfradar.backend.service.AdminAnalyticsService;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,26 +17,21 @@ import org.springframework.web.bind.annotation.*;
 @Validated
 public class AdminAnalyticsController {
 
-    private final AdminAnalyticsService
-            adminAnalyticsService;
+    private final AdminAnalyticsService adminAnalyticsService;
 
     public AdminAnalyticsController(
             AdminAnalyticsService adminAnalyticsService
     ) {
-        this.adminAnalyticsService =
-                adminAnalyticsService;
+        this.adminAnalyticsService = adminAnalyticsService;
     }
 
     @GetMapping("/analytics")
     public AdminAnalyticsResponse getAnalytics() {
-
-        return adminAnalyticsService
-                .getAnalytics();
+        return adminAnalyticsService.getAnalytics();
     }
 
     @GetMapping("/audit")
     public PageResponse<AuditLogResponse> getAuditLog(
-
             @RequestParam(required = false)
             String q,
 
@@ -46,6 +42,7 @@ public class AdminAnalyticsController {
             AuditEntityType entityType,
 
             @RequestParam(required = false)
+            @Positive
             Long storeId,
 
             @RequestParam(defaultValue = "0")
@@ -57,15 +54,13 @@ public class AdminAnalyticsController {
             @Max(100)
             int size
     ) {
-
-        return adminAnalyticsService
-                .searchAuditLog(
-                        q,
-                        action,
-                        entityType,
-                        storeId,
-                        page,
-                        size
-                );
+        return adminAnalyticsService.searchAuditLog(
+                q,
+                action,
+                entityType,
+                storeId,
+                page,
+                size
+        );
     }
 }

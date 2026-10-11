@@ -51,8 +51,12 @@ public class StoreActivityService {
                         page,
                         size,
                         Sort.by(
-                                Sort.Direction.DESC,
-                                "occurredAt"
+                                Sort.Order.desc(
+                                        "occurredAt"
+                                ),
+                                Sort.Order.desc(
+                                        "id"
+                                )
                         )
                 );
 

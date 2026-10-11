@@ -1,101 +1,197 @@
 @baseUrl = http://localhost:8080
 
 
-### All public offers
-
-GET {{baseUrl}}/api/public/search
-
-
-### Search Coca-Cola
-
-GET {{baseUrl}}/api/public/search?q=Coca-Cola
-
-
-### Search Coca-Cola cheapest first
-
-GET {{baseUrl}}/api/public/search?q=Coca-Cola&sort=priceAsc
-
-
-### Search Coca-Cola most expensive first
-
-GET {{baseUrl}}/api/public/search?q=Coca-Cola&sort=priceDesc
-
-
-### In stock only
-
-GET {{baseUrl}}/api/public/search?q=Coca-Cola&status=IN_STOCK
-
-
-### Low stock only
-
-GET {{baseUrl}}/api/public/search?status=LOW_STOCK
-
-
-### Out of stock only
-
-GET {{baseUrl}}/api/public/search?status=OUT_OF_STOCK
-
-
-### Filter by city
-
-GET {{baseUrl}}/api/public/search?city=Skopje
-
-
-### Filter by brand
-
-GET {{baseUrl}}/api/public/search?brandId=1
-
-
-### Filter by category
-
-GET {{baseUrl}}/api/public/search?categoryId=1
-
-
-### Multiple filters
-
-GET {{baseUrl}}/api/public/search?q=Coca&brandId=1&categoryId=1&city=Skopje&status=IN_STOCK&sort=priceAsc
-
-
-### Product A-Z
-
-GET {{baseUrl}}/api/public/search?sort=nameAsc
-
-
-### Product Z-A
-
-GET {{baseUrl}}/api/public/search?sort=nameDesc
-
-
-### Recently updated
-
-GET {{baseUrl}}/api/public/search?sort=updatedDesc
-
-
-### Pagination
-
-GET {{baseUrl}}/api/public/search?page=0&size=2
-
-
-### Next page
-
-GET {{baseUrl}}/api/public/search?page=1&size=2
-
-
-### Public filter options
+### ========================================================
+### PUBLIC FILTER OPTIONS
+### Expected: 200
+### ========================================================
 
 GET {{baseUrl}}/api/public/filters
+Accept: application/json
 
 
-### Invalid page
+### ========================================================
+### ALL PUBLIC OFFERS
+### Expected: 200
+### ========================================================
 
-GET {{baseUrl}}/api/public/search?page=-1
+GET {{baseUrl}}/api/public/search?page=0&size=20&sort=priceAsc
+Accept: application/json
 
 
-### Invalid size
+### ========================================================
+### SEARCH COCA-COLA
+### Expected: 200
+### Saves matching brand and category IDs for later filters
+### ========================================================
 
-GET {{baseUrl}}/api/public/search?size=0
+GET {{baseUrl}}/api/public/search?q=Coca-Cola&page=0&size=20&sort=priceAsc
+Accept: application/json
+
+> {%
+    const results =
+        response.body.content || [];
+
+    if (results.length === 0) {
+        throw new Error(
+            "No Coca-Cola public offers were found."
+        );
+    }
+
+    const product =
+        results[0].product;
+
+    client.global.set(
+        "public_search_brand_id",
+        product.brand.id
+    );
+
+    client.global.set(
+        "public_search_category_id",
+        product.category.id
+    );
+%}
 
 
-### Invalid status
+### ========================================================
+### PRICE DESCENDING
+### Expected: 200
+### ========================================================
+
+GET {{baseUrl}}/api/public/search?q=Coca-Cola&page=0&size=20&sort=priceDesc
+Accept: application/json
+
+
+### ========================================================
+### PRODUCT NAME A-Z
+### Expected: 200
+### ========================================================
+
+GET {{baseUrl}}/api/public/search?page=0&size=20&sort=nameAsc
+Accept: application/json
+
+
+### ========================================================
+### PRODUCT NAME Z-A
+### Expected: 200
+### ========================================================
+
+GET {{baseUrl}}/api/public/search?page=0&size=20&sort=nameDesc
+Accept: application/json
+
+
+### ========================================================
+### RECENTLY UPDATED
+### Expected: 200
+### ========================================================
+
+GET {{baseUrl}}/api/public/search?page=0&size=20&sort=updatedDesc
+Accept: application/json
+
+
+### ========================================================
+### IN STOCK ONLY
+### Expected: 200
+### ========================================================
+
+GET {{baseUrl}}/api/public/search?status=IN_STOCK&page=0&size=20
+Accept: application/json
+
+
+### ========================================================
+### LOW STOCK ONLY
+### Expected: 200
+### ========================================================
+
+GET {{baseUrl}}/api/public/search?status=LOW_STOCK&page=0&size=20
+Accept: application/json
+
+
+### ========================================================
+### OUT OF STOCK ONLY
+### Expected: 200
+### ========================================================
+
+GET {{baseUrl}}/api/public/search?status=OUT_OF_STOCK&page=0&size=20
+Accept: application/json
+
+
+### ========================================================
+### FILTER BY CITY
+### Expected: 200
+### ========================================================
+
+GET {{baseUrl}}/api/public/search?city=Skopje&page=0&size=20
+Accept: application/json
+
+
+### ========================================================
+### FILTER BY BRAND
+### Expected: 200
+### ========================================================
+
+GET {{baseUrl}}/api/public/search?brandId={{public_search_brand_id}}&page=0&size=20
+Accept: application/json
+
+
+### ========================================================
+### FILTER BY CATEGORY
+### Expected: 200
+### ========================================================
+
+GET {{baseUrl}}/api/public/search?categoryId={{public_search_category_id}}&page=0&size=20
+Accept: application/json
+
+
+### ========================================================
+### MULTIPLE FILTERS
+### Expected: 200
+### ========================================================
+
+GET {{baseUrl}}/api/public/search?q=Coca&brandId={{public_search_brand_id}}&categoryId={{public_search_category_id}}&city=Skopje&status=IN_STOCK&page=0&size=20&sort=priceAsc
+Accept: application/json
+
+
+### ========================================================
+### FIRST PAGE
+### Expected: 200
+### ========================================================
+
+GET {{baseUrl}}/api/public/search?page=0&size=2&sort=priceAsc
+Accept: application/json
+
+
+### ========================================================
+### SECOND PAGE
+### Expected: 200
+### ========================================================
+
+GET {{baseUrl}}/api/public/search?page=1&size=2&sort=priceAsc
+Accept: application/json
+
+
+### ========================================================
+### INVALID PAGE
+### Expected: 400
+### ========================================================
+
+GET {{baseUrl}}/api/public/search?page=-1&size=20
+Accept: application/json
+
+
+### ========================================================
+### INVALID PAGE SIZE
+### Expected: 400
+### ========================================================
+
+GET {{baseUrl}}/api/public/search?page=0&size=0
+Accept: application/json
+
+
+### ========================================================
+### INVALID STOCK STATUS
+### Expected: 400
+### ========================================================
 
 GET {{baseUrl}}/api/public/search?status=INVALID
+Accept: application/json

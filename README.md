@@ -1,107 +1,69 @@
 # ShelfRadar
 
-ShelfRadar is a modern web application for finding products in nearby stores, comparing prices, checking current stock availability, and locating stores on an interactive map.
+**Find it nearby. Compare it clearly. Know before you go.**
 
-The platform provides a public product discovery experience without requiring an account, while authenticated store owners can manage their stores and inventory and administrators can manage the platform through dedicated dashboards.
+ShelfRadar is a full-stack product discovery and inventory management platform for finding products in nearby stores, comparing prices, checking stock availability, and exploring store locations on an interactive map.
 
----
-
-## Overview
-
-ShelfRadar connects product information, store locations, pricing, and inventory availability in one application.
-
-Public users can search for products and compare offers across stores based on:
-
-- Product name
-- Brand
-- Category
-- Stock status
-- City
-- Price
-- Distance
-- Store location
-
-Store owners can maintain their own store information and inventory, while administrators have access to platform-wide store management, catalog management, analytics, and activity tracking.
+The application combines a public search experience with dedicated management interfaces for store owners and administrators.
 
 ---
 
-## Core Features
+## Features
 
-### Public Users
+### Public Experience
 
-No authentication is required for public browsing.
+Public users can browse ShelfRadar without authentication.
 
-Users can:
+They can:
 
-- Search for products across stores
-- Browse all available offers
-- Filter by brand
-- Filter by category
-- Filter by stock status
-- Filter by city
-- Sort products by price
-- Sort products alphabetically
-- Sort by most recently updated
-- Search by geographic location
-- Filter stores within a selected radius
-- Sort nearby results by distance
+- Search products across active stores
 - Compare prices between stores
-- See stock quantity and availability
-- View product details
-- View store details
-- View store addresses and working hours
-- View store locations on an interactive map
-- See distance from their current location
+- Filter by brand, category, stock status, and city
+- Sort by price, product name, or latest update
+- Search using geographic coordinates
+- Filter results within a selected radius
+- Sort nearby results by distance
+- View current quantity and stock status
+- View detailed product pages
+- View detailed store pages
+- Browse store locations on interactive maps
+- See calculated distance from their location
 
-### Store Owners
+### Store Owner Portal
 
 Authenticated users with the `STORE_OWNER` role can:
 
 - View all stores assigned to their account
-- View an owner dashboard
+- View owner-level dashboard metrics
 - View individual store dashboards
-- Update store profile information
-- Update store location
-- Manage inventory
-- Add products to store inventory
-- Update prices
-- Update quantities
-- Update stock status
+- Update store profile and location data
+- Search and manage store inventory
+- Add catalog products to inventory
+- Update prices, quantities, and stock status
 - Remove inventory items
-- Search and sort inventory
-- View low-stock and out-of-stock alerts
-- View recent inventory updates
-- View store activity history
+- View low-stock and out-of-stock information
+- Review store activity history
 
-Store owners can only access stores assigned to their own account.
+Store ownership is enforced by the backend. A store owner cannot access or modify another owner's stores by changing resource IDs.
 
-### Administrators
+### Administrator Portal
 
 Authenticated users with the `ADMIN` role can:
 
-- View a platform-wide dashboard
-- View total stores
-- View active, pending, and inactive stores
-- View total products
-- View total store owners
-- View inventory statistics
-- View total inventory units
-- View inventory value
-- View low-stock and out-of-stock statistics
+- View platform-wide dashboard metrics
 - Search and filter stores
-- View detailed store information
+- Inspect detailed store information
 - Update store profiles
 - Change store ownership
-- Activate, deactivate, or approve stores
+- Change store status
 - Manage brands
 - Manage categories
 - Manage products
-- View platform activity
-- Search audit records
-- Filter audit records
+- Review audit records
+- Search and filter platform activity
 - View activity analytics
-- View most active stores
-- View recent platform activity
+- View the most active stores
+- Review recent administrative and inventory activity
 
 ---
 
@@ -113,7 +75,7 @@ Authenticated users with the `ADMIN` role can:
 - Spring Boot 4.1.1
 - Spring Web MVC
 - Spring Security
-- Spring OAuth2 Resource Server
+- OAuth2 Resource Server
 - JWT authentication
 - Spring Data JPA
 - Hibernate
@@ -125,19 +87,20 @@ Authenticated users with the `ADMIN` role can:
 
 ### Frontend
 
-- React
-- TypeScript
-- Vite
-- Tailwind CSS
+- React 19
+- TypeScript 6
+- Vite 8
+- Tailwind CSS 4
+- Motion
 - React Router
-- Axios
 - TanStack Query
+- Axios
 - React Hook Form
 - Zod
 - React Leaflet
 - Leaflet
 - Vitest
-- React Testing Library
+- Testing Library
 
 ### Infrastructure
 
@@ -151,56 +114,59 @@ Authenticated users with the `ADMIN` role can:
 
 ## Architecture
 
-ShelfRadar follows a layered architecture.
+ShelfRadar follows a layered full-stack architecture.
 
 ```text
-Client
-  |
-  v
-React Frontend
-  |
-  | HTTP / JSON
-  v
+Browser
+   |
+   v
+React SPA
+   |
+   | HTTP / JSON
+   v
+Nginx
+   |
+   | /api/*
+   v
 Spring Boot REST API
-  |
-  +-----------------------------+
-  | Controllers                 |
-  | Services                    |
-  | Mappers                     |
-  | Repositories                |
-  | Security                    |
-  | Validation                  |
-  | Audit                       |
-  +-----------------------------+
-  |
-  v
+   |
+   +-------------------------------+
+   | Controllers                   |
+   | Services                      |
+   | DTOs / Validation             |
+   | Mappers                       |
+   | Repositories                  |
+   | Security                      |
+   | Audit / Analytics             |
+   +-------------------------------+
+   |
+   v
 PostgreSQL + PostGIS
 ```
 
-The application is separated into public, store-owner, and administrator functionality.
+The backend is the authority for authentication, authorization, ownership checks, validation, and data integrity.
 
-Role-based access control is enforced by Spring Security on the backend.
+The frontend is separated into public, store-owner, and administrator experiences.
 
 ---
 
 ## Project Structure
 
 ```text
-ShelfRadar/
+shelfradar/
 ├── backend/
 │   ├── src/
 │   │   ├── main/
-│   │   │   ├── java/
-│   │   │   │   └── com/shelfradar/backend/
-│   │   │   │       ├── config/
-│   │   │   │       ├── controller/
-│   │   │   │       ├── dto/
-│   │   │   │       ├── entity/
-│   │   │   │       ├── exception/
-│   │   │   │       ├── mapper/
-│   │   │   │       ├── repository/
-│   │   │   │       ├── security/
-│   │   │   │       └── service/
+│   │   │   ├── java/com/shelfradar/backend/
+│   │   │   │   ├── config/
+│   │   │   │   ├── controller/
+│   │   │   │   ├── dto/
+│   │   │   │   ├── entity/
+│   │   │   │   ├── exception/
+│   │   │   │   ├── mapper/
+│   │   │   │   ├── repository/
+│   │   │   │   ├── security/
+│   │   │   │   └── service/
 │   │   │   └── resources/
 │   │   │       ├── db/migration/
 │   │   │       └── application.yml
@@ -209,52 +175,79 @@ ShelfRadar/
 │   └── pom.xml
 │
 ├── frontend/
-│   ├── public/
 │   ├── src/
 │   │   ├── api/
-│   │   ├── assets/
 │   │   ├── components/
 │   │   ├── features/
-│   │   ├── hooks/
-│   │   ├── layouts/
 │   │   ├── lib/
 │   │   ├── pages/
-│   │   ├── routes/
 │   │   ├── test/
 │   │   └── types/
 │   ├── Dockerfile
 │   ├── nginx.conf
-│   ├── vite.config.ts
-│   ├── vitest.config.ts
-│   └── package.json
+│   ├── package.json
+│   └── vite.config.ts
 │
 ├── http/
+│   ├── admin-stores.http
+│   ├── audit.http
+│   ├── auth.http
+│   ├── catalog.http
+│   ├── health.http
+│   ├── nearby-search.http
+│   ├── public-browse.http
+│   ├── public-search.http
+│   ├── store-dashboard.http
+│   └── store.http
+│
+├── .env.example
+├── .gitignore
 ├── docker-compose.yml
 └── README.md
 ```
 
 ---
 
-## Database
+## Domain Model
 
-ShelfRadar uses PostgreSQL with the PostGIS extension.
+The core domain consists of users, products, brands, categories, stores, inventory records, and audit events.
 
-The main domain includes:
+### Users
 
-### User
-
-Represents authenticated platform users.
-
-Roles:
+Authenticated users have one of two roles:
 
 ```text
 ADMIN
 STORE_OWNER
 ```
 
-### Product
+### Stores
 
-Contains:
+A store contains:
+
+- Name
+- Address
+- City
+- Latitude and longitude
+- Phone
+- Working hours
+- Owner
+- Status
+- Creation timestamp
+
+Supported store statuses:
+
+```text
+PENDING
+ACTIVE
+INACTIVE
+```
+
+Only active stores are exposed through the public browsing API.
+
+### Products
+
+Products contain:
 
 - Name
 - Description
@@ -263,40 +256,9 @@ Contains:
 - Category
 - Creation timestamp
 
-### Brand
-
-Represents a product brand.
-
-### Category
-
-Represents a product category.
-
-### Store
-
-Contains:
-
-- Name
-- Address
-- City
-- Latitude
-- Longitude
-- Phone
-- Working hours
-- Status
-- Owner
-- Creation timestamp
-
-Store statuses:
-
-```text
-PENDING
-ACTIVE
-INACTIVE
-```
-
 ### Inventory
 
-Connects products with stores and contains:
+Inventory connects a product with a store and contains:
 
 - Product
 - Store
@@ -305,7 +267,7 @@ Connects products with stores and contains:
 - Stock status
 - Last update timestamp
 
-Stock statuses:
+Supported stock statuses:
 
 ```text
 IN_STOCK
@@ -313,96 +275,63 @@ LOW_STOCK
 OUT_OF_STOCK
 ```
 
-Each store can contain a product only once in its inventory.
+A store can contain a given product only once.
+
+Inventory state consistency is also enforced:
+
+```text
+quantity = 0
+→ status must be OUT_OF_STOCK
+
+quantity > 0
+→ status cannot be OUT_OF_STOCK
+```
 
 ### Audit Log
 
-Stores activity information for tracked administrative and store operations.
-
-Audit information includes:
+Important administrative and store-owner actions are recorded with information such as:
 
 - Actor
 - Actor role
 - Action
 - Entity type
 - Entity ID
-- Store snapshot information
-- Product snapshot information
-- Details
+- Store snapshot
+- Product snapshot
+- Change details
 - Timestamp
-
----
-
-## Database Migrations
-
-Database schema management is handled by Flyway.
-
-Migrations are located in:
-
-```text
-backend/src/main/resources/db/migration
-```
-
-The migrations create and evolve:
-
-- PostgreSQL schema objects
-- PostGIS support
-- Users
-- Brands
-- Categories
-- Products
-- Stores
-- Inventory
-- Constraints
-- Search indexes
-- Geographic indexes
-- Audit logs
-- Sample data
-
-Hibernate is configured with:
-
-```yaml
-ddl-auto: validate
-```
-
-This means Hibernate validates the database schema but does not create or modify it automatically.
-
-Flyway remains the source of truth for schema evolution.
 
 ---
 
 ## Geographic Search
 
-ShelfRadar uses PostGIS for location-based product discovery.
+ShelfRadar uses PostGIS for location-aware product discovery.
 
-Store coordinates are stored using latitude and longitude and are also used for geographic calculations.
+Public search supports:
 
-Nearby product search supports:
-
-- User latitude
-- User longitude
-- Search radius
+- Latitude and longitude
+- Radius filtering
 - Distance calculation
 - Distance-based sorting
 
-PostGIS operations include geographic distance calculations such as:
+Relevant PostGIS operations include:
 
 ```text
-ST_Distance
-ST_DWithin
 ST_MakePoint
 ST_SetSRID
+ST_Distance
+ST_DWithin
 ```
 
-The backend returns calculated distance values in kilometers.
+Distance values are returned by the API in kilometers.
+
+Geographic queries are performed in the database instead of loading all stores into application memory and calculating distances in JavaScript or Java.
 
 ---
 
-## Authentication
+## Authentication and Authorization
 
 ShelfRadar uses stateless JWT authentication.
-
-Authentication flow:
 
 ```text
 Email + Password
@@ -414,39 +343,22 @@ Spring AuthenticationManager
 JWT issued by backend
       |
       v
-Frontend stores token in sessionStorage
+Frontend stores the token in sessionStorage
       |
       v
 Authorization: Bearer <token>
       |
       v
-Spring Security validates JWT
+Spring Security validates the JWT
 ```
 
-JWTs are signed using:
+JWTs use HS256 signing and include authentication information such as the subject, user ID, role, issuer, issue time, and expiration time.
 
-```text
-HS256
-```
+No server-side HTTP session is required.
 
-The token contains:
+### Access Rules
 
-- Subject
-- User ID
-- Role
-- Issuer
-- Issued-at timestamp
-- Expiration timestamp
-
-Sessions are not stored on the backend.
-
----
-
-## Authorization
-
-ShelfRadar uses role-based access control.
-
-Public routes:
+Public endpoints:
 
 ```text
 /api/health
@@ -454,7 +366,7 @@ Public routes:
 /api/public/**
 ```
 
-Store-owner routes:
+Store-owner endpoints:
 
 ```text
 /api/store/**
@@ -466,7 +378,7 @@ Required role:
 STORE_OWNER
 ```
 
-Administrator routes:
+Administrator endpoints:
 
 ```text
 /api/admin/**
@@ -478,13 +390,15 @@ Required role:
 ADMIN
 ```
 
-Unauthorized requests return HTTP `401`.
+Authentication failures return `401 Unauthorized`.
 
-Authenticated users without the required role receive HTTP `403`.
+Authenticated users without the required role receive `403 Forbidden`.
+
+Ownership violations for store-owner resources are handled using owner-scoped resource access.
 
 ---
 
-## Main API Endpoints
+## API Overview
 
 ### Health
 
@@ -492,13 +406,7 @@ Authenticated users without the required role receive HTTP `403`.
 GET /api/health
 ```
 
-Checks:
-
-- Application availability
-- Database connectivity
-- PostGIS availability
-
----
+Checks application, database, and PostGIS availability.
 
 ### Authentication
 
@@ -507,8 +415,6 @@ POST /api/auth/login
 GET  /api/auth/me
 ```
 
----
-
 ### Public Search
 
 ```http
@@ -516,7 +422,7 @@ GET /api/public/search
 GET /api/public/filters
 ```
 
-Search supports parameters such as:
+Supported search parameters include:
 
 ```text
 q
@@ -532,29 +438,18 @@ longitude
 radiusKm
 ```
 
----
+Supported search modes include standard filtering, price sorting, alphabetical sorting, recently updated sorting, radius filtering, and distance sorting.
 
-### Public Product Details
+### Public Browsing
 
 ```http
 GET /api/public/products/{productId}
-```
-
-Returns product information and offers from active stores.
-
----
-
-### Public Store Details
-
-```http
 GET /api/public/stores/{storeId}
 ```
 
-Returns store information and its public inventory.
+Product details include offers from active stores.
 
-Only active stores are publicly accessible.
-
----
+Store details are publicly accessible only for active stores.
 
 ### Store Owner
 
@@ -576,8 +471,6 @@ GET /api/store/stores/{storeId}/activity
 GET /api/store/catalog/products
 ```
 
----
-
 ### Administrator
 
 ```http
@@ -594,8 +487,6 @@ GET /api/admin/store-owners
 GET /api/admin/analytics
 GET /api/admin/audit
 ```
-
----
 
 ### Catalog Administration
 
@@ -631,49 +522,33 @@ DELETE /api/admin/catalog/products/{id}
 
 ---
 
-## Validation
+## Validation and Error Handling
 
-ShelfRadar validates requests at several levels.
+ShelfRadar validates requests at both the API and domain levels.
 
 Examples include:
 
-- Required product names
-- Required brands and categories
+- Required names and identifiers
 - Positive resource IDs
-- Valid latitude range from `-90` to `90`
-- Valid longitude range from `-180` to `180`
-- Non-negative inventory quantities
-- Non-negative prices
-- Valid stock-state combinations
 - Maximum field lengths
-- Valid email addresses
-- Valid pagination parameters
+- Non-negative prices
+- Non-negative quantities
+- Latitude between `-90` and `90`
+- Longitude between `-180` and `180`
+- Valid pagination values
+- Valid inventory state combinations
+- Valid geographic search combinations
 
-Inventory status consistency is also enforced.
+For nearby search:
 
-Examples:
-
-```text
-quantity = 0
-status = OUT_OF_STOCK
-```
-
-and:
-
-```text
-quantity > 0
-status != OUT_OF_STOCK
-```
-
-Invalid requests return structured HTTP `400` responses.
-
----
-
-## Error Handling
+- Latitude and longitude must be supplied together
+- Radius requires a location
+- Radius must be greater than `0` and at most `100 km`
+- Distance sorting requires a location
 
 The backend provides centralized REST exception handling.
 
-Typical HTTP responses include:
+Typical responses include:
 
 ```text
 400 Bad Request
@@ -683,7 +558,7 @@ Typical HTTP responses include:
 409 Conflict
 ```
 
-Application error responses follow a structure similar to:
+Validation errors use a structured response similar to:
 
 ```json
 {
@@ -700,74 +575,87 @@ Application error responses follow a structure similar to:
 
 ---
 
-## Frontend
+## Database Migrations
 
-The ShelfRadar frontend is implemented as a React single-page application.
+Database schema evolution is managed by Flyway.
 
-The application includes dedicated experiences for:
+Migrations are stored in:
 
-- Public users
-- Store owners
-- Administrators
+```text
+backend/src/main/resources/db/migration
+```
 
-The interface uses a responsive dark design with cyan and sky accents.
+They manage:
 
-The frontend supports desktop, tablet, and mobile layouts.
+- PostgreSQL schema objects
+- PostGIS support
+- Users
+- Brands
+- Categories
+- Products
+- Stores
+- Inventory
+- Constraints
+- Search indexes
+- Geographic indexes
+- Audit logs
+- Development seed data
+
+Hibernate uses schema validation rather than automatic schema generation:
+
+```yaml
+ddl-auto: validate
+```
+
+Flyway remains the source of truth for database changes.
 
 ---
 
-## Public Search Interface
+## Frontend
 
-The public search interface contains:
+The frontend is a React single-page application with separate experiences for public users, store owners, and administrators.
 
-- Search bar
-- Brand filtering
-- Category filtering
-- City filtering
-- Stock filtering
-- Location-based radius filtering
-- Sorting
-- Offer view
-- Map view
-- Pagination
+The UI includes:
 
-Results display:
+- Responsive desktop and mobile layouts
+- Dark premium visual design
+- Search and filter interfaces
+- Interactive maps
+- Dashboard metrics
+- Inventory management
+- Store management
+- Catalog administration
+- Audit and analytics views
+- Loading states
+- Empty states
+- Error states
+- Accessible controls
+- Reduced-motion support
 
-- Product
-- Brand
-- Category
-- Store
-- Price
-- Quantity
-- Stock status
-- Address
-- Distance when location is available
-- Last update information
+Routes are code-split using lazy loading to reduce the initial application bundle.
 
 ---
 
 ## Interactive Maps
 
-Maps are implemented using:
-
-- Leaflet
-- React Leaflet
-- OpenStreetMap tiles
+Maps use Leaflet and React Leaflet with OpenStreetMap tiles.
 
 ShelfRadar supports:
 
-- Store markers
-- User-location marker
-- Automatic map bounds
-- Multiple stores on search maps
+- Search result markers
 - Individual store maps
-- Stock-status visualization
+- User-location markers
+- Automatic map bounds
+- Multiple stores on a single map
+- Distance-aware search results
 
 ---
 
-## Running with Docker
+# Running the Application
 
-The easiest way to run the complete application is with Docker Compose.
+## Docker Compose
+
+Docker Compose is the recommended way to run the complete application.
 
 ### Requirements
 
@@ -776,7 +664,33 @@ Install:
 - Docker
 - Docker Compose
 
-From the project root:
+### 1. Configure the environment
+
+Create a local `.env` file from the provided template.
+
+Linux/macOS:
+
+```bash
+cp .env.example .env
+```
+
+Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Set a development JWT secret:
+
+```env
+JWT_SECRET=replace-with-a-long-random-development-secret
+```
+
+The real `.env` file is ignored by Git and must not be committed.
+
+### 2. Start ShelfRadar
+
+From the repository root:
 
 ```bash
 docker compose up --build
@@ -790,7 +704,9 @@ Spring Boot backend
 React/Nginx frontend
 ```
 
-Once the containers are running, open:
+### 3. Open the application
+
+Frontend:
 
 ```text
 http://localhost:3000
@@ -808,109 +724,65 @@ Health endpoint:
 http://localhost:8080/api/health
 ```
 
+The frontend Nginx container proxies `/api/*` requests to the backend container.
+
 ---
 
 ## Docker Services
 
-The root `docker-compose.yml` defines three services.
-
-### Database
+The Compose stack contains three services:
 
 ```text
 shelfradar-db
+shelfradar-backend
+shelfradar-frontend
 ```
 
-Uses:
+The database uses:
 
 ```text
 postgis/postgis:16-3.4
 ```
 
-### Backend
-
-```text
-shelfradar-backend
-```
-
-Runs the Spring Boot application on:
-
-```text
-8080
-```
-
-### Frontend
-
-```text
-shelfradar-frontend
-```
-
-Uses Nginx and is exposed on:
-
-```text
-3000
-```
-
-Nginx also proxies:
-
-```text
-/api/*
-```
-
-to the backend container.
-
-This allows the frontend to use the same `/api` base URL in production.
-
----
-
-## Docker Data Persistence
-
-PostgreSQL data is stored in the Docker volume:
+PostgreSQL data is persisted in:
 
 ```text
 shelfradar_db_data
 ```
 
-Running:
+Stop the stack without removing database data:
 
 ```bash
 docker compose down
 ```
 
-stops the application without deleting database data.
-
-To completely remove the database volume:
+Reset the database completely:
 
 ```bash
 docker compose down -v
 ```
 
-Use the second command only when you intentionally want to reset the database.
+The second command removes the database volume and should only be used when a full reset is intended.
 
 ---
 
-## Running Locally Without Docker
-
-The application can also be run locally for development.
+## Local Development
 
 ### Database
 
-A PostgreSQL 16 database with PostGIS must be available at:
+When running outside Docker, PostgreSQL 16 with PostGIS must be available.
 
-```text
-localhost:5432
-```
-
-Default development database configuration:
+Default development settings:
 
 ```text
 Database: shelfradar
 Username: shelfradar
 Password: shelfradar
+Host: localhost
+Port: 5432
 ```
 
----
-
-## Backend Development
+### Backend
 
 Navigate to:
 
@@ -918,27 +790,29 @@ Navigate to:
 cd backend
 ```
 
-On Windows:
+Set the JWT secret in your environment and start Spring Boot.
+
+Windows PowerShell:
 
 ```powershell
+$env:SECURITY_JWT_SECRET="replace-with-a-long-random-development-secret"
 .\mvnw.cmd spring-boot:run
 ```
 
-On Linux or macOS:
+Linux/macOS:
 
 ```bash
+export SECURITY_JWT_SECRET="replace-with-a-long-random-development-secret"
 ./mvnw spring-boot:run
 ```
 
-The backend runs on:
+Backend:
 
 ```text
 http://localhost:8080
 ```
 
----
-
-## Frontend Development
+### Frontend
 
 Navigate to:
 
@@ -952,155 +826,171 @@ Install dependencies:
 npm ci
 ```
 
-Start the Vite development server:
+Start Vite:
 
 ```bash
 npm run dev
 ```
 
-The frontend runs on:
+Frontend development server:
 
 ```text
 http://localhost:5173
 ```
 
-During local development, Vite proxies requests beginning with:
-
-```text
-/api
-```
-
-to:
-
-```text
-http://localhost:8080
-```
+During development, `/api` requests are proxied to the backend.
 
 ---
 
-## Environment Configuration
+## Environment Variables
 
-Backend database configuration can be overridden using Spring environment variables.
+### Docker Compose
 
-Example:
-
-```text
-SPRING_DATASOURCE_URL
-SPRING_DATASOURCE_USERNAME
-SPRING_DATASOURCE_PASSWORD
-```
-
-JWT configuration can be overridden with:
-
-```text
-SECURITY_JWT_ISSUER
-SECURITY_JWT_EXPIRATION_MINUTES
-SECURITY_JWT_SECRET
-```
-
-For Docker Compose, a custom JWT secret can be supplied through:
+The root `.env` file provides:
 
 ```text
 JWT_SECRET
 ```
 
-Example in PowerShell:
+Docker Compose maps it to:
 
-```powershell
-$env:JWT_SECRET="replace-with-a-secure-secret-at-least-32-bytes-long"
-docker compose up --build
+```text
+SECURITY_JWT_SECRET
 ```
 
-For production deployments, always use a strong secret and never rely on the development fallback value.
+### Spring Boot
+
+Backend configuration can also be supplied directly with:
+
+```text
+SPRING_DATASOURCE_URL
+SPRING_DATASOURCE_USERNAME
+SPRING_DATASOURCE_PASSWORD
+
+SECURITY_JWT_ISSUER
+SECURITY_JWT_EXPIRATION_MINUTES
+SECURITY_JWT_SECRET
+```
+
+Production deployments must use separate, strong credentials and secrets.
 
 ---
 
-## Backend Build
+## Development Accounts
 
-From the `backend` directory:
+The development seed data includes local demonstration accounts used by the HTTP request collection.
 
-### Windows
+### Administrator
+
+```text
+Email:    admin@shelfradar.local
+Password: Admin123!
+```
+
+### Store Owner
+
+```text
+Email:    marko@shelfradar.local
+Password: Store123!
+```
+
+These credentials are development-only and must not be reused in production.
+
+---
+
+## HTTP Request Collection
+
+The `http/` directory contains IntelliJ HTTP Client requests covering the major API flows:
+
+```text
+auth.http
+health.http
+catalog.http
+store.http
+store-dashboard.http
+admin-stores.http
+audit.http
+public-browse.http
+public-search.http
+nearby-search.http
+```
+
+The collection covers authentication, authorization, catalog CRUD, inventory management, ownership protection, dashboards, audit activity, public browsing, search, validation, and PostGIS-based nearby search.
+
+---
+
+## Verification
+
+### Backend
+
+Run backend tests:
+
+Windows:
+
+```powershell
+cd backend
+.\mvnw.cmd clean test
+```
+
+Linux/macOS:
+
+```bash
+cd backend
+./mvnw clean test
+```
+
+Build the application:
 
 ```powershell
 .\mvnw.cmd clean package
 ```
 
-### Linux or macOS
+or:
 
 ```bash
 ./mvnw clean package
 ```
 
-The generated application JAR is placed in:
+### Frontend
 
-```text
-backend/target/
-```
-
----
-
-## Frontend Build
-
-From the `frontend` directory:
+From `frontend/`:
 
 ```bash
 npm ci
-npm run build
+npm run check
 ```
 
-The production frontend is generated in:
+The frontend verification command runs:
 
 ```text
-frontend/dist/
+ESLint
+Vitest
+TypeScript build
+Vite production build
 ```
 
----
-
-## Testing
-
-### Backend Tests
-
-From the backend directory:
-
-```powershell
-.\mvnw.cmd clean test
-```
-
-or:
-
-```bash
-./mvnw clean test
-```
-
-### Frontend Tests
-
-From the frontend directory:
-
-```bash
-npm test
-```
-
-### Frontend Linting
+Individual commands are also available:
 
 ```bash
 npm run lint
-```
-
-### Frontend Production Build Verification
-
-```bash
+npm run test
 npm run build
 ```
 
-A complete pre-deployment verification should include:
+### Docker
+
+From the project root:
+
+```bash
+docker compose build
+docker compose up
+```
+
+Then verify:
 
 ```text
-Backend tests
-Frontend tests
-Frontend lint
-Frontend production build
-Docker Compose build
-Application smoke testing
+http://localhost:3000
+http://localhost:8080/api/health
 ```
 
 ---
@@ -1115,75 +1005,31 @@ ShelfRadar includes:
 - JWT issuer validation
 - HS256 signature verification
 - Backend role-based authorization
-- Resource ownership validation
+- Owner-scoped store access
 - Request validation
-- Protected administrator endpoints
-- Protected store-owner endpoints
-- Centralized REST error handling
 - Database constraints
 - Unique inventory constraints
+- Centralized REST error handling
+- Protected administrator endpoints
+- Protected store-owner endpoints
 
-Authorization is enforced on the backend and does not rely solely on frontend route protection.
-
----
-
-## Store Ownership Protection
-
-A store owner cannot access another owner's store by changing a URL or resource ID.
-
-Backend services verify ownership using the authenticated user's identity before allowing:
-
-- Store access
-- Store updates
-- Inventory reads
-- Inventory creation
-- Inventory updates
-- Inventory deletion
-- Dashboard access
-- Activity access
-
----
-
-## Inventory Consistency
-
-ShelfRadar maintains inventory consistency between quantity and stock status.
-
-For example:
-
-```text
-Quantity = 0
-```
-
-requires:
-
-```text
-OUT_OF_STOCK
-```
-
-while a positive quantity cannot use:
-
-```text
-OUT_OF_STOCK
-```
-
-The application validates these rules before persisting changes, with additional database constraints used to protect data integrity.
+Frontend route protection is provided for user experience, but authorization decisions remain enforced by the backend.
 
 ---
 
 ## Audit and Analytics
 
-ShelfRadar contains an audit subsystem for tracking important platform actions.
+ShelfRadar records important changes such as:
 
-Tracked information can include:
-
-- Actor
-- Actor role
-- Store
-- Product
-- Entity
-- Action
-- Change details
-- Timestamp
+- Inventory creation
+- Inventory updates
+- Inventory deletion
+- Store profile updates
+- Store status changes
+- Store owner changes
+- Product changes
+- Brand changes
+- Category changes
 
 Administrator analytics include:
 
@@ -1195,183 +1041,60 @@ Administrator analytics include:
 - Most active stores
 - Recent activity
 
-Store owners can also view activity associated with stores that they own.
+Store owners can inspect activity associated with stores they own.
 
 ---
 
-## Responsive Design
+## Design Goals
 
-ShelfRadar is designed for:
+ShelfRadar was built around several engineering principles:
 
-- Desktop
-- Laptop
-- Tablet
-- Mobile
+**Backend-enforced security**  
+Authentication, role authorization, and resource ownership are enforced by Spring Security and service-level checks.
 
-The interface uses:
+**Data integrity**  
+Jakarta Validation, domain validation, database constraints, and transactional services protect persisted data.
 
-- Responsive layouts
-- Accessible controls
-- Clear loading states
-- Error states
-- Empty states
-- Stock-status indicators
-- Dashboard metrics
-- Mobile navigation
-- Interactive maps
-- Consistent application shells
+**Clear separation of concerns**  
+Controllers, DTOs, services, mappers, repositories, security components, and persistence entities have distinct responsibilities.
 
----
+**Geographic search in the database**  
+PostGIS handles radius and distance queries instead of transferring geographic datasets to application code.
 
-## Development Workflow
+**Versioned schema management**  
+Flyway owns database evolution while Hibernate validates the resulting schema.
 
-A typical development workflow is:
+**Reproducible local environment**  
+Docker Compose provides the same database, backend, and frontend topology with one command.
 
-```bash
-git status
-git add .
-git commit -m "Describe the change"
-```
-
-The project's primary local branch may be named:
-
-```text
-master
-```
-
-Check the active branch with:
-
-```bash
-git branch
-```
+**Responsive user experience**  
+The frontend supports desktop and mobile layouts, interactive maps, meaningful application states, and reduced-motion preferences.
 
 ---
 
 ## Production Considerations
 
-Before deploying ShelfRadar to a production environment:
+Before a production deployment:
 
 - Replace all development credentials
-- Configure a strong JWT secret
-- Use secure database credentials
-- Configure HTTPS
+- Generate a strong JWT secret
+- Configure secure database credentials
+- Use HTTPS
 - Configure production DNS
-- Restrict database exposure
-- Configure database backups
-- Review application logs
-- Configure monitoring
-- Validate CORS requirements if frontend and API are hosted separately
-- Run all automated tests
-- Run frontend linting
-- Verify the production frontend build
+- Configure backups
+- Configure monitoring and logging
+- Review CORS requirements when frontend and API use different origins
 - Verify Flyway migrations
+- Run backend tests
+- Run frontend verification
+- Build all Docker images
 - Perform end-to-end smoke testing
-
----
-
-## Design Principles
-
-ShelfRadar was developed around the following principles:
-
-### Security
-
-Authorization decisions are enforced by the backend.
-
-### Data Integrity
-
-Database constraints, validation, and transactional services protect application data.
-
-### Separation of Concerns
-
-Controllers, services, repositories, mappers, DTOs, entities, and security components have separate responsibilities.
-
-### Responsive User Experience
-
-The public interface and management dashboards are designed for desktop and mobile use.
-
-### Reproducible Deployment
-
-Docker Compose provides a consistent environment for the database, backend, and frontend.
-
-### Database Versioning
-
-Flyway manages database evolution instead of automatic Hibernate schema generation.
-
-### Geographic Search
-
-PostGIS provides scalable geographic queries instead of calculating all distances exclusively in application code.
-
----
-
-## Application Flow
-
-```text
-Public User
-    |
-    +--> Search Products
-    |       |
-    |       +--> Filter / Sort
-    |       +--> Compare Offers
-    |       +--> View Map
-    |       +--> Product Details
-    |       +--> Store Details
-    |
-    v
-
-Store Owner
-    |
-    +--> Login
-    +--> Owner Dashboard
-    +--> Select Store
-    +--> Store Dashboard
-    +--> Manage Inventory
-    +--> Update Store
-    +--> View Activity
-    |
-    v
-
-Administrator
-    |
-    +--> Login
-    +--> Admin Dashboard
-    +--> Manage Stores
-    +--> Manage Catalog
-    +--> Review Analytics
-    +--> Review Audit Activity
-```
-
----
-
-## Status
-
-ShelfRadar currently includes the main end-to-end application architecture:
-
-- Database schema and migrations
-- PostgreSQL and PostGIS integration
-- Authentication
-- Role-based authorization
-- Product catalog
-- Store management
-- Inventory management
-- Public search
-- Geographic search
-- Product and store detail pages
-- Store-owner dashboards
-- Administrator dashboards
-- Store administration
-- Audit logging
-- Analytics
-- Responsive frontend
-- Dockerized backend
-- Dockerized frontend
-- Docker Compose integration
-- Automated frontend and backend testing infrastructure
 
 ---
 
 ## License
 
-This project is currently intended for educational and portfolio use.
+No open-source license is currently included with this repository.
 
 ---
 

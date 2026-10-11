@@ -4,88 +4,88 @@ import type {
 } from '../../types/store'
 
 type Status =
-    StockStatus |
-    StoreStatus
+    | StockStatus
+    | StoreStatus
+
+interface StatusConfig {
+    label: string
+    className: string
+    dotClassName: string
+}
+
+const STATUS_CONFIG: Record<
+    Status,
+    StatusConfig
+> = {
+    ACTIVE: {
+        label: 'Active',
+        className:
+            'bg-emerald-400/[0.08] text-emerald-300 ring-emerald-300/15',
+        dotClassName:
+            'bg-emerald-400',
+    },
+
+    PENDING: {
+        label: 'Pending',
+        className:
+            'bg-amber-400/[0.08] text-amber-300 ring-amber-300/15',
+        dotClassName:
+            'bg-amber-400',
+    },
+
+    INACTIVE: {
+        label: 'Inactive',
+        className:
+            'bg-slate-400/[0.07] text-slate-400 ring-slate-300/10',
+        dotClassName:
+            'bg-slate-500',
+    },
+
+    IN_STOCK: {
+        label: 'In stock',
+        className:
+            'bg-emerald-400/[0.08] text-emerald-300 ring-emerald-300/15',
+        dotClassName:
+            'bg-emerald-400',
+    },
+
+    LOW_STOCK: {
+        label: 'Low stock',
+        className:
+            'bg-amber-400/[0.08] text-amber-300 ring-amber-300/15',
+        dotClassName:
+            'bg-amber-400',
+    },
+
+    OUT_OF_STOCK: {
+        label: 'Out of stock',
+        className:
+            'bg-rose-400/[0.08] text-rose-300 ring-rose-300/15',
+        dotClassName:
+            'bg-rose-400',
+    },
+}
+
+interface StatusBadgeProps {
+    status: Status
+}
 
 export default function StatusBadge({
-    status,
-}: {
-    status: Status
-}) {
-
+                                        status,
+                                    }: StatusBadgeProps) {
     const config =
-        getStatusConfig(
-            status,
-        )
+        STATUS_CONFIG[status]
 
     return (
         <span
-            className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${config.className}`}
+            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold leading-none ring-1 ring-inset ${config.className}`}
         >
+            <span
+                aria-hidden="true"
+                className={`size-1.5 shrink-0 rounded-full ${config.dotClassName}`}
+            />
+
             {config.label}
         </span>
     )
-}
-
-function getStatusConfig(
-    status: Status,
-): {
-    label: string
-    className: string
-} {
-    switch (status) {
-        case 'ACTIVE':
-            return {
-                label:
-                    'Active',
-
-                className:
-                    'bg-emerald-950 text-emerald-300 ring-emerald-800',
-            }
-
-        case 'PENDING':
-            return {
-                label:
-                    'Pending',
-
-                className:
-                    'bg-amber-950 text-amber-300 ring-amber-800',
-            }
-
-        case 'INACTIVE':
-            return {
-                label:
-                    'Inactive',
-
-                className:
-                    'bg-slate-800 text-slate-400 ring-slate-700',
-            }
-
-        case 'IN_STOCK':
-            return {
-                label:
-                    'In stock',
-
-                className:
-                    'bg-emerald-950 text-emerald-300 ring-emerald-800',
-            }
-
-        case 'LOW_STOCK':
-            return {
-                label:
-                    'Low stock',
-
-                className:
-                    'bg-amber-950 text-amber-300 ring-amber-800',
-            }
-
-        case 'OUT_OF_STOCK':
-            return {
-                label:
-                    'Out of stock',
-
-                className:
-                    'bg-red-950 text-red-300 ring-red-800',
-            }
-    }
 }

@@ -6,10 +6,11 @@ import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import com.shelfradar.backend.exception.InvalidLocationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -22,12 +23,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(
             ResourceNotFoundException.class
     )
-    public ResponseEntity<ApiErrorResponse>
-    handleNotFound(
+    public ResponseEntity<ApiErrorResponse> handleNotFound(
             ResourceNotFoundException exception,
             HttpServletRequest request
     ) {
-
         return buildResponse(
                 HttpStatus.NOT_FOUND,
                 exception.getMessage(),
@@ -40,12 +39,10 @@ public class GlobalExceptionHandler {
             DuplicateResourceException.class,
             ResourceInUseException.class
     })
-    public ResponseEntity<ApiErrorResponse>
-    handleConflict(
+    public ResponseEntity<ApiErrorResponse> handleConflict(
             RuntimeException exception,
             HttpServletRequest request
     ) {
-
         return buildResponse(
                 HttpStatus.CONFLICT,
                 exception.getMessage(),
@@ -57,12 +54,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(
             DataIntegrityViolationException.class
     )
-    public ResponseEntity<ApiErrorResponse>
-    handleDataIntegrityViolation(
+    public ResponseEntity<ApiErrorResponse> handleDataIntegrityViolation(
             DataIntegrityViolationException exception,
             HttpServletRequest request
     ) {
-
         return buildResponse(
                 HttpStatus.CONFLICT,
                 "The operation conflicts with existing data.",
@@ -74,12 +69,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(
             MethodArgumentNotValidException.class
     )
-    public ResponseEntity<ApiErrorResponse>
-    handleValidation(
+    public ResponseEntity<ApiErrorResponse> handleValidation(
             MethodArgumentNotValidException exception,
             HttpServletRequest request
     ) {
-
         Map<String, String> fieldErrors =
                 new LinkedHashMap<>();
 
@@ -108,12 +101,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(
             ConstraintViolationException.class
     )
-    public ResponseEntity<ApiErrorResponse>
-    handleConstraintViolation(
+    public ResponseEntity<ApiErrorResponse> handleConstraintViolation(
             ConstraintViolationException exception,
             HttpServletRequest request
     ) {
-
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
                 "Invalid request parameter.",
@@ -122,14 +113,89 @@ public class GlobalExceptionHandler {
         );
     }
 
-    private ResponseEntity<ApiErrorResponse>
-    buildResponse(
+    @ExceptionHandler(
+            MethodArgumentTypeMismatchException.class
+    )
+    public ResponseEntity<ApiErrorResponse> handleTypeMismatch(
+            MethodArgumentTypeMismatchException exception,
+            HttpServletRequest request
+    ) {
+        return buildResponse(
+                HttpStatus.BAD_REQUEST,
+                "Invalid value for parameter '" +
+                        exception.getName() +
+                        "'.",
+                request,
+                Map.of()
+        );
+    }
+
+    @ExceptionHandler(
+            HttpMessageNotReadableException.class
+    )
+    public ResponseEntity<ApiErrorResponse> handleUnreadableMessage(
+            HttpMessageNotReadableException exception,
+            HttpServletRequest request
+    ) {
+        return buildResponse(
+                HttpStatus.BAD_REQUEST,
+                "Malformed or invalid request body.",
+                request,
+                Map.of()
+        );
+    }
+
+    @ExceptionHandler(
+            InvalidInventoryStateException.class
+    )
+    public ResponseEntity<ApiErrorResponse> handleInvalidInventoryState(
+            InvalidInventoryStateException exception,
+            HttpServletRequest request
+    ) {
+        return buildResponse(
+                HttpStatus.BAD_REQUEST,
+                exception.getMessage(),
+                request,
+                Map.of()
+        );
+    }
+
+    @ExceptionHandler(
+            InvalidLocationException.class
+    )
+    public ResponseEntity<ApiErrorResponse> handleInvalidLocation(
+            InvalidLocationException exception,
+            HttpServletRequest request
+    ) {
+        return buildResponse(
+                HttpStatus.BAD_REQUEST,
+                exception.getMessage(),
+                request,
+                Map.of()
+        );
+    }
+
+    @ExceptionHandler(
+            InvalidCredentialsException.class
+    )
+    public ResponseEntity<ApiErrorResponse> handleInvalidCredentials(
+            InvalidCredentialsException exception,
+            HttpServletRequest request
+    ) {
+        return buildResponse(
+                HttpStatus.UNAUTHORIZED,
+                exception.getMessage(),
+                request,
+                Map.of()
+        );
+    }
+
+    private ResponseEntity<ApiErrorResponse> buildResponse(
             HttpStatus status,
             String message,
             HttpServletRequest request,
             Map<String, String> fieldErrors
     ) {
-
         ApiErrorResponse response =
                 new ApiErrorResponse(
                         Instant.now(),
@@ -143,37 +209,5 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(status)
                 .body(response);
-    }
-
-    @ExceptionHandler(
-            InvalidInventoryStateException.class
-    )
-    public ResponseEntity<ApiErrorResponse>
-    handleInvalidInventoryState(
-            InvalidInventoryStateException exception,
-            HttpServletRequest request
-    ) {
-
-        return buildResponse(
-                HttpStatus.BAD_REQUEST,
-                exception.getMessage(),
-                request,
-                Map.of()
-        );
-    }
-
-    @ExceptionHandler(InvalidLocationException.class)
-    public ResponseEntity<ApiErrorResponse>
-    handleInvalidLocation(
-            InvalidLocationException exception,
-            HttpServletRequest request
-    ) {
-
-        return buildResponse(
-                HttpStatus.BAD_REQUEST,
-                exception.getMessage(),
-                request,
-                Map.of()
-        );
     }
 }

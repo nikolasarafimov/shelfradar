@@ -10,7 +10,6 @@ public class AuditMapper {
     public AuditLogResponse toResponse(
             AuditLog auditLog
     ) {
-
         return new AuditLogResponse(
                 auditLog.getId(),
                 auditLog.getActorUserId(),

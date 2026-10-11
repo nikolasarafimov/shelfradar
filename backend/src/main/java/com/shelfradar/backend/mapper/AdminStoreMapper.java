@@ -32,7 +32,6 @@ public class AdminStoreMapper {
     public AdminOwnerResponse toOwnerResponse(
             AppUser owner
     ) {
-
         return new AdminOwnerResponse(
                 owner.getId(),
                 owner.getFullName(),

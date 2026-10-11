@@ -64,9 +64,9 @@ public interface StoreRepository
     );
 
     @Query("""
-        SELECT DISTINCT s.city
-        FROM Store s
-        ORDER BY s.city ASC
-        """)
+            SELECT DISTINCT s.city
+            FROM Store s
+            ORDER BY s.city ASC
+            """)
     List<String> findDistinctCities();
 }

@@ -1,7 +1,10 @@
 @baseUrl = http://localhost:8080
 
 
-### Admin login
+### ========================================================
+### ADMIN LOGIN
+### Expected: 200
+### ========================================================
 
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
@@ -13,64 +16,160 @@ Content-Type: application/json
 
 > {%
     client.global.set(
-        "admin_token",
+        "admin_stores_token",
         response.body.accessToken
     );
 %}
 
 
-### Dashboard
+### ========================================================
+### ADMIN DASHBOARD
+### Expected: 200
+### ========================================================
 
 GET {{baseUrl}}/api/admin/dashboard
-Authorization: Bearer {{admin_token}}
+Authorization: Bearer {{admin_stores_token}}
+Accept: application/json
 
 
-### All stores
+### ========================================================
+### ALL STORES
+### Expected: 200
+### ========================================================
 
-GET {{baseUrl}}/api/admin/stores?page=0&size=20
-Authorization: Bearer {{admin_token}}
-
-
-### Active stores
-
-GET {{baseUrl}}/api/admin/stores?status=ACTIVE
-Authorization: Bearer {{admin_token}}
+GET {{baseUrl}}/api/admin/stores?page=0&size=20&sort=newest
+Authorization: Bearer {{admin_stores_token}}
+Accept: application/json
 
 
-### Pending stores
+### ========================================================
+### ACTIVE STORES
+### Expected: 200
+### ========================================================
 
-GET {{baseUrl}}/api/admin/stores?status=PENDING
-Authorization: Bearer {{admin_token}}
-
-
-### Search stores / owners
-
-GET {{baseUrl}}/api/admin/stores?q=Market
-Authorization: Bearer {{admin_token}}
+GET {{baseUrl}}/api/admin/stores?status=ACTIVE&page=0&size=20
+Authorization: Bearer {{admin_stores_token}}
+Accept: application/json
 
 
-### Filters
+### ========================================================
+### PENDING STORES
+### Expected: 200
+### ========================================================
+
+GET {{baseUrl}}/api/admin/stores?status=PENDING&page=0&size=20
+Authorization: Bearer {{admin_stores_token}}
+Accept: application/json
+
+
+### ========================================================
+### STORES IN SKOPJE
+### Expected: 200
+### ========================================================
+
+GET {{baseUrl}}/api/admin/stores?city=Skopje&page=0&size=20&sort=nameAsc
+Authorization: Bearer {{admin_stores_token}}
+Accept: application/json
+
+
+### ========================================================
+### SEARCH FOR MARKET CENTER
+### Expected: 200
+### Saves store ID and owner ID for later requests
+### ========================================================
+
+GET {{baseUrl}}/api/admin/stores?q=Market%20Center&page=0&size=20&sort=nameAsc
+Authorization: Bearer {{admin_stores_token}}
+Accept: application/json
+
+> {%
+    const stores =
+        response.body.content || [];
+
+    const marketCenter =
+        stores.find(
+            store =>
+                store.name === "Market Center"
+        );
+
+    if (!marketCenter) {
+        throw new Error(
+            "Market Center was not found."
+        );
+    }
+
+    client.global.set(
+        "admin_test_store_id",
+        marketCenter.id
+    );
+
+    client.global.set(
+        "admin_test_store_owner_id",
+        marketCenter.owner.id
+    );
+%}
+
+
+### ========================================================
+### STORE FILTERS
+### Expected: 200
+### ========================================================
 
 GET {{baseUrl}}/api/admin/stores/filters
-Authorization: Bearer {{admin_token}}
+Authorization: Bearer {{admin_stores_token}}
+Accept: application/json
 
 
-### Store owners
+### ========================================================
+### STORE OWNERS
+### Expected: 200
+### ========================================================
 
 GET {{baseUrl}}/api/admin/store-owners
-Authorization: Bearer {{admin_token}}
+Authorization: Bearer {{admin_stores_token}}
+Accept: application/json
 
 
-### Store detail
+### ========================================================
+### STORE DETAIL
+### Expected: 200
+### ========================================================
 
-GET {{baseUrl}}/api/admin/stores/1
-Authorization: Bearer {{admin_token}}
+GET {{baseUrl}}/api/admin/stores/{{admin_test_store_id}}
+Authorization: Bearer {{admin_stores_token}}
+Accept: application/json
 
 
-### Activate store
+### ========================================================
+### UPDATE STORE
+### Expected: 200
+### Uses the current seeded Market Center profile
+### ========================================================
 
-PATCH {{baseUrl}}/api/admin/stores/1/status
-Authorization: Bearer {{admin_token}}
+PUT {{baseUrl}}/api/admin/stores/{{admin_test_store_id}}
+Authorization: Bearer {{admin_stores_token}}
+Content-Type: application/json
+
+{
+  "name": "Market Center",
+  "address": "Macedonia Square 1",
+  "city": "Skopje",
+  "latitude": 41.998100,
+  "longitude": 21.425400,
+  "phone": "+389 2 555 1001",
+  "workingHours": "Mon-Sun 08:00-22:00",
+  "ownerId": {{admin_test_store_owner_id}}
+}
+
+
+### ========================================================
+### SET STORE STATUS TO ACTIVE
+### Expected: 200
+### Non-destructive for the seeded Market Center
+### ========================================================
+
+PATCH {{baseUrl}}/api/admin/stores/{{admin_test_store_id}}/status
+Authorization: Bearer {{admin_stores_token}}
 Content-Type: application/json
 
 {
@@ -78,7 +177,20 @@ Content-Type: application/json
 }
 
 
-### Store owner must NOT access admin endpoints
+### ========================================================
+### INVALID STORE ID
+### Expected: 400
+### ========================================================
+
+GET {{baseUrl}}/api/admin/stores/0
+Authorization: Bearer {{admin_stores_token}}
+Accept: application/json
+
+
+### ========================================================
+### STORE OWNER LOGIN
+### Expected: 200
+### ========================================================
 
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
@@ -90,13 +202,26 @@ Content-Type: application/json
 
 > {%
     client.global.set(
-        "owner_token",
+        "admin_stores_owner_token",
         response.body.accessToken
     );
 %}
 
 
-### Expected 403
+### ========================================================
+### STORE OWNER TRIES ADMIN DASHBOARD
+### Expected: 403
+### ========================================================
 
 GET {{baseUrl}}/api/admin/dashboard
-Authorization: Bearer {{owner_token}}
+Authorization: Bearer {{admin_stores_owner_token}}
+Accept: application/json
+
+
+### ========================================================
+### ADMIN RESOURCE WITHOUT TOKEN
+### Expected: 401
+### ========================================================
+
+GET {{baseUrl}}/api/admin/dashboard
+Accept: application/json

@@ -1,7 +1,17 @@
 node_modules
 dist
+coverage
+
 .idea
 *.iml
+
+.env
+.env.*
+!.env.example
+
+*.log
+npm-debug.log*
+
 .git
 .gitignore
 README.md
