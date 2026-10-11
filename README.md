@@ -1,10 +1,16 @@
 # ShelfRadar
 
+[![CI](https://github.com/nikolasarafimov/shelfradar/actions/workflows/ci.yml/badge.svg)](https://github.com/nikolasarafimov/shelfradar/actions/workflows/ci.yml)
+
 **Find it nearby. Compare it clearly. Know before you go.**
 
 ShelfRadar is a full-stack product discovery and inventory management platform for finding products in nearby stores, comparing prices, checking stock availability, and exploring store locations on an interactive map.
 
 The application combines a public search experience with dedicated management interfaces for store owners and administrators.
+
+<p align="center">
+  <img src="docs/screenshots/home.png" alt="ShelfRadar home page" width="100%">
+</p>
 
 ---
 
@@ -67,6 +73,39 @@ Authenticated users with the `ADMIN` role can:
 
 ---
 
+## Screenshots
+
+<table>
+  <tr>
+    <td width="50%">
+      <strong>Public Product Search</strong><br><br>
+      <img src="docs/screenshots/public-search.png" alt="ShelfRadar public product search">
+    </td>
+    <td width="50%">
+      <strong>Product Details and Store Offers</strong><br><br>
+      <img src="docs/screenshots/public-product.png" alt="ShelfRadar product details">
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <strong>Store Owner Dashboard</strong><br><br>
+      <img src="docs/screenshots/store-dashboard.png" alt="ShelfRadar store owner dashboard">
+    </td>
+    <td width="50%">
+      <strong>Administrator Dashboard</strong><br><br>
+      <img src="docs/screenshots/admin-dashboard.png" alt="ShelfRadar administrator dashboard">
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      <strong>Catalog Management</strong><br><br>
+      <img src="docs/screenshots/admin-catalog.png" alt="ShelfRadar catalog management">
+    </td>
+  </tr>
+</table>
+
+---
+
 ## Technology Stack
 
 ### Backend
@@ -107,6 +146,7 @@ Authenticated users with the `ADMIN` role can:
 - Docker
 - Docker Compose
 - Nginx
+- GitHub Actions
 - PostgreSQL
 - PostGIS
 
@@ -154,6 +194,10 @@ The frontend is separated into public, store-owner, and administrator experience
 
 ```text
 shelfradar/
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+│
 ├── backend/
 │   ├── src/
 │   │   ├── main/
@@ -173,6 +217,15 @@ shelfradar/
 │   │   └── test/
 │   ├── Dockerfile
 │   └── pom.xml
+│
+├── docs/
+│   └── screenshots/
+│       ├── admin-catalog.png
+│       ├── admin-dashboard.png
+│       ├── home.png
+│       ├── public-product.png
+│       ├── public-search.png
+│       └── store-dashboard.png
 │
 ├── frontend/
 │   ├── src/
@@ -618,7 +671,7 @@ The frontend is a React single-page application with separate experiences for pu
 The UI includes:
 
 - Responsive desktop and mobile layouts
-- Dark premium visual design
+- Dark visual design
 - Search and filter interfaces
 - Interactive maps
 - Dashboard metrics
@@ -664,7 +717,7 @@ Install:
 - Docker
 - Docker Compose
 
-### 1. Configure the environment
+### 1. Configure the Environment
 
 Create a local `.env` file from the provided template.
 
@@ -704,7 +757,7 @@ Spring Boot backend
 React/Nginx frontend
 ```
 
-### 3. Open the application
+### 3. Open the Application
 
 Frontend:
 
@@ -923,32 +976,20 @@ The collection covers authentication, authorization, catalog CRUD, inventory man
 
 ### Backend
 
-Run backend tests:
+Run backend tests and the complete Maven verification lifecycle.
 
 Windows:
 
 ```powershell
 cd backend
-.\mvnw.cmd clean test
+.\mvnw.cmd clean verify
 ```
 
 Linux/macOS:
 
 ```bash
 cd backend
-./mvnw clean test
-```
-
-Build the application:
-
-```powershell
-.\mvnw.cmd clean package
-```
-
-or:
-
-```bash
-./mvnw clean package
+./mvnw clean verify
 ```
 
 ### Frontend
@@ -965,7 +1006,7 @@ The frontend verification command runs:
 ```text
 ESLint
 Vitest
-TypeScript build
+TypeScript compilation
 Vite production build
 ```
 
@@ -982,6 +1023,7 @@ npm run build
 From the project root:
 
 ```bash
+docker compose config
 docker compose build
 docker compose up
 ```
@@ -992,6 +1034,49 @@ Then verify:
 http://localhost:3000
 http://localhost:8080/api/health
 ```
+
+---
+
+## Continuous Integration
+
+ShelfRadar uses GitHub Actions for continuous integration.
+
+The CI workflow runs automatically on:
+
+```text
+Pushes to main
+Pull requests targeting main
+Manual workflow dispatch
+```
+
+The workflow contains three jobs:
+
+### Backend
+
+```text
+Java 21
+Maven dependency cache
+./mvnw -B clean verify
+```
+
+### Frontend
+
+```text
+Node.js 22
+npm ci
+npm run check
+```
+
+### Docker
+
+Runs after the backend and frontend jobs succeed:
+
+```text
+docker compose config
+docker compose build
+```
+
+The CI badge at the top of this README reflects the current workflow status on the `main` branch.
 
 ---
 
@@ -1014,6 +1099,49 @@ ShelfRadar includes:
 - Protected store-owner endpoints
 
 Frontend route protection is provided for user experience, but authorization decisions remain enforced by the backend.
+
+---
+
+## Store Ownership Protection
+
+A store owner cannot access another owner's store by changing a URL or resource ID.
+
+Backend services verify ownership using the authenticated user's identity before allowing:
+
+- Store access
+- Store updates
+- Inventory reads
+- Inventory creation
+- Inventory updates
+- Inventory deletion
+- Dashboard access
+- Activity access
+
+---
+
+## Inventory Consistency
+
+ShelfRadar maintains consistency between inventory quantity and stock status.
+
+For example:
+
+```text
+quantity = 0
+```
+
+requires:
+
+```text
+OUT_OF_STOCK
+```
+
+while a positive quantity cannot use:
+
+```text
+OUT_OF_STOCK
+```
+
+These rules are validated before persistence, with database constraints providing additional integrity protection.
 
 ---
 
@@ -1067,6 +1195,9 @@ Flyway owns database evolution while Hibernate validates the resulting schema.
 **Reproducible local environment**  
 Docker Compose provides the same database, backend, and frontend topology with one command.
 
+**Continuous verification**  
+GitHub Actions verifies the backend, frontend, and Docker build on changes to the main development branch.
+
 **Responsive user experience**  
 The frontend supports desktop and mobile layouts, interactive maps, meaningful application states, and reduced-motion preferences.
 
@@ -1085,7 +1216,7 @@ Before a production deployment:
 - Configure monitoring and logging
 - Review CORS requirements when frontend and API use different origins
 - Verify Flyway migrations
-- Run backend tests
+- Run backend verification
 - Run frontend verification
 - Build all Docker images
 - Perform end-to-end smoke testing
@@ -1101,3 +1232,9 @@ No open-source license is currently included with this repository.
 ## ShelfRadar
 
 **Find it nearby. Compare it clearly. Know before you go.**
+
+---
+
+## Author
+
+Nikola Sarafimov
