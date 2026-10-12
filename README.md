@@ -1,6 +1,7 @@
 # ShelfRadar
 
 [![CI](https://github.com/nikolasarafimov/shelfradar/actions/workflows/ci.yml/badge.svg)](https://github.com/nikolasarafimov/shelfradar/actions/workflows/ci.yml)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-ShelfRadar-2ea44f)](https://shelfradar-yrw2.onrender.com)
 
 **Find it nearby. Compare it clearly. Know before you go.**
 
@@ -8,9 +9,41 @@ ShelfRadar is a full-stack product discovery and inventory management platform f
 
 The application combines a public search experience with dedicated management interfaces for store owners and administrators.
 
+**Live application:** [https://shelfradar-yrw2.onrender.com](https://shelfradar-yrw2.onrender.com)
+
 <p align="center">
   <img src="docs/screenshots/home.png" alt="ShelfRadar home page" width="100%">
 </p>
+
+---
+
+## Live Deployment
+
+ShelfRadar is deployed as a complete cloud-hosted application.
+
+| Component | Service |
+| --- | --- |
+| Frontend | Render Static Site |
+| Backend | Render Web Service |
+| Database | Neon PostgreSQL + PostGIS |
+
+Live frontend:
+
+```text
+https://shelfradar-yrw2.onrender.com
+```
+
+Backend health endpoint:
+
+```text
+https://shelfradar-api.onrender.com/api/health
+```
+
+The frontend uses Render rewrite rules to proxy `/api/*` requests to the backend while preserving client-side React Router navigation.
+
+The backend connects to a managed Neon PostgreSQL database with PostGIS enabled. Flyway manages database schema migrations during application startup.
+
+> The backend currently runs on Render's free service tier, so the first request after a period of inactivity may take longer while the service starts.
 
 ---
 
@@ -120,7 +153,7 @@ Authenticated users with the `ADMIN` role can:
 - Hibernate
 - Jakarta Validation
 - Flyway
-- PostgreSQL 16
+- PostgreSQL
 - PostGIS
 - Maven
 
@@ -147,6 +180,8 @@ Authenticated users with the `ADMIN` role can:
 - Docker Compose
 - Nginx
 - GitHub Actions
+- Render
+- Neon
 - PostgreSQL
 - PostGIS
 
@@ -164,7 +199,7 @@ React SPA
    |
    | HTTP / JSON
    v
-Nginx
+Nginx / Cloud Hosting
    |
    | /api/*
    v
@@ -388,20 +423,20 @@ ShelfRadar uses stateless JWT authentication.
 
 ```text
 Email + Password
-      |
-      v
+     |
+     v
 Spring AuthenticationManager
-      |
-      v
+     |
+     v
 JWT issued by backend
-      |
-      v
+     |
+     v
 Frontend stores the token in sessionStorage
-      |
-      v
+     |
+     v
 Authorization: Bearer <token>
-      |
-      v
+     |
+     v
 Spring Security validates the JWT
 ```
 
@@ -708,7 +743,7 @@ ShelfRadar supports:
 
 ## Docker Compose
 
-Docker Compose is the recommended way to run the complete application.
+Docker Compose is the recommended way to run the complete application locally.
 
 ### Requirements
 
@@ -791,7 +826,7 @@ shelfradar-backend
 shelfradar-frontend
 ```
 
-The database uses:
+The local database uses:
 
 ```text
 postgis/postgis:16-3.4
@@ -823,7 +858,7 @@ The second command removes the database volume and should only be used when a fu
 
 ### Database
 
-When running outside Docker, PostgreSQL 16 with PostGIS must be available.
+When running outside Docker, PostgreSQL with PostGIS must be available.
 
 Default development settings:
 
@@ -905,15 +940,27 @@ The root `.env` file provides:
 JWT_SECRET
 ```
 
-Docker Compose maps it to:
-
-```text
-SECURITY_JWT_SECRET
-```
+Docker Compose maps database and JWT configuration to Spring Boot environment properties.
 
 ### Spring Boot
 
-Backend configuration can also be supplied directly with:
+ShelfRadar supports application configuration through environment variables.
+
+The primary deployment variables are:
+
+```text
+DB_URL
+DB_USERNAME
+DB_PASSWORD
+
+SERVER_PORT
+
+JWT_ISSUER
+JWT_EXPIRATION_MINUTES
+JWT_SECRET
+```
+
+Spring Boot environment-property overrides such as the following can also be used:
 
 ```text
 SPRING_DATASOURCE_URL
@@ -927,11 +974,13 @@ SECURITY_JWT_SECRET
 
 Production deployments must use separate, strong credentials and secrets.
 
+Secrets must never be committed to the repository.
+
 ---
 
-## Development Accounts
+## Demo Accounts
 
-The development seed data includes local demonstration accounts used by the HTTP request collection.
+ShelfRadar includes seeded demonstration accounts for testing the protected store-owner and administrator experiences.
 
 ### Administrator
 
@@ -947,7 +996,9 @@ Email:    marko@shelfradar.local
 Password: Store123!
 ```
 
-These credentials are development-only and must not be reused in production.
+These credentials are intended only for ShelfRadar demonstration data and must never be reused for real accounts or external services.
+
+The live portfolio deployment uses a shared demo database, so actions performed through administrative or store-owner interfaces may modify the demonstration state.
 
 ---
 
@@ -1203,23 +1254,42 @@ The frontend supports desktop and mobile layouts, interactive maps, meaningful a
 
 ---
 
-## Production Considerations
+## Deployment
 
-Before a production deployment:
+The current portfolio deployment uses:
 
-- Replace all development credentials
-- Generate a strong JWT secret
-- Configure secure database credentials
-- Use HTTPS
-- Configure production DNS
-- Configure backups
-- Configure monitoring and logging
-- Review CORS requirements when frontend and API use different origins
-- Verify Flyway migrations
-- Run backend verification
-- Run frontend verification
-- Build all Docker images
-- Perform end-to-end smoke testing
+```text
+Frontend: Render Static Site
+Backend:  Render Web Service
+Database: Neon PostgreSQL + PostGIS
+```
+
+The backend uses environment-based database and JWT configuration, while Flyway automatically applies versioned schema migrations.
+
+The deployment has been smoke-tested for:
+
+- Public product search
+- Database connectivity
+- PostGIS availability
+- Administrator authentication
+- Store-owner authentication
+- Protected API routes
+- Frontend-to-backend API proxying
+- React Router page refreshes
+
+For a production-grade deployment beyond the shared portfolio demo, additional operational considerations would include:
+
+- Dedicated production user accounts
+- Removal or restriction of shared demo credentials
+- Automated database backups
+- Monitoring and alerting
+- Centralized application logging
+- Custom production DNS
+- Custom domains
+- Explicit CORS configuration if frontend and API origins are separated
+- Rate limiting where appropriate
+- Long-term secret rotation
+- Production-capacity hosting without free-tier cold starts
 
 ---
 
